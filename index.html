@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>차경(借景) 3D — 한국 명승 산사 풍경 멍</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Three.js WebGL Engine (Zero-install CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <main class="app-stage" id="app-stage">
+    <!-- 1. Fullscreen Real-Time 3D WebGL Viewport -->
+    <div id="webgl-container" aria-label="3D 산사 차경 조망 화면"></div>
+    <div class="cinematic-vignette"></div>
+
+    <!-- 2. 3D Object Hover Tooltip -->
+    <div class="lantern-3d-tooltip" id="lantern-3d-tooltip"></div>
+
+    <!-- 3. Subtle 3D Camera Interaction Guide -->
+    <div class="camera-hint-pill" id="camera-hint-pill">
+      🖱️ 마우스 드래그로 시선 회전 · 휠로 원근 조절 · 3D 연등과 처마 끝 풍경종을 클릭해 보세요
+    </div>
+
+    <!-- 4. Breathing Meditation Guide (숨 고르기) -->
+    <div class="breathing-guide" id="breathing-guide">
+      <div class="breath-orb"></div>
+      <div class="breath-text" id="breath-text">깊게 들이마시며 산사의 바람을 느낍니다...</div>
+    </div>
+
+    <!-- 5. Top Floating HUD Bar -->
+    <header class="top-bar hud-chrome">
+      <div class="brand-cluster">
+        <div class="brand-eyebrow">
+          <span class="dot"></span>
+          <span id="space-eyebrow">차경(借景) 3D 제1경 · 경북 영주 봉황산</span>
+        </div>
+        <h1 class="space-title" id="space-title">부석사 무량수전 앞마당</h1>
+        <p class="space-caption" id="space-caption">
+          배흘림기둥과 서까래 처마 밑, 안양루·석등 너머로 겹겹이 펼쳐지는 3D 소백산맥 능선과 운해
+        </p>
+      </div>
+
+      <div class="top-controls">
+        <!-- Time of Day Selector -->
+        <div class="glass-pill" role="group" aria-label="시간대 선택">
+          <button class="pill-btn" data-time-btn="dawn" type="button">🌅 새벽 운해</button>
+          <button class="pill-btn active" data-time-btn="sunset" type="button">🌇 석양 노을</button>
+          <button class="pill-btn" data-time-btn="night" type="button">🌌 별 헤는 밤</button>
+        </div>
+
+        <!-- Season Foliage Selector -->
+        <div class="glass-pill" role="group" aria-label="계절 바람 선택">
+          <button class="pill-btn active" data-foliage-btn="autumn" type="button">🍁 가을 단풍</button>
+          <button class="pill-btn" data-foliage-btn="spring" type="button">🌸 봄 꽃잎</button>
+        </div>
+
+        <!-- 3D Camera Angle Preset Selector -->
+        <div class="glass-pill" role="group" aria-label="3D 카메라 시점">
+          <button class="pill-btn active" data-cam-btn="default" type="button">기본 차경</button>
+          <button class="pill-btn" data-cam-btn="closeup" type="button">처마·다리 가까이</button>
+          <button class="pill-btn" data-cam-btn="wide" type="button">파노라마</button>
+        </div>
+
+        <!-- Soundscape Toggle & Mixer Trigger -->
+        <button class="icon-btn" id="audio-toggle-btn" type="button" aria-expanded="false">
+          <span class="sound-wave-indicator" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span id="audio-btn-label">산사 소리 켜기</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 6. Soundscape Mixer Popover -->
+    <aside class="sound-mixer-panel hud-chrome" id="sound-mixer-panel" aria-label="자연의 소리 믹서">
+      <div class="mixer-header">
+        <span class="mixer-title">산사 입체 음향 조율</span>
+        <button class="card-close-btn" id="close-mixer-btn" type="button" aria-label="소리 설정 닫기">✕</button>
+      </div>
+      <p class="mixer-subtitle">공간에 따라 청동 풍경종과 계곡 물소리가 자연스럽게 어우러집니다.</p>
+
+      <div class="mixer-row">
+        <div class="mixer-label-line">
+          <span>처마 끝 풍경종 (風磬)</span>
+          <span class="mixer-val" id="val-bell">75%</span>
+        </div>
+        <input class="mixer-slider" id="slider-bell" type="range" min="0" max="100" value="75" />
+      </div>
+
+      <div class="mixer-row">
+        <div class="mixer-label-line">
+          <span>선암사 계곡 물소리</span>
+          <span class="mixer-val" id="val-water">65%</span>
+        </div>
+        <input class="mixer-slider" id="slider-water" type="range" min="0" max="100" value="65" />
+      </div>
+
+      <div class="mixer-row">
+        <div class="mixer-label-line">
+          <span>능선 산바람과 풀벌레</span>
+          <span class="mixer-val" id="val-wind">55%</span>
+        </div>
+        <input class="mixer-slider" id="slider-wind" type="range" min="0" max="100" value="55" />
+      </div>
+
+      <button class="mixer-strike-btn" id="manual-bell-btn" type="button">
+        🔔 지금 3D 풍경종 울리기
+      </button>
+    </aside>
+
+    <!-- 7. Wish Lantern Reader Card (합장 모달) -->
+    <article class="wish-reader-card" id="wish-reader-card" aria-live="polite">
+      <button class="card-close-btn" id="close-reader-btn" type="button" aria-label="연등 카드 닫기">✕</button>
+      <div class="wish-card-header">
+        <span class="wish-location-badge" id="reader-location">부석사 처마 밑</span>
+        <span class="wish-category-badge" id="reader-tag">마음 평안</span>
+      </div>
+      <blockquote class="wish-card-body" id="reader-text">
+        소백산 능선에 내려앉은 노을처럼, 오늘 하루 애쓴 당신의 마음도 고요히 쉬어가기를 바랍니다.
+      </blockquote>
+      <div class="wish-card-meta">
+        <span id="reader-author">익명의 순례자</span>
+        <span class="wish-meta-time" id="reader-date">2026.11.02</span>
+      </div>
+      <div class="wish-card-actions">
+        <button class="wish-nav-btn" id="prev-wish-btn" type="button" title="이전 연등으로 이동" aria-label="이전 연등">‹</button>
+        <button class="hapjang-btn" id="hapjang-btn" type="button">
+          <span>🙏 합장 (마음 보태기)</span>
+          <span class="hapjang-count" id="reader-hapjang-count">42</span>
+        </button>
+        <button class="wish-nav-btn" id="next-wish-btn" type="button" title="다음 연등으로 이동" aria-label="다음 연등">›</button>
+      </div>
+    </article>
+
+    <!-- 8. Write Wish Lantern Modal (소원 연등 적어 달기) -->
+    <div class="modal-backdrop" id="write-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="write-modal-title">
+      <div class="write-lantern-modal">
+        <button class="card-close-btn" id="close-write-modal-btn" type="button" aria-label="닫기">✕</button>
+        <h2 class="write-modal-title" id="write-modal-title">3D 소원 연등 달기</h2>
+        <p class="write-modal-desc" id="write-modal-desc">
+          처마 밑 서까래와 돌담길에 작은 3D 등불 하나를 밝혀 마음을 남겨보세요.
+        </p>
+
+        <form id="write-lantern-form">
+          <div class="form-group">
+            <label class="form-label">한지 연등 빛깔</label>
+            <div class="color-picker-row" id="lantern-color-picker">
+              <button type="button" class="color-option selected" data-color="amber">
+                <span class="color-swatch swatch-amber"></span>
+                <span>치자빛</span>
+              </button>
+              <button type="button" class="color-option" data-color="lotus">
+                <span class="color-swatch swatch-lotus"></span>
+                <span>연분홍</span>
+              </button>
+              <button type="button" class="color-option" data-color="jade">
+                <span class="color-swatch swatch-jade"></span>
+                <span>옥빛</span>
+              </button>
+              <button type="button" class="color-option" data-color="moon">
+                <span class="color-swatch swatch-moon"></span>
+                <span>달빛 한지</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <label for="wish-input">소원 글귀</label>
+              <span id="char-counter">0 / 90자</span>
+            </div>
+            <textarea
+              id="wish-input"
+              class="hanji-textarea"
+              maxlength="90"
+              placeholder="마음속에 품은 소망이나 다정한 안부를 적어주세요..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group hanji-input-row">
+            <div>
+              <label class="form-label" for="wish-author">이름 / 호 (선택)</label>
+              <input
+                id="wish-author"
+                class="hanji-input"
+                type="text"
+                maxlength="14"
+                placeholder="산사 나그네"
+              />
+            </div>
+            <div>
+              <label class="form-label" for="wish-tag">소원 갈래</label>
+              <select id="wish-tag" class="hanji-select">
+                <option value="마음 평안">마음 평안</option>
+                <option value="가족 건강">가족 건강</option>
+                <option value="소망 성취">소망 성취</option>
+                <option value="인연과 사랑">인연과 사랑</option>
+                <option value="오늘의 감사">오늘의 감사</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-lantern-btn">
+            🏮 이 3D 공간에 연등 걸기
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 9. Bottom Floating Navigation Dock -->
+    <nav class="bottom-dock hud-chrome" aria-label="공간 및 기능 탐색">
+      <div class="space-switcher" role="tablist">
+        <button
+          class="space-tab active"
+          id="tab-buseoksa"
+          data-space-target="buseoksa"
+          role="tab"
+          aria-selected="true"
+          type="button"
+        >
+          <span>영주 부석사 무량수전</span>
+          <span class="space-tab-badge" id="count-buseoksa">6</span>
+        </button>
+        <button
+          class="space-tab"
+          id="tab-seonamsa"
+          data-space-target="seonamsa"
+          role="tab"
+          aria-selected="false"
+          type="button"
+        >
+          <span>순천 선암사 승선교</span>
+          <span class="space-tab-badge" id="count-seonamsa">6</span>
+        </button>
+      </div>
+
+      <div class="dock-divider"></div>
+
+      <button class="cta-lantern-btn" id="open-write-modal-btn" type="button">
+        <span>🏮 소원 연등 달기</span>
+      </button>
+
+      <button class="dock-action-btn" id="ring-bell-dock-btn" type="button" title="처마 끝 풍경종 울리기">
+        <span>🔔 풍경종 울리기</span>
+      </button>
+
+      <button class="dock-action-btn" id="breath-toggle-btn" type="button" title="호흡 명상 가이드">
+        <span>🌬️ 숨 고르기</span>
+      </button>
+
+      <button class="dock-action-btn" id="zen-mode-btn" type="button" title="UI 숨기기 (단축키: Space)">
+        <span>👁️ 풍경멍 모드</span>
+      </button>
+    </nav>
+
+    <!-- 10. Zen Mode Restore Pill -->
+    <button class="zen-restore-pill" id="zen-restore-btn" type="button">
+      <span>✨ 화면 제어 보이기 (Esc / Space)</span>
+    </button>
+
+    <!-- 11. Toast Feedback Banner -->
+    <div class="toast-banner" id="toast-banner" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
