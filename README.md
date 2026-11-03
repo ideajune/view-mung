@@ -14,6 +14,17 @@
 
 ---
 
+## 📋 2026-11-03 작업 및 대화 요약 (Context Handoff)
+
+- **3차 전면 업그레이드 (`SANSA_CORE` Three.js `r180` 실사 3D 엔진 이식)**:
+  - `sansatemple.com`과 100% 동일한 Three.js `r180` + `PE` (`buildSanctuary`) 사찰·정원·연꽃연못·소나무숲 빌더 엔진을 `sansa-core.js`로 통합
+  - 원본 실사 에셋 전체(`assets/environment/woodland.jpg` 360° 파노라마, `assets/models/` 삼존불·소나무 `.glb`, `assets/materials/` 7종 실사 PBR `color`/`normal`/`roughness` 텍스처) 로컬 내장
+  - **공간 1 (영주 부석사 무량수전 앞마당)** & **공간 2 (순천 선암사 승선교·연꽃 연못)** 카메라 시점, 시간대별(`새벽 안개` / `노을 차경` / `산사 밤하늘`) 조명·안개 전환, 3D 소원 연등·합장 파티클(빌보드 메쉬), 3D 청동 풍경종 및 Web Audio 사운드 엔진 연동
+  - 사용자 촬영 부석사 원경 사진 화면 드래그 앤 드롭 즉시 반영 기능(`window.applyCustomBuseoksaPhoto`) 및 모바일 핀치 줌·세로 화면 자동 화각 보정 반응형 UI 구현
+  - 전체 대화 및 개발 기록 문서: [`오늘_대화내용_2026-11-03.doc`](./오늘_대화내용_2026-11-03.doc)
+
+---
+
 ## 📋 2026-11-02 작업 및 대화 요약 (Context Handoff)
 
 ### 1. 기획 요구사항

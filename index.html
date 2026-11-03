@@ -2,11 +2,15 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#07090D" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>차경(借景) 3D — 한국 명승 산사 풍경 멍</title>
-  <link rel="stylesheet" href="styles.css" />
-  <!-- Three.js WebGL Engine (Zero-install CDN) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="stylesheet" href="styles.css?v=20261103-v2" />
+  <!-- Three.js r180 + Photorealistic Sanctuary & Mountain Garden Core Engine -->
+  <script src="sansa-core.js?v=20261103-v2"></script>
 </head>
 <body>
   <main class="app-stage" id="app-stage">
@@ -19,7 +23,7 @@
 
     <!-- 3. Subtle 3D Camera Interaction Guide -->
     <div class="camera-hint-pill" id="camera-hint-pill">
-      🖱️ 마우스 드래그로 시선 회전 · 휠로 원근 조절 · 3D 연등과 처마 끝 풍경종을 클릭해 보세요
+      🖱️ 드래그/터치로 시선 회전 · 휠/두 손가락으로 원근 조절 · 3D 연등과 처마 끝 풍경종을 눌러보세요
     </div>
 
     <!-- 4. Breathing Meditation Guide (숨 고르기) -->
@@ -37,15 +41,15 @@
         </div>
         <h1 class="space-title" id="space-title">부석사 무량수전 앞마당</h1>
         <p class="space-caption" id="space-caption">
-          배흘림기둥과 서까래 처마 밑, 안양루·석등 너머로 겹겹이 펼쳐지는 3D 소백산맥 능선과 운해
+          배흘림기둥과 서까래 처마 밑, 석등과 소나무 숲 너머로 펼쳐지는 실사 산악 능선과 산사 마당
         </p>
       </div>
 
       <div class="top-controls">
         <!-- Time of Day Selector -->
         <div class="glass-pill" role="group" aria-label="시간대 선택">
-          <button class="pill-btn" data-time-btn="dawn" type="button">🌅 새벽 운해</button>
-          <button class="pill-btn active" data-time-btn="sunset" type="button">🌇 석양 노을</button>
+          <button class="pill-btn active" data-time-btn="dawn" type="button">🌅 산사 아침</button>
+          <button class="pill-btn" data-time-btn="sunset" type="button">🌇 석양 노을</button>
           <button class="pill-btn" data-time-btn="night" type="button">🌌 별 헤는 밤</button>
         </div>
 
@@ -58,8 +62,8 @@
         <!-- 3D Camera Angle Preset Selector -->
         <div class="glass-pill" role="group" aria-label="3D 카메라 시점">
           <button class="pill-btn active" data-cam-btn="default" type="button">기본 차경</button>
-          <button class="pill-btn" data-cam-btn="closeup" type="button">처마·다리 가까이</button>
-          <button class="pill-btn" data-cam-btn="wide" type="button">파노라마</button>
+          <button class="pill-btn" data-cam-btn="closeup" type="button">처마·법당 가까이</button>
+          <button class="pill-btn" data-cam-btn="wide" type="button">산사 파노라마</button>
         </div>
 
         <!-- Soundscape Toggle & Mixer Trigger -->
@@ -90,7 +94,7 @@
 
       <div class="mixer-row">
         <div class="mixer-label-line">
-          <span>선암사 계곡 물소리</span>
+          <span>선암사 계곡·연못 물소리</span>
           <span class="mixer-val" id="val-water">65%</span>
         </div>
         <input class="mixer-slider" id="slider-water" type="range" min="0" max="100" value="65" />
@@ -121,7 +125,7 @@
       </blockquote>
       <div class="wish-card-meta">
         <span id="reader-author">익명의 순례자</span>
-        <span class="wish-meta-time" id="reader-date">2026.11.02</span>
+        <span class="wish-meta-time" id="reader-date">2026.11.03</span>
       </div>
       <div class="wish-card-actions">
         <button class="wish-nav-btn" id="prev-wish-btn" type="button" title="이전 연등으로 이동" aria-label="이전 연등">‹</button>
@@ -231,7 +235,7 @@
           aria-selected="false"
           type="button"
         >
-          <span>순천 선암사 승선교</span>
+          <span>순천 선암사 승선교·연못</span>
           <span class="space-tab-badge" id="count-seonamsa">6</span>
         </button>
       </div>
@@ -264,6 +268,6 @@
     <div class="toast-banner" id="toast-banner" role="status" aria-live="polite"></div>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20261103-v2"></script>
 </body>
 </html>

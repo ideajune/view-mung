@@ -1,8 +1,11 @@
 /**
- * 차경(借景) 3D — 한국 명승 산사 풍경 멍 프로토타입 (Three.js Real-Time WebGL Engine)
- * - 공간 1: 영주 부석사 무량수전 앞마당 (3D 배흘림기둥·서까래 처마, 안양루, 석등, 소백산맥 7중 능선과 운해, 3D 청동 풍경종)
- * - 공간 2: 순천 선암사 승선교 (3D 홍예석 아치 돌다리, 실시간 셰이더 계곡물과 반영, 강선루, 단풍/꽃잎 숲과 돌담길)
+ * 차경(借景) 3D — 한국 명승 산사 풍경 멍 (Powered by SANSA_CORE Three.js r180 Engine)
+ * - sansatemple.com 100% 동일 3D 코어 엔진(PE Sanctuary + Garden + Pine Woodland + Lotus Pond + PBR + Woodland Panorama) 구동
+ * - 공간 1 (영주 부석사 무량수전 앞마당) & 공간 2 (순천 선암사 승선교·연꽃 연못)
+ * - 실시간 시간대 전환 (산사 아침 / 석양 노을 / 별 헤는 밤), 계절 꽃잎·단풍잎, 3D 소원 연등 & 합장, 3D 청동 풍경종, 모바일 핀치 줌 반응형
  */
+
+const C_ENGINE = window.SANSA_CORE;
 
 const STORAGE_KEY = 'chakyeong_3d_wishes_v2';
 const HAPJANG_STORAGE_KEY = 'chakyeong_3d_hapjang_v2';
@@ -11,80 +14,22 @@ const SPACE_META = {
   buseoksa: {
     eyebrow: '차경(借景) 3D 제1경 · 경북 영주 봉황산',
     title: '부석사 무량수전 앞마당',
-    caption: '배흘림기둥과 서까래 처마 밑, 안양루·석등 너머로 겹겹이 펼쳐지는 3D 소백산맥 능선과 운해',
-    locationBadge: '부석사 처마 밑',
-    writeDesc: '무량수전 처마 밑 서까래에 3D 연등을 매달아 소백산 바람에 소원을 실어 보냅니다.',
+    caption: '배흘림기둥과 서까래 처마 밑, 석등과 소나무 숲 너머로 펼쳐지는 실사 산악 능선과 산사 마당',
+    locationBadge: '무량수전 처마·마당',
+    writeDesc: '전통 목조 법당 처마 밑과 산사 마당에 3D 연등을 매달아 산바람에 소원을 실어 보냅니다.',
     defaultBellMix: 80,
     defaultWaterMix: 20,
     defaultWindMix: 65
   },
   seonamsa: {
     eyebrow: '차경(借景) 3D 제2경 · 전남 순천 조계산',
-    title: '순천 선암사 승선교',
-    caption: '3D 무지개 돌다리(승선교) 아래 흐르는 맑은 계곡물과 바람에 흩날리는 꽃잎·단풍잎의 여운',
-    locationBadge: '선암사 돌담길',
-    writeDesc: '승선교 돌담길과 계곡 위 연등줄에 3D 연등을 걸어 흐르는 물결에 마음을 비춥니다.',
+    title: '순천 선암사 승선교·연못',
+    caption: '무지개 돌다리(승선교)와 연꽃 연못의 수면 반영, 바람에 흩날리는 꽃잎·단풍잎의 여운',
+    locationBadge: '승선교 연못 산책길',
+    writeDesc: '승선교 돌다리와 연꽃 연못 산책길에 3D 연등을 걸어 고요한 수면 위에 마음을 비춥니다.',
     defaultBellMix: 45,
     defaultWaterMix: 85,
     defaultWindMix: 55
-  }
-};
-
-// Palette presets for Dawn (새벽 운해), Sunset (석양 노을), Night (별 헤는 밤)
-const TIME_PALETTES = {
-  dawn: {
-    skyTop: new THREE.Color('#0E1B2E'),
-    skyMid: new THREE.Color('#385675'),
-    skyHorizon: new THREE.Color('#D8C8B0'),
-    sunColor: new THREE.Color('#FFF8E7'),
-    fogColor: new THREE.Color('#6E8296'),
-    fogDensity: 0.0095,
-    ambientColor: new THREE.Color('#7B96B8'),
-    ambientIntensity: 0.72,
-    dirColor: new THREE.Color('#FFE8C2'),
-    dirIntensity: 1.15,
-    sunPos: new THREE.Vector3(-28, 14, -120),
-    cloudColor: new THREE.Color('#EAE4DC'),
-    cloudOpacity: 0.78,
-    starOpacity: 0.15,
-    waterDeep: new THREE.Color('#142636'),
-    waterShallow: new THREE.Color('#3B5C73')
-  },
-  sunset: {
-    skyTop: new THREE.Color('#120E24'),
-    skyMid: new THREE.Color('#6B2D46'),
-    skyHorizon: new THREE.Color('#F27D3B'),
-    sunColor: new THREE.Color('#FFF0C2'),
-    fogColor: new THREE.Color('#5E2D3E'),
-    fogDensity: 0.0082,
-    ambientColor: new THREE.Color('#9E5A63'),
-    ambientIntensity: 0.68,
-    dirColor: new THREE.Color('#FF944D'),
-    dirIntensity: 1.45,
-    sunPos: new THREE.Vector3(16, 9.5, -120),
-    cloudColor: new THREE.Color('#F5A26F'),
-    cloudOpacity: 0.52,
-    starOpacity: 0.22,
-    waterDeep: new THREE.Color('#1F1224'),
-    waterShallow: new THREE.Color('#6E3538')
-  },
-  night: {
-    skyTop: new THREE.Color('#03060E'),
-    skyMid: new THREE.Color('#0B1528'),
-    skyHorizon: new THREE.Color('#1C304F'),
-    sunColor: new THREE.Color('#E2ECFF'),
-    fogColor: new THREE.Color('#0B1424'),
-    fogDensity: 0.0088,
-    ambientColor: new THREE.Color('#2B426B'),
-    ambientIntensity: 0.45,
-    dirColor: new THREE.Color('#8AB4F8'),
-    dirIntensity: 0.65,
-    sunPos: new THREE.Vector3(24, 22, -110),
-    cloudColor: new THREE.Color('#354B6E'),
-    cloudOpacity: 0.32,
-    starOpacity: 0.98,
-    waterDeep: new THREE.Color('#060B14'),
-    waterShallow: new THREE.Color('#162840')
   }
 };
 
@@ -96,7 +41,6 @@ const LANTERN_COLORS = {
 };
 
 const INITIAL_WISHES = [
-  // Space 1: 영주 부석사 무량수전 처마 밑 (slot 0 ~ 5)
   {
     id: 'bs-1',
     space: 'buseoksa',
@@ -163,15 +107,13 @@ const INITIAL_WISHES = [
     hapjang: 85,
     slot: 5
   },
-
-  // Space 2: 순천 선암사 승선교 돌담길 (slot 0 ~ 5)
   {
     id: 'sa-1',
     space: 'seonamsa',
     color: 'lotus',
     author: '조계산 산책자',
     tag: '마음 평안',
-    text: '승선교 아래 흐르는 맑은 계곡물처럼 지난 후회와 미련은 흘려보내고 오늘만 온전히 살아가기를.',
+    text: '승선교 아래 흐르는 맑은 물결처럼 지난 후회와 미련은 흘려보내고 오늘만 온전히 살아가기를.',
     date: '2026.10.28',
     hapjang: 72,
     slot: 0
@@ -292,7 +234,6 @@ class SanSaAudioEngine {
   }
 
   setupContinuousStreams() {
-    // 1. Valley Stream Sound (선암사 계곡 물소리)
     const brownNoise = this.ctx.createBufferSource();
     brownNoise.buffer = this.createNoiseBuffer(5, 'brown');
     brownNoise.loop = true;
@@ -323,7 +264,6 @@ class SanSaAudioEngine {
     this.waterGain.connect(this.masterGain);
     brownNoise.start();
 
-    // 2. Mountain Breeze Sound (소백산 능선 산바람 소리)
     const pinkNoise = this.ctx.createBufferSource();
     pinkNoise.buffer = this.createNoiseBuffer(6, 'pink');
     pinkNoise.loop = true;
@@ -439,215 +379,25 @@ class SanSaAudioEngine {
 }
 
 /* ==========================================================================
-   PROCEDURAL TEXTURE FACTORY (나뭇결 · 단청 · 화강암 · 한지 연등 · 운해 텍스처)
-   ========================================================================== */
-class TextureFactory {
-  static createWoodTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-
-    const grad = ctx.createLinearGradient(0, 0, 512, 0);
-    grad.addColorStop(0, '#3D2319');
-    grad.addColorStop(0.5, '#543122');
-    grad.addColorStop(1, '#361E15');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
-
-    // Wood grain fibers
-    for (let i = 0; i < 420; i++) {
-      const x = Math.random() * 512;
-      const w = 1 + Math.random() * 3;
-      ctx.fillStyle = i % 2 === 0 ? 'rgba(24, 12, 8, 0.24)' : 'rgba(122, 74, 52, 0.14)';
-      ctx.fillRect(x, 0, w, 512);
-    }
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.RepeatWrapping;
-    return tex;
-  }
-
-  static createDancheongCapTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 128;
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = '#2A4B3C'; // 석록색 (celadon green)
-    ctx.fillRect(0, 0, 128, 128);
-
-    ctx.strokeStyle = '#E8DFCA';
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.arc(64, 64, 52, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.fillStyle = '#B84A39'; // 주홍 단청
-    ctx.beginPath();
-    ctx.arc(64, 64, 38, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#F59E0B'; // 황금 연화심
-    ctx.beginPath();
-    ctx.arc(64, 64, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    return new THREE.CanvasTexture(canvas);
-  }
-
-  static createGraniteTexture(withMoss = true) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = '#58534E';
-    ctx.fillRect(0, 0, 512, 512);
-
-    // Granite mineral speckles
-    for (let i = 0; i < 6500; i++) {
-      const x = Math.random() * 512;
-      const y = Math.random() * 512;
-      const s = 1 + Math.random() * 2.5;
-      const r = Math.random();
-      if (r < 0.45) ctx.fillStyle = 'rgba(32, 30, 28, 0.35)';
-      else if (r < 0.85) ctx.fillStyle = 'rgba(168, 160, 150, 0.28)';
-      else ctx.fillStyle = 'rgba(215, 205, 190, 0.22)';
-      ctx.fillRect(x, y, s, s);
-    }
-
-    if (withMoss) {
-      for (let i = 0; i < 45; i++) {
-        const x = Math.random() * 512;
-        const y = Math.random() * 512;
-        const rad = 12 + Math.random() * 36;
-        const g = ctx.createRadialGradient(x, y, 2, x, y, rad);
-        g.addColorStop(0, 'rgba(62, 88, 54, 0.32)');
-        g.addColorStop(1, 'rgba(62, 88, 54, 0)');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(x, y, rad, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.RepeatWrapping;
-    return tex;
-  }
-
-  static createHanjiLanternTexture(colorKey = 'amber') {
-    const palette = LANTERN_COLORS[colorKey] || LANTERN_COLORS.amber;
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
-    const ctx = canvas.getContext('2d');
-
-    const grad = ctx.createLinearGradient(0, 0, 0, 256);
-    grad.addColorStop(0, palette.edge);
-    grad.addColorStop(0.22, palette.mid);
-    grad.addColorStop(0.5, palette.core);
-    grad.addColorStop(0.78, palette.mid);
-    grad.addColorStop(1, palette.edge);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 256, 256);
-
-    // Vertical bamboo rib lines on lantern
-    ctx.strokeStyle = 'rgba(45, 20, 8, 0.26)';
-    ctx.lineWidth = 2;
-    for (let x = 0; x <= 256; x += 32) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, 256);
-      ctx.stroke();
-    }
-
-    // Horizontal subtle rings
-    ctx.strokeStyle = 'rgba(45, 20, 8, 0.14)';
-    ctx.lineWidth = 1.2;
-    for (let y = 32; y < 256; y += 48) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(256, y);
-      ctx.stroke();
-    }
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = THREE.RepeatWrapping;
-    return tex;
-  }
-
-  static createGlowSpriteTexture(innerColor = 'rgba(255, 248, 220, 1)', midColor = 'rgba(245, 158, 11, 0.45)') {
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
-    const ctx = canvas.getContext('2d');
-
-    const grad = ctx.createRadialGradient(128, 128, 4, 128, 128, 124);
-    grad.addColorStop(0, innerColor);
-    grad.addColorStop(0.28, midColor);
-    grad.addColorStop(0.65, 'rgba(245, 158, 11, 0.12)');
-    grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
-
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 256, 256);
-    return new THREE.CanvasTexture(canvas);
-  }
-
-  static createCloudTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 256;
-    const ctx = canvas.getContext('2d');
-
-    ctx.clearRect(0, 0, 512, 256);
-    const puffs = [
-      { x: 256, y: 136, r: 115, a: 0.45 },
-      { x: 165, y: 145, r: 95, a: 0.36 },
-      { x: 345, y: 142, r: 98, a: 0.36 },
-      { x: 105, y: 158, r: 70, a: 0.24 },
-      { x: 405, y: 156, r: 72, a: 0.24 },
-      { x: 220, y: 108, r: 85, a: 0.32 },
-      { x: 295, y: 112, r: 82, a: 0.32 }
-    ];
-
-    puffs.forEach((p) => {
-      const g = ctx.createRadialGradient(p.x, p.y, 8, p.x, p.y, p.r);
-      g.addColorStop(0, `rgba(255, 255, 255, ${p.a})`);
-      g.addColorStop(0.55, `rgba(255, 255, 255, ${p.a * 0.45})`);
-      g.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    return new THREE.CanvasTexture(canvas);
-  }
-}
-
-/* ==========================================================================
-   REAL-TIME 3D WORLD ENGINE (Three.js Scene, Shaders, Architecture & Nature)
+   REAL-TIME 3D WORLD ENGINE (100% Authentic sansatemple.com SANSA_CORE)
    ========================================================================== */
 class Chakyeong3DWorld {
   constructor(container) {
     this.container = container;
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    this.isMobile = this.width < 768;
 
     this.spaceMode = 'buseoksa';
-    this.timeMode = 'sunset';
+    this.timeMode = 'dawn';
     this.foliageMode = 'autumn';
     this.camPreset = 'default';
 
     // Camera spherical orbit state
-    this.camTarget = new THREE.Vector3(0, 0.2, -12);
-    this.desiredCamTarget = new THREE.Vector3(0, 0.2, -12);
-    this.camPos = new THREE.Vector3(0, 0.4, 7.2);
-    this.desiredCamPos = new THREE.Vector3(0, 0.4, 7.2);
+    this.camTarget = new C_ENGINE.Vector3(0, 3.4, 8.0);
+    this.desiredCamTarget = new C_ENGINE.Vector3(0, 3.4, 8.0);
+    this.camPos = new C_ENGINE.Vector3(0, 2.35, 36.0);
+    this.desiredCamPos = new C_ENGINE.Vector3(0, 2.35, 36.0);
 
     this.orbitYaw = 0;
     this.orbitPitch = 0;
@@ -658,959 +408,385 @@ class Chakyeong3DWorld {
     this.isPointerDown = false;
     this.pointerStart = { x: 0, y: 0 };
     this.pointerMoved = false;
-    this.mouseNDC = new THREE.Vector2(-99, -99);
-    this.raycaster = new THREE.Raycaster();
+    this.pinchStartDist = null;
+    this.pinchStartZoom = 0;
+    this.mouseNDC = new C_ENGINE.Vector2(-99, -99);
+    this.raycaster = new C_ENGINE.Raycaster();
 
-    this.clock = new THREE.Clock();
+    this.lastFrameTime = performance.now();
+    this.elapsedTime = 0;
     this.lanternMeshes = [];
     this.interactiveTargets = [];
     this.hoveredObject = null;
 
-    this.cloudPlanes = [];
-    this.seonamsaTreeCanopies = [];
     this.sonicRings = [];
     this.hapjangParticles = [];
     this.bellExcitation = 0;
+    this.sanctuary = null;
+    this.woodland = null;
+    this.nightAmount = 0;
+    this.targetNightAmount = 0;
 
     this.initRendererAndScene();
-    this.initTexturesAndMaterials();
-    this.initSkyAndCelestial();
-    this.initLighting();
-    this.buildBuseoksaWorld();
-    this.buildSeonamsaWorld();
+    this.initCustomTextures();
+    this.initInteractiveWindBell();
     this.initFallingFoliage3D();
+    this.loadSanctuaryAndGarden();
     this.initInteractionEvents();
+    this.setCameraPreset('default');
+    this.setTimeMode('dawn');
 
     window.addEventListener('resize', () => this.onResize());
   }
 
-  initRendererAndScene() {
-    this.scene = new THREE.Scene();
-    const initialPal = TIME_PALETTES[this.timeMode];
-    this.scene.fog = new THREE.FogExp2(initialPal.fogColor.getHex(), initialPal.fogDensity);
+  getResponsiveFov() {
+    const aspect = this.width / Math.max(1, this.height);
+    if (aspect < 0.65) return 72;
+    if (aspect < 0.85) return 66;
+    return 60;
+  }
 
-    this.camera = new THREE.PerspectiveCamera(48, this.width / this.height, 0.1, 420);
+  initRendererAndScene() {
+    this.scene = new C_ENGINE.Scene();
+    this.fallbackSky = new C_ENGINE.Color('#dce9df');
+    this.scene.background = this.fallbackSky;
+    this.scene.fog = new C_ENGINE.Fog(0xdce9df, 86, 220);
+
+    this.camera = new C_ENGINE.PerspectiveCamera(
+      this.getResponsiveFov(),
+      this.width / Math.max(1, this.height),
+      0.08,
+      280
+    );
     this.camera.position.copy(this.camPos);
     this.camera.lookAt(this.camTarget);
 
-    this.renderer = new THREE.WebGLRenderer({
+    this.renderer = new C_ENGINE.WebGLRenderer({
       antialias: true,
-      powerPreference: 'high-performance'
+      powerPreference: 'default'
     });
     this.renderer.setSize(this.width, this.height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.12;
-    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio || 1, this.width < 700 ? 1.6 : 1.75)
+    );
+    this.renderer.outputColorSpace = C_ENGINE.SRGBColorSpace;
+    this.renderer.toneMapping = C_ENGINE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = C_ENGINE.PCFSoftShadowMap;
 
     this.container.appendChild(this.renderer.domElement);
 
-    // Groups for Space 1 & Space 2
-    this.buseoksaGroup = new THREE.Group();
-    this.seonamsaGroup = new THREE.Group();
-    this.seonamsaGroup.visible = false;
+    // Exact sansatemple.com Lighting (Hemisphere + Ambient + 3072 Shadow Directional + 2 Altar SpotLights)
+    const skyLight = new C_ENGINE.HemisphereLight(0xe8f3f0, 0xa4b99b, 0.85);
+    const ambientLight = new C_ENGINE.AmbientLight(0xfff1e6, 0.18);
+    this.scene.add(skyLight, ambientLight);
 
-    this.lanternsRoot = new THREE.Group();
-    this.fxRoot = new THREE.Group();
+    const sunLight = new C_ENGINE.DirectionalLight(0xfff4e3, 2.4);
+    sunLight.position.set(-36, 34.5, 32);
+    sunLight.target.position.set(0, 0, -4);
+    sunLight.castShadow = true;
 
-    this.scene.add(this.buseoksaGroup);
-    this.scene.add(this.seonamsaGroup);
+    const shadowSize = this.width < 700 ? 2048 : 3072;
+    sunLight.shadow.mapSize.set(shadowSize, shadowSize);
+    Object.assign(sunLight.shadow.camera, {
+      left: -48,
+      right: 48,
+      top: 52,
+      bottom: -52,
+      near: 1,
+      far: 140
+    });
+    sunLight.shadow.bias = -0.0005;
+    sunLight.shadow.normalBias = 0.075;
+    sunLight.shadow.radius = 4;
+    this.scene.add(sunLight, sunLight.target);
+
+    const altarSpot = new C_ENGINE.SpotLight(0xffde91, 480 * 1.44, 34 * 1.2, 0.75, 0.9, 2);
+    altarSpot.position.set(-4.5, 10.2, 1.5);
+    altarSpot.target.position.set(-2.2, 5.1, -9.0);
+
+    const fillSpot = new C_ENGINE.SpotLight(0xfff0b2, 250 * 1.44, 28 * 1.2, 0.8, 1.0, 2);
+    fillSpot.position.set(5.5, 8.4, -1.2);
+    fillSpot.target.position.set(3.3, 4.9, -9.1);
+    this.scene.add(altarSpot, altarSpot.target, fillSpot, fillSpot.target);
+
+    this.lighting = {
+      sky: skyLight,
+      ambient: ambientLight,
+      sun: sunLight,
+      altar: altarSpot,
+      fill: fillSpot
+    };
+
+    // Load Poly Haven 360° Distant Woodland Panorama (identical to sansatemple.com)
+    const texLoader = new C_ENGINE.TextureLoader();
+    texLoader
+      .loadAsync('assets/environment/woodland.jpg')
+      .then((tex) => {
+        tex.colorSpace = C_ENGINE.SRGBColorSpace;
+        tex.mapping = C_ENGINE.EquirectangularReflectionMapping;
+        this.woodland = tex;
+        this.scene.background = tex;
+        this.scene.backgroundBlurriness = 0.015;
+        this.scene.backgroundRotation.y = 0.65;
+        this.applyAtmosphereLighting();
+      })
+      .catch(() => {});
+
+    // Support user dropping custom Buseoksa photo onto the screen
+    window.applyCustomBuseoksaPhoto = (imageUrl) => {
+      texLoader.load(imageUrl, (tex) => {
+        tex.colorSpace = C_ENGINE.SRGBColorSpace;
+        tex.mapping = C_ENGINE.EquirectangularReflectionMapping;
+        this.woodland = tex;
+        this.scene.background = tex;
+        this.scene.backgroundBlurriness = 0.005;
+        this.applyAtmosphereLighting();
+      });
+    };
+
+    this.lanternsRoot = new C_ENGINE.Group();
+    this.fxRoot = new C_ENGINE.Group();
     this.scene.add(this.lanternsRoot);
     this.scene.add(this.fxRoot);
   }
 
-  initTexturesAndMaterials() {
-    this.woodTex = TextureFactory.createWoodTexture();
-    this.dancheongTex = TextureFactory.createDancheongCapTexture();
-    this.graniteTex = TextureFactory.createGraniteTexture(true);
-    this.cloudTex = TextureFactory.createCloudTexture();
-    this.glowTex = TextureFactory.createGlowSpriteTexture();
+  async loadSanctuaryAndGarden() {
+    try {
+      const sanctuary = await C_ENGINE.buildSanctuary(this.scene, this.renderer, { support: false });
+      this.sanctuary = sanctuary;
+      sanctuary.setSpace('garden');
 
-    this.lanternTextures = {
-      amber: TextureFactory.createHanjiLanternTexture('amber'),
-      lotus: TextureFactory.createHanjiLanternTexture('lotus'),
-      jade: TextureFactory.createHanjiLanternTexture('jade'),
-      moon: TextureFactory.createHanjiLanternTexture('moon')
-    };
+      // Generate RoomEnvironment PMREM reflections (identical to sansatemple.com)
+      const roomEnv = new C_ENGINE.RoomEnvironment();
+      const pmrem = new C_ENGINE.PMREMGenerator(this.renderer);
+      this.reflections = pmrem.fromScene(roomEnv, 0.02);
+      this.scene.environment = this.reflections.texture;
+      roomEnv.dispose();
+      pmrem.dispose();
 
-    this.woodMat = new THREE.MeshStandardMaterial({
-      map: this.woodTex,
-      roughness: 0.72,
-      metalness: 0.08
+      // Add Seungseongyo Semicircular Stone Arch Details to the Lotus Pond Bridge (-21.1, 0, 36)
+      this.buildSeungseongyoPondArch(sanctuary.assets.stone);
+
+      this.applyAtmosphereLighting();
+      this.lighting.sun.shadow.needsUpdate = true;
+
+      // Load complete garden (3D pine.glb + 4-view orthographic pine woodland + rock/ground PBR)
+      await sanctuary.completeGarden();
+      this.lighting.sun.shadow.needsUpdate = true;
+      this.applyAtmosphereLighting();
+    } catch (err) {
+      console.error('Sanctuary build error:', err);
+    }
+  }
+
+  buildSeungseongyoPondArch(stoneMat) {
+    if (!stoneMat) return;
+    // Create a clean MeshStandardMaterial sharing the PBR maps without custom lanternBounce shader attribute conflicts
+    const cleanArchStoneMat = new C_ENGINE.MeshStandardMaterial({
+      color: 0x9a978e,
+      roughness: 0.86,
+      metalness: 0.04,
+      map: stoneMat.map || null,
+      normalMap: stoneMat.normalMap || null,
+      roughnessMap: stoneMat.roughnessMap || null
     });
 
-    this.darkRoofTileMat = new THREE.MeshStandardMaterial({
-      color: 0x1c2026,
-      roughness: 0.65,
-      metalness: 0.22
+    const archGroup = new C_ENGINE.Group();
+    // Positioned at the Lotus Pond bridge (`es = { x: -21.1, z: 36 }`)
+    archGroup.position.set(-21.1, -0.95, 36.0);
+
+    const archRadius = 1.65;
+    const bridgeWidth = 2.75;
+    const voussoirCount = 16;
+
+    for (let i = 0; i < voussoirCount; i++) {
+      const angle = ((i + 0.5) / voussoirCount) * Math.PI;
+      const geo = new C_ENGINE.RoundedBoxGeometry(0.32, 0.28, bridgeWidth, 2, 0.025);
+      const mesh = new C_ENGINE.Mesh(geo, cleanArchStoneMat);
+      mesh.position.set(0, Math.sin(angle) * archRadius * 0.65, Math.cos(angle) * archRadius);
+      mesh.rotation.x = -(angle - Math.PI / 2);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      archGroup.add(mesh);
+    }
+
+    // Low traditional stone parapets along both sides of the bridge
+    for (const sideX of [-1.25, 1.25]) {
+      const railGeo = new C_ENGINE.RoundedBoxGeometry(0.22, 0.26, 3.3, 2, 0.03);
+      const rail = new C_ENGINE.Mesh(railGeo, cleanArchStoneMat);
+      rail.position.set(sideX, 1.22, 0);
+      rail.castShadow = true;
+      rail.receiveShadow = true;
+      archGroup.add(rail);
+    }
+
+    this.scene.add(archGroup);
+  }
+
+  initCustomTextures() {
+    // Glow sprite texture for wish lanterns & hapjang particles
+    const glowCanvas = document.createElement('canvas');
+    glowCanvas.width = 256;
+    glowCanvas.height = 256;
+    const gCtx = glowCanvas.getContext('2d');
+    const grad = gCtx.createRadialGradient(128, 128, 4, 128, 128, 124);
+    grad.addColorStop(0, 'rgba(255, 248, 220, 1)');
+    grad.addColorStop(0.28, 'rgba(245, 158, 11, 0.45)');
+    grad.addColorStop(0.65, 'rgba(245, 158, 11, 0.12)');
+    grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+    gCtx.fillStyle = grad;
+    gCtx.fillRect(0, 0, 256, 256);
+    this.glowTex = new C_ENGINE.CanvasTexture(glowCanvas);
+
+    // Hanji wish lantern textures
+    this.lanternTextures = {};
+    Object.keys(LANTERN_COLORS).forEach((colorKey) => {
+      const palette = LANTERN_COLORS[colorKey];
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+
+      const lGrad = ctx.createLinearGradient(0, 0, 0, 256);
+      lGrad.addColorStop(0, palette.edge);
+      lGrad.addColorStop(0.22, palette.mid);
+      lGrad.addColorStop(0.5, palette.core);
+      lGrad.addColorStop(0.78, palette.mid);
+      lGrad.addColorStop(1, palette.edge);
+      ctx.fillStyle = lGrad;
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.strokeStyle = 'rgba(45, 20, 8, 0.24)';
+      ctx.lineWidth = 2;
+      for (let x = 0; x <= 256; x += 32) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 256);
+        ctx.stroke();
+      }
+
+      const tex = new C_ENGINE.CanvasTexture(canvas);
+      tex.colorSpace = C_ENGINE.SRGBColorSpace;
+      this.lanternTextures[colorKey] = tex;
     });
 
-    this.graniteMat = new THREE.MeshStandardMaterial({
-      map: this.graniteTex,
-      roughness: 0.85,
-      metalness: 0.05
+    this.bronzeMat = new C_ENGINE.MeshStandardMaterial({
+      color: 0xb39659,
+      roughness: 0.42,
+      metalness: 0.75
     });
 
-    this.bronzeMat = new THREE.MeshStandardMaterial({
-      color: 0x9b8266,
-      roughness: 0.35,
-      metalness: 0.78
+    this.darkWoodCapMat = new C_ENGINE.MeshStandardMaterial({
+      color: 0x3b281e,
+      roughness: 0.8
     });
   }
 
-  /* ------------------------------------------------------------------------
-     CUSTOM GLSL SKY DOME, SUN CORONA, CRESCENT MOON & 3D STARFIELD
-     ------------------------------------------------------------------------ */
-  initSkyAndCelestial() {
-    const pal = TIME_PALETTES[this.timeMode];
+  initInteractiveWindBell() {
+    // Place interactive 3D Bronze Wind-Bell under the front-right eave outside the Hall facade (z = 23.2)
+    this.windBellPivot = new C_ENGINE.Group();
+    this.windBellPivot.position.set(12.6, 8.65, 24.6);
 
-    this.skyUniforms = {
-      uTopColor: { value: pal.skyTop.clone() },
-      uMidColor: { value: pal.skyMid.clone() },
-      uHorizonColor: { value: pal.skyHorizon.clone() },
-      uSunPos: { value: pal.sunPos.clone() },
-      uSunColor: { value: pal.sunColor.clone() },
-      uTime: { value: 0 }
-    };
-
-    const skyGeo = new THREE.SphereGeometry(320, 48, 32);
-    const skyMat = new THREE.ShaderMaterial({
-      uniforms: this.skyUniforms,
-      side: THREE.BackSide,
-      depthWrite: false,
-      vertexShader: `
-        varying vec3 vWorldPos;
-        void main() {
-          vec4 wp = modelMatrix * vec4(position, 1.0);
-          vWorldPos = wp.xyz;
-          gl_Position = projectionMatrix * viewMatrix * wp;
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 uTopColor;
-        uniform vec3 uMidColor;
-        uniform vec3 uHorizonColor;
-        uniform vec3 uSunPos;
-        uniform vec3 uSunColor;
-        varying vec3 vWorldPos;
-
-        void main() {
-          vec3 dir = normalize(vWorldPos);
-          float h = clamp(dir.y, 0.0, 1.0);
-
-          vec3 col = mix(uHorizonColor, uMidColor, pow(h, 0.45));
-          col = mix(col, uTopColor, smoothstep(0.28, 0.92, h));
-
-          // Mie scattering solar glow around sun position
-          vec3 sunDir = normalize(uSunPos);
-          float sunAmt = max(dot(dir, sunDir), 0.0);
-          col += uSunColor * pow(sunAmt, 14.0) * 0.42;
-          col += uSunColor * pow(sunAmt, 120.0) * 0.85;
-
-          // Subtle horizon atmospheric mist glow
-          float horizonBand = exp(-abs(dir.y) * 9.5);
-          col = mix(col, uHorizonColor * 1.12, horizonBand * 0.45);
-
-          gl_FragColor = vec4(col, 1.0);
-        }
-      `
-    });
-
-    this.skyMesh = new THREE.Mesh(skyGeo, skyMat);
-    this.scene.add(this.skyMesh);
-
-    // 3D Starfield (1,600 stars in upper hemisphere)
-    const starCount = 1600;
-    const starPos = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(0.05 + Math.random() * 0.95);
-      const r = 270 + Math.random() * 20;
-      starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      starPos[i * 3 + 1] = r * Math.cos(phi);
-      starPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-    }
-    const starGeo = new THREE.BufferGeometry();
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    this.starMat = new THREE.PointsMaterial({
-      color: 0xfff8e7,
-      size: 1.35,
-      transparent: true,
-      opacity: pal.starOpacity,
-      depthWrite: false,
-      Fog: false
-    });
-    this.starField = new THREE.Points(starGeo, this.starMat);
-    this.scene.add(this.starField);
-
-    // 3D Moon Mesh for Night Mode
-    const moonGeo = new THREE.SphereGeometry(5.2, 32, 32);
-    const moonMat = new THREE.MeshBasicMaterial({
-      color: 0xfef9e6,
-      transparent: true,
-      opacity: 0,
-      fog: false
-    });
-    this.moonMesh = new THREE.Mesh(moonGeo, moonMat);
-    this.moonMesh.position.set(28, 34, -140);
-
-    const moonHaloMat = new THREE.SpriteMaterial({
-      map: this.glowTex,
-      color: 0xc7d9ff,
-      transparent: true,
-      opacity: 0,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      fog: false
-    });
-    this.moonHalo = new THREE.Sprite(moonHaloMat);
-    this.moonHalo.scale.set(36, 36, 1);
-    this.moonMesh.add(this.moonHalo);
-    this.scene.add(this.moonMesh);
-  }
-
-  initLighting() {
-    const pal = TIME_PALETTES[this.timeMode];
-
-    this.ambientLight = new THREE.AmbientLight(pal.ambientColor, pal.ambientIntensity);
-    this.scene.add(this.ambientLight);
-
-    this.hemiLight = new THREE.HemisphereLight(0xffecd2, 0x1a1c24, 0.55);
-    this.scene.add(this.hemiLight);
-
-    this.dirLight = new THREE.DirectionalLight(pal.dirColor, pal.dirIntensity);
-    this.dirLight.position.copy(pal.sunPos);
-    this.scene.add(this.dirLight);
-
-    // Warm under-eave fill light so foreground wooden architecture has rich warm detail
-    this.eaveWarmLight = new THREE.PointLight(0xffa94d, 1.35, 28, 1.6);
-    this.eaveWarmLight.position.set(0, 2.2, 2.5);
-    this.scene.add(this.eaveWarmLight);
-  }
-
-  /* ------------------------------------------------------------------------
-     SPACE 1: 영주 부석사 무량수전 앞마당 (3D Architecture, Ridges, Clouds)
-     ------------------------------------------------------------------------ */
-  buildBuseoksaWorld() {
-    // 1. Foreground Muryangsujeon Frame (배흘림기둥, 툇마루, 서까래 처마)
-    const frameGroup = new THREE.Group();
-
-    // Wooden Maru Veranda Floor (무량수전 툇마루)
-    const maruGeo = new THREE.BoxGeometry(26, 0.5, 6.5);
-    const maruMesh = new THREE.Mesh(maruGeo, this.woodMat);
-    maruMesh.position.set(0, -3.45, 5.2);
-    frameGroup.add(maruMesh);
-
-    // Stone Courtyard Ground (무량수전 앞마당 마사토 & 박석)
-    const yardGeo = new THREE.PlaneGeometry(55, 30, 24, 24);
-    const yardMat = new THREE.MeshStandardMaterial({
-      map: this.graniteTex,
-      color: 0x6b6057,
-      roughness: 0.92
-    });
-    const yardMesh = new THREE.Mesh(yardGeo, yardMat);
-    yardMesh.rotation.x = -Math.PI / 2;
-    yardMesh.position.set(0, -3.65, -7);
-    frameGroup.add(yardMesh);
-
-    // Courtyard Stone Retaining Wall (석축 축대)
-    const wallGeo = new THREE.BoxGeometry(52, 2.6, 1.8);
-    const wallMesh = new THREE.Mesh(wallGeo, this.graniteMat);
-    wallMesh.position.set(0, -4.8, -19.5);
-    frameGroup.add(wallMesh);
-
-    // 3D Baehullim Columns (배흘림기둥 - LatheGeometry with authentic entasis bulge)
-    const columnPoints = [];
-    for (let i = 0; i <= 20; i++) {
-      const t = i / 20;
-      const y = t * 7.4;
-      // Classic Baehullim profile: thickest around 38% height, tapering towards top and bottom
-      const entasis = Math.sin(t * Math.PI * 0.88 + 0.15);
-      const r = 0.36 + 0.095 * entasis;
-      columnPoints.push(new THREE.Vector2(r, y));
-    }
-    const colGeo = new THREE.LatheGeometry(columnPoints, 28);
-
-    const colPositions = [-7.2, -3.1, 3.1, 7.2];
-    colPositions.forEach((xPos, idx) => {
-      // Only place outer columns in foreground view so center view is a wide open 차경 frame!
-      const zPos = idx === 0 || idx === 3 ? 3.2 : 5.8;
-      const colMesh = new THREE.Mesh(colGeo, this.woodMat);
-      colMesh.position.set(xPos, -3.3, zPos);
-      frameGroup.add(colMesh);
-
-      // Granite Plinth Base (주초석)
-      const plinthGeo = new THREE.CylinderGeometry(0.48, 0.58, 0.35, 16);
-      const plinthMesh = new THREE.Mesh(plinthGeo, this.graniteMat);
-      plinthMesh.position.set(xPos, -3.15, zPos);
-      frameGroup.add(plinthMesh);
-    });
-
-    // Overhead Main Eave Beam (처마 도리 & 창방)
-    const beamGeo = new THREE.BoxGeometry(24, 0.55, 0.65);
-    const beamMesh = new THREE.Mesh(beamGeo, this.woodMat);
-    beamMesh.position.set(0, 3.85, 3.2);
-    frameGroup.add(beamMesh);
-
-    // Sweeping Overhead Roof Eave & 34 3D Rafters (서까래와 부연, 단청 마구리)
-    const rafterGroup = new THREE.Group();
-    const rafterBodyGeo = new THREE.CylinderGeometry(0.085, 0.095, 3.4, 12);
-    rafterBodyGeo.rotateX(Math.PI / 2);
-    const capGeo = new THREE.CircleGeometry(0.094, 16);
-    const capMat = new THREE.MeshBasicMaterial({ map: this.dancheongTex });
-
-    for (let i = -17; i <= 17; i++) {
-      const x = i * 0.58;
-      const normX = x / 10;
-      // Traditional Korean eave curve (조로/앙곡): sweeps gently upward toward corners
-      const curveLift = normX * normX * 0.68;
-
-      const rafter = new THREE.Mesh(rafterBodyGeo, this.woodMat);
-      rafter.position.set(x, 3.65 + curveLift, 2.35);
-      rafter.rotation.x = 0.28;
-      rafterGroup.add(rafter);
-
-      // Dancheong painted end cap on each rafter tip
-      const cap = new THREE.Mesh(capGeo, capMat);
-      cap.position.set(x, 3.65 + curveLift - Math.sin(0.28) * 1.71, 2.35 - Math.cos(0.28) * 1.71);
-      cap.rotation.y = Math.PI;
-      rafterGroup.add(cap);
-    }
-
-    // Dark Curved Eave Roof Shadow Plane above rafters
-    const eaveCoverGeo = new THREE.BoxGeometry(24, 0.4, 4.2);
-    const eaveCover = new THREE.Mesh(eaveCoverGeo, this.darkRoofTileMat);
-    eaveCover.position.set(0, 4.25, 2.5);
-    eaveCover.rotation.x = 0.26;
-    rafterGroup.add(eaveCover);
-
-    frameGroup.add(rafterGroup);
-
-    // 2. Interactive 3D Bronze Wind-Bell (처마 끝 청동 풍경종과 물고기 풍경편)
-    this.windBellPivot = new THREE.Group();
-    this.windBellPivot.position.set(5.35, 3.25, 1.15);
-
-    const chainGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.45, 8);
-    const chainMesh = new THREE.Mesh(chainGeo, this.bronzeMat);
-    chainMesh.position.y = -0.22;
+    const chainGeo = new C_ENGINE.CylinderGeometry(0.015, 0.015, 0.55, 8);
+    const chainMesh = new C_ENGINE.Mesh(chainGeo, this.bronzeMat);
+    chainMesh.position.y = -0.27;
     this.windBellPivot.add(chainMesh);
 
-    // Bell Profile via LatheGeometry
     const bellPts = [
-      new THREE.Vector2(0.01, 0),
-      new THREE.Vector2(0.16, -0.04),
-      new THREE.Vector2(0.21, -0.22),
-      new THREE.Vector2(0.26, -0.46),
-      new THREE.Vector2(0.29, -0.52),
-      new THREE.Vector2(0.24, -0.52)
+      new C_ENGINE.Vector2(0.01, 0),
+      new C_ENGINE.Vector2(0.22, -0.05),
+      new C_ENGINE.Vector2(0.28, -0.28),
+      new C_ENGINE.Vector2(0.35, -0.58),
+      new C_ENGINE.Vector2(0.39, -0.66),
+      new C_ENGINE.Vector2(0.32, -0.66)
     ];
-    const bellGeo = new THREE.LatheGeometry(bellPts, 24);
-    const bellMesh = new THREE.Mesh(bellGeo, this.bronzeMat);
-    bellMesh.position.y = -0.42;
+    const bellGeo = new C_ENGINE.LatheGeometry(bellPts, 28);
+    const bellMesh = new C_ENGINE.Mesh(bellGeo, this.bronzeMat);
+    bellMesh.position.y = -0.52;
+    bellMesh.castShadow = true;
     bellMesh.userData = { type: 'windbell', label: '🔔 처마 끝 풍경종 울리기' };
     this.windBellPivot.add(bellMesh);
     this.interactiveTargets.push(bellMesh);
 
-    // Clapper Cord & 3D Golden Fish Pendant (물고기 모양 풍경편)
-    this.windFishPivot = new THREE.Group();
-    this.windFishPivot.position.y = -0.92;
+    // Enlarged invisible hitbox for easy clicking/tapping
+    const bellHitbox = new C_ENGINE.Mesh(
+      new C_ENGINE.SphereGeometry(0.85, 8, 8),
+      new C_ENGINE.MeshBasicMaterial({ visible: false })
+    );
+    bellHitbox.position.y = -0.85;
+    bellHitbox.userData = { type: 'windbell', label: '🔔 처마 끝 풍경종 울리기' };
+    this.windBellPivot.add(bellHitbox);
+    this.interactiveTargets.push(bellHitbox);
 
-    const lowerCord = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.008, 0.008, 0.45, 6),
+    this.windFishPivot = new C_ENGINE.Group();
+    this.windFishPivot.position.y = -1.18;
+
+    const lowerCord = new C_ENGINE.Mesh(
+      new C_ENGINE.CylinderGeometry(0.01, 0.01, 0.55, 6),
       this.bronzeMat
     );
-    lowerCord.position.y = 0.15;
+    lowerCord.position.y = 0.2;
     this.windFishPivot.add(lowerCord);
 
-    const fishShape = new THREE.Shape();
-    fishShape.moveTo(0, 0.18);
-    fishShape.quadraticCurveTo(0.22, 0.04, 0.12, -0.22);
-    fishShape.lineTo(0.24, -0.38);
-    fishShape.lineTo(0.03, -0.28);
-    fishShape.lineTo(-0.03, -0.28);
-    fishShape.lineTo(-0.24, -0.38);
-    fishShape.lineTo(-0.12, -0.22);
-    fishShape.quadraticCurveTo(-0.22, 0.04, 0, 0.18);
+    const fishShape = new C_ENGINE.Shape();
+    fishShape.moveTo(0, 0.24);
+    fishShape.quadraticCurveTo(0.28, 0.05, 0.16, -0.28);
+    fishShape.lineTo(0.32, -0.48);
+    fishShape.lineTo(0.04, -0.36);
+    fishShape.lineTo(-0.04, -0.36);
+    fishShape.lineTo(-0.32, -0.48);
+    fishShape.lineTo(-0.16, -0.28);
+    fishShape.quadraticCurveTo(-0.28, 0.05, 0, 0.24);
 
-    const fishGeo = new THREE.ExtrudeGeometry(fishShape, {
-      depth: 0.025,
+    const fishGeo = new C_ENGINE.ExtrudeGeometry(fishShape, {
+      depth: 0.03,
       bevelEnabled: true,
-      bevelThickness: 0.008,
-      bevelSize: 0.008
+      bevelThickness: 0.01,
+      bevelSize: 0.01
     });
-    const fishMat = new THREE.MeshStandardMaterial({
+    const fishMat = new C_ENGINE.MeshStandardMaterial({
       color: 0xd9a760,
       roughness: 0.28,
       metalness: 0.85
     });
-    const fishMesh = new THREE.Mesh(fishGeo, fishMat);
-    fishMesh.position.set(0, -0.1, -0.012);
+    const fishMesh = new C_ENGINE.Mesh(fishGeo, fishMat);
+    fishMesh.position.set(0, -0.12, -0.015);
     fishMesh.userData = { type: 'windbell', label: '🔔 처마 끝 풍경종 울리기' };
     this.windFishPivot.add(fishMesh);
     this.interactiveTargets.push(fishMesh);
 
     this.windBellPivot.add(this.windFishPivot);
-    frameGroup.add(this.windBellPivot);
-
-    // 3. 3D Buseoksa Stone Lantern (무량수전 앞 화강암 석등)
-    const stoneLantern = this.create3DStoneLantern();
-    stoneLantern.position.set(4.1, -3.65, -4.8);
-    frameGroup.add(stoneLantern);
-
-    // 4. 3D Anyangnu Pavilion on Left Cliff (안양루 3D 팔작지붕 누각)
-    const anyangnu = this.create3DPavilion(1.25);
-    anyangnu.position.set(-7.8, -4.2, -15.5);
-    anyangnu.rotation.y = 0.28;
-    frameGroup.add(anyangnu);
-
-    // 5. Flanking 3D Korean Red Pine Trees (소나무 숲 실루엣)
-    const pineLeft = this.create3DPineTree(1.3);
-    pineLeft.position.set(-12.5, -3.8, -11.5);
-    frameGroup.add(pineLeft);
-
-    const pineRight = this.create3DPineTree(1.15);
-    pineRight.position.set(11.8, -3.8, -13.0);
-    frameGroup.add(pineRight);
-
-    this.buseoksaGroup.add(frameGroup);
-
-    // 6. 7 Layers of 3D Sobaeksan Mountain Ridges (소백산맥 3D 다중 능선)
-    this.buildSobaeksanMountainRidges();
-
-    // 7. 3D Volumetric-Style Sea of Clouds (운해 레이어)
-    this.buildSeaOfClouds();
+    this.scene.add(this.windBellPivot);
   }
 
-  create3DStoneLantern() {
-    const group = new THREE.Group();
-
-    // Lower Base (하대석)
-    const base1 = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.02, 0.45, 8), this.graniteMat);
-    base1.position.y = 0.22;
-    group.add(base1);
-
-    const base2 = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.82, 0.35, 8), this.graniteMat);
-    base2.position.y = 0.62;
-    group.add(base2);
-
-    // Octagonal Pillar (간주석)
-    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 1.35, 8), this.graniteMat);
-    pillar.position.y = 1.45;
-    group.add(pillar);
-
-    // Upper Lotus Base (상대석)
-    const upperBase = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.42, 0.32, 8), this.graniteMat);
-    upperBase.position.y = 2.28;
-    group.add(upperBase);
-
-    // Fire Chamber Pillars (화사석 기둥들)
-    for (let i = 0; i < 4; i++) {
-      const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
-      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.72, 6), this.graniteMat);
-      post.position.set(Math.cos(angle) * 0.38, 2.8, Math.sin(angle) * 0.38);
-      group.add(post);
-    }
-
-    // Glowing Flame Core inside Stone Lantern (석등 불빛과 광원)
-    const flameCore = new THREE.Mesh(
-      new THREE.SphereGeometry(0.2, 16, 16),
-      new THREE.MeshBasicMaterial({ color: 0xfff3c4 })
-    );
-    flameCore.position.y = 2.78;
-    group.add(flameCore);
-
-    this.stoneLanternLight = new THREE.PointLight(0xff9e2c, 2.2, 18, 1.8);
-    this.stoneLanternLight.position.set(0, 2.8, 0);
-    group.add(this.stoneLanternLight);
-
-    const flameHalo = new THREE.Sprite(
-      new THREE.SpriteMaterial({
-        map: this.glowTex,
-        color: 0xffae33,
-        transparent: true,
-        opacity: 0.85,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      })
-    );
-    flameHalo.scale.set(2.8, 2.8, 1);
-    flameHalo.position.y = 2.8;
-    this.stoneLanternHalo = flameHalo;
-    group.add(flameHalo);
-
-    // Octagonal Roof Stone (옥개석)
-    const roofPts = [
-      new THREE.Vector2(0.01, 0.62),
-      new THREE.Vector2(0.28, 0.42),
-      new THREE.Vector2(0.68, 0.16),
-      new THREE.Vector2(1.08, 0.04),
-      new THREE.Vector2(0.98, -0.08),
-      new THREE.Vector2(0.45, -0.06)
-    ];
-    const roofGeo = new THREE.LatheGeometry(roofPts, 8);
-    const roofMesh = new THREE.Mesh(roofGeo, this.graniteMat);
-    roofMesh.position.y = 3.22;
-    group.add(roofMesh);
-
-    // Finial Jewel (상륜부 보주)
-    const finial = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), this.graniteMat);
-    finial.position.y = 3.92;
-    group.add(finial);
-
-    return group;
-  }
-
-  create3DPavilion(scale = 1.0) {
-    const group = new THREE.Group();
-    group.scale.setScalar(scale);
-
-    // Stone Terrace Sub-base
-    const terrace = new THREE.Mesh(new THREE.BoxGeometry(6.8, 1.8, 4.4), this.graniteMat);
-    terrace.position.y = 0.9;
-    group.add(terrace);
-
-    // Wooden Pillars
-    const px = [-2.6, -0.9, 0.9, 2.6];
-    const pz = [-1.5, 1.5];
-    px.forEach((x) => {
-      pz.forEach((z) => {
-        const p = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 2.8, 12), this.woodMat);
-        p.position.set(x, 3.2, z);
-        group.add(p);
-      });
-    });
-
-    // Pavilion Floor & Balustrade
-    const floor = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.25, 3.8), this.woodMat);
-    floor.position.y = 2.3;
-    group.add(floor);
-
-    // Curved Korean Paljak Roof (팔작지붕 곡선 기와지붕)
-    const roofGeo = new THREE.BoxGeometry(8.4, 0.45, 5.6, 16, 2, 12);
-    const pos = roofGeo.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const vx = pos.getX(i);
-      const vy = pos.getY(i);
-      const vz = pos.getZ(i);
-      // Center ridge rises high; four corners flare gracefully upward (추녀 곡선)
-      const distCenterZ = Math.abs(vz) / 2.8;
-      const distCenterX = Math.abs(vx) / 4.2;
-      const ridgeLift = (1.0 - distCenterZ) * 1.45;
-      const cornerFlare = Math.pow(distCenterX, 2.2) * Math.pow(distCenterZ, 1.5) * 0.85;
-      pos.setY(i, vy + ridgeLift + cornerFlare);
-    }
-    roofGeo.computeVertexNormals();
-
-    const roofMesh = new THREE.Mesh(roofGeo, this.darkRoofTileMat);
-    roofMesh.position.y = 4.65;
-    group.add(roofMesh);
-
-    // Main Roof Ridge Beam (용마루)
-    const ridge = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.28, 0.32), this.graniteMat);
-    ridge.position.y = 6.25;
-    group.add(ridge);
-
-    return group;
-  }
-
-  create3DPineTree(scale = 1.0) {
-    const group = new THREE.Group();
-    group.scale.setScalar(scale);
-
-    // Gnarled curved trunk
-    const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(0.4, 1.8, 0.2),
-      new THREE.Vector3(-0.3, 3.6, -0.1),
-      new THREE.Vector3(0.2, 5.2, 0.3)
-    ]);
-    const trunkGeo = new THREE.TubeGeometry(curve, 16, 0.24, 8, false);
-    const trunkMesh = new THREE.Mesh(trunkGeo, this.woodMat);
-    group.add(trunkMesh);
-
-    const needleMat = new THREE.MeshStandardMaterial({
-      color: 0x1d3326,
-      roughness: 0.88
-    });
-
-    const clusters = [
-      { x: 0.2, y: 5.4, z: 0.3, rx: 1.8, ry: 0.65 },
-      { x: -1.1, y: 4.5, z: 0.1, rx: 1.4, ry: 0.55 },
-      { x: 1.2, y: 4.1, z: -0.2, rx: 1.5, ry: 0.55 },
-      { x: -0.4, y: 6.1, z: 0.0, rx: 1.3, ry: 0.5 }
-    ];
-
-    clusters.forEach((c) => {
-      const cg = new THREE.SphereGeometry(1, 12, 10);
-      cg.scale(c.rx, c.ry, c.rx * 0.85);
-      const cm = new THREE.Mesh(cg, needleMat);
-      cm.position.set(c.x, c.y, c.z);
-      group.add(cm);
-    });
-
-    return group;
-  }
-
-  buildSobaeksanMountainRidges() {
-    this.ridgeMaterials = [];
-    const ridgeConfigs = [
-      { z: -28, width: 110, depth: 18, baseH: -5.5, amp: 6.2, seed: 1.1, color: '#2E2334' },
-      { z: -46, width: 145, depth: 22, baseH: -5.2, amp: 8.8, seed: 2.4, color: '#39283B' },
-      { z: -68, width: 185, depth: 26, baseH: -4.8, amp: 11.5, seed: 3.8, color: '#473044' },
-      { z: -96, width: 230, depth: 32, baseH: -4.2, amp: 14.8, seed: 5.2, color: '#54384D' },
-      { z: -130, width: 280, depth: 38, baseH: -3.5, amp: 18.5, seed: 6.7, color: '#634156' },
-      { z: -170, width: 340, depth: 45, baseH: -2.5, amp: 23.0, seed: 8.3, color: '#704B5F' }
-    ];
-
-    ridgeConfigs.forEach((cfg, idx) => {
-      const geo = new THREE.PlaneGeometry(cfg.width, cfg.depth, 96, 20);
-      geo.rotateX(-Math.PI / 2);
-
-      const pos = geo.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const z = pos.getZ(i);
-        // Normalized ridge profile (tapers at front & back edges of strip)
-        const zNorm = 1.0 - Math.pow(z / (cfg.depth * 0.5), 2);
-        const n1 = Math.sin(x * 0.045 + cfg.seed) * Math.cos(z * 0.08 + cfg.seed);
-        const n2 = Math.sin(x * 0.11 - cfg.seed * 1.7) * 0.48;
-        const n3 = Math.cos(x * 0.23 + z * 0.15 + cfg.seed) * 0.24;
-        const ridgeHeight = Math.max(0, (n1 + n2 + n3 + 0.85) * cfg.amp * Math.max(0, zNorm));
-        pos.setY(i, ridgeHeight);
-      }
-      geo.computeVertexNormals();
-
-      const mat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(cfg.color),
-        roughness: 0.92,
-        metalness: 0.02,
-        flatShading: false
-      });
-      this.ridgeMaterials.push({ mat, layerIndex: idx });
-
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(0, cfg.baseH, cfg.z);
-      this.buseoksaGroup.add(mesh);
-    });
-  }
-
-  buildSeaOfClouds() {
-    this.cloudPlanes = [];
-    const cloudGeo = new THREE.PlaneGeometry(36, 14);
-
-    for (let i = 0; i < 38; i++) {
-      const mat = new THREE.MeshBasicMaterial({
-        map: this.cloudTex,
-        color: TIME_PALETTES[this.timeMode].cloudColor.clone(),
-        transparent: true,
-        opacity: 0.38,
-        depthWrite: false
-      });
-
-      const mesh = new THREE.Mesh(cloudGeo, mat);
-      const z = -22 - (i / 38) * 125;
-      const x = (Math.random() - 0.5) * 130;
-      const y = -4.2 + Math.random() * 3.2 + Math.abs(z) * 0.025;
-      const scale = 0.85 + Math.random() * 1.45;
-
-      mesh.position.set(x, y, z);
-      mesh.scale.set(scale, scale * 0.7, 1);
-
-      this.cloudPlanes.push({
-        mesh,
-        mat,
-        baseX: x,
-        baseY: y,
-        speed: 0.35 + Math.random() * 0.55,
-        phase: Math.random() * Math.PI * 2
-      });
-
-      this.buseoksaGroup.add(mesh);
-    }
-  }
-
-  /* ------------------------------------------------------------------------
-     SPACE 2: 순천 선암사 승선교 (3D Granite Arch Bridge, Stream Shader, Forest)
-     ------------------------------------------------------------------------ */
-  buildSeonamsaWorld() {
-    // 1. 3D Seungseongyo Semicircular Granite Arch Bridge (승선교 무지개 돌다리)
-    const bridgeGroup = new THREE.Group();
-    bridgeGroup.position.set(0, -2.5, -10.5);
-
-    const archRadius = 5.4;
-    const bridgeDepth = 3.2;
-
-    // 26 Individual 3D Granite Voussoir Arch Stones (홍예석)
-    const voussoirCount = 26;
-    for (let i = 0; i < voussoirCount; i++) {
-      const angle = ((i + 0.5) / voussoirCount) * Math.PI;
-      const stoneGeo = new THREE.BoxGeometry(0.66, 0.72, bridgeDepth);
-      const stoneMesh = new THREE.Mesh(stoneGeo, this.graniteMat);
-      stoneMesh.position.set(
-        Math.cos(angle) * archRadius,
-        Math.sin(angle) * archRadius,
-        0
-      );
-      stoneMesh.rotation.z = angle - Math.PI / 2;
-      bridgeGroup.add(stoneMesh);
-    }
-
-    // Dragon-Head Keystone protruding at bottom of arch apex (승선교 중앙 용머리 돌)
-    const dragonStone = new THREE.Mesh(
-      new THREE.BoxGeometry(0.32, 0.68, 0.52),
-      this.graniteMat
-    );
-    dragonStone.position.set(0, archRadius - 0.42, bridgeDepth * 0.35);
-    bridgeGroup.add(dragonStone);
-
-    // Bridge Spandrel Stone Walls & Parapet Deck (다리 상판과 석축)
-    const spandrelShape = new THREE.Shape();
-    spandrelShape.moveTo(-9.5, 0);
-    spandrelShape.lineTo(-9.5, 5.85);
-    spandrelShape.quadraticCurveTo(0, 6.35, 9.5, 5.85);
-    spandrelShape.lineTo(9.5, 0);
-    spandrelShape.lineTo(archRadius, 0);
-    spandrelShape.absarc(0, 0, archRadius, 0, Math.PI, false);
-    spandrelShape.lineTo(-9.5, 0);
-
-    const spandrelGeo = new THREE.ExtrudeGeometry(spandrelShape, {
-      depth: bridgeDepth - 0.16,
-      bevelEnabled: true,
-      bevelThickness: 0.08,
-      bevelSize: 0.06
-    });
-    spandrelGeo.translate(0, 0, -(bridgeDepth - 0.16) / 2);
-    const spandrelMesh = new THREE.Mesh(spandrelGeo, this.graniteMat);
-    bridgeGroup.add(spandrelMesh);
-
-    // Inverted Underwater Reflection Arch for realism through water shader
-    const reflArch = bridgeGroup.clone();
-    reflArch.scale.y = -0.75;
-    reflArch.position.y = -2.65;
-    this.seonamsaGroup.add(reflArch);
-
-    this.seonamsaGroup.add(bridgeGroup);
-
-    // 2. Real-Time 3D Animated Valley Stream Shader (선암사 계곡 수면과 윤슬 셰이더)
-    const pal = TIME_PALETTES[this.timeMode];
-    this.waterUniforms = {
-      uTime: { value: 0 },
-      uDeepColor: { value: pal.waterDeep.clone() },
-      uShallowColor: { value: pal.waterShallow.clone() },
-      uSunColor: { value: pal.sunColor.clone() }
-    };
-
-    const waterGeo = new THREE.PlaneGeometry(34, 65, 96, 96);
-    waterGeo.rotateX(-Math.PI / 2);
-
-    const waterMat = new THREE.ShaderMaterial({
-      uniforms: this.waterUniforms,
-      transparent: true,
-      vertexShader: `
-        uniform float uTime;
-        varying vec2 vUv;
-        varying vec3 vWorldPos;
-        varying float vWave;
-
-        void main() {
-          vUv = uv;
-          vec3 pos = position;
-          float w1 = sin(pos.x * 1.4 + uTime * 2.2) * cos(pos.z * 0.9 + uTime * 1.8) * 0.07;
-          float w2 = sin(pos.z * 2.4 - uTime * 3.4) * 0.045;
-          pos.y += w1 + w2;
-          vWave = w1 + w2;
-
-          vec4 wp = modelMatrix * vec4(pos, 1.0);
-          vWorldPos = wp.xyz;
-          gl_Position = projectionMatrix * viewMatrix * wp;
-        }
-      `,
-      fragmentShader: `
-        uniform float uTime;
-        uniform vec3 uDeepColor;
-        uniform vec3 uShallowColor;
-        uniform vec3 uSunColor;
-        varying vec2 vUv;
-        varying vec3 vWorldPos;
-        varying float vWave;
-
-        void main() {
-          // Animated water ripple normal approximation
-          float ripple = sin(vWorldPos.x * 4.5 + uTime * 3.0) * cos(vWorldPos.z * 3.8 - uTime * 4.2);
-          float shimmer = smoothstep(0.68, 0.98, ripple);
-
-          vec3 waterCol = mix(uDeepColor, uShallowColor, clamp(vWave * 5.0 + 0.5, 0.0, 1.0));
-
-          // Golden lantern & sky reflection strip down the stream center
-          float centerGlow = exp(-pow(vWorldPos.x * 0.22, 2.0));
-          waterCol += uSunColor * centerGlow * (0.18 + shimmer * 0.45);
-
-          // Subtle white foam streaks in stream current
-          float foam = smoothstep(0.86, 0.98, sin(vWorldPos.z * 2.2 - uTime * 3.8 + sin(vWorldPos.x * 2.0)));
-          waterCol = mix(waterCol, vec3(0.92, 0.95, 0.98), foam * 0.18);
-
-          gl_FragColor = vec4(waterCol, 0.86);
-        }
-      `
-    });
-
-    const waterMesh = new THREE.Mesh(waterGeo, waterMat);
-    waterMesh.position.set(0, -2.55, -12);
-    this.seonamsaGroup.add(waterMesh);
-
-    // 3. Valley Riverbanks & Mossy Boulders (계곡 양안 기슭과 이끼 바위들)
-    const boulderCoords = [
-      [-5.5, -2.3, -3.5, 1.8],
-      [-4.2, -2.5, -1.2, 1.3],
-      [5.8, -2.2, -4.2, 2.1],
-      [4.5, -2.5, -0.8, 1.4],
-      [-6.8, -2.1, -7.2, 2.2],
-      [6.9, -2.0, -7.5, 2.3],
-      [-2.2, -2.6, -5.5, 0.85],
-      [2.6, -2.6, -14.5, 1.1]
-    ];
-    boulderCoords.forEach(([bx, by, bz, br]) => {
-      const bGeo = new THREE.DodecahedronGeometry(br, 1);
-      bGeo.scale(1.3, 0.68, 1.1);
-      const bMesh = new THREE.Mesh(bGeo, this.graniteMat);
-      bMesh.position.set(bx, by, bz);
-      bMesh.rotation.y = Math.random() * Math.PI;
-      this.seonamsaGroup.add(bMesh);
-    });
-
-    // Foreground Left & Right Stone Wall Path (선암사 돌담길)
-    const stoneWallLeft = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.6, 1.2), this.graniteMat);
-    stoneWallLeft.position.set(-6.8, -1.5, 2.2);
-    stoneWallLeft.rotation.y = 0.35;
-    this.seonamsaGroup.add(stoneWallLeft);
-
-    const stoneWallRight = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.6, 1.2), this.graniteMat);
-    stoneWallRight.position.set(6.8, -1.5, 2.2);
-    stoneWallRight.rotation.y = -0.35;
-    this.seonamsaGroup.add(stoneWallRight);
-
-    // 4. Gangseonru Pavilion visible beyond the Stone Arch (강선루)
-    const gangseonru = this.create3DPavilion(0.95);
-    gangseonru.position.set(0, -1.6, -24.5);
-    this.seonamsaGroup.add(gangseonru);
-
-    // 5. Jogyesan Valley Ridges & Autumn/Spring Foliage Forest (단풍/산벚꽃 나무 숲)
-    const valleyRidgeLeft = new THREE.Mesh(
-      new THREE.ConeGeometry(22, 24, 16),
-      new THREE.MeshStandardMaterial({ color: 0x2a232d, roughness: 0.92 })
-    );
-    valleyRidgeLeft.position.set(-22, 6, -28);
-    this.seonamsaGroup.add(valleyRidgeLeft);
-
-    const valleyRidgeRight = new THREE.Mesh(
-      new THREE.ConeGeometry(24, 26, 16),
-      new THREE.MeshStandardMaterial({ color: 0x261f29, roughness: 0.92 })
-    );
-    valleyRidgeRight.position.set(22, 7, -30);
-    this.seonamsaGroup.add(valleyRidgeRight);
-
-    // Populate 26 3D Deciduous Maple / Cherry Trees around the bridge and valley
-    this.seonamsaTreeCanopies = [];
-    const treeLocations = [
-      [-9.5, -1.5, -5.5, 1.3],
-      [9.5, -1.5, -5.8, 1.35],
-      [-11.2, -0.8, -11.5, 1.5],
-      [11.4, -0.8, -11.2, 1.45],
-      [-7.5, -1.2, -17.5, 1.25],
-      [7.8, -1.2, -18.0, 1.3],
-      [-4.8, -1.4, -22.0, 1.15],
-      [5.2, -1.4, -22.5, 1.2],
-      [-7.2, -1.2, 1.8, 1.25],
-      [7.2, -1.2, 1.8, 1.25]
-    ];
-
-    treeLocations.forEach(([tx, ty, tz, ts], idx) => {
-      const tree = this.create3DFoliageTree(ts, idx);
-      tree.position.set(tx, ty, tz);
-      this.seonamsaGroup.add(tree);
-    });
-
-    // 6. Hanging Lantern Rope spanning across the valley foreground (돌담길 연등줄)
-    const ropeCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-8.5, 3.6, 1.2),
-      new THREE.Vector3(-4.0, 2.85, 0.9),
-      new THREE.Vector3(0, 2.55, 0.8),
-      new THREE.Vector3(4.0, 2.85, 0.9),
-      new THREE.Vector3(8.5, 3.6, 1.2)
-    ]);
-    const ropeGeo = new THREE.TubeGeometry(ropeCurve, 32, 0.022, 6, false);
-    const ropeMesh = new THREE.Mesh(ropeGeo, this.bronzeMat);
-    this.seonamsaGroup.add(ropeMesh);
-  }
-
-  create3DFoliageTree(scale = 1.0, idx = 0) {
-    const group = new THREE.Group();
-    group.scale.setScalar(scale);
-
-    const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.14, 0.24, 3.4, 8),
-      this.woodMat
-    );
-    trunk.position.y = 1.7;
-    group.add(trunk);
-
-    const canopyOffsets = [
-      [0, 3.6, 0, 1.45],
-      [-0.95, 3.1, 0.4, 1.15],
-      [0.95, 3.2, -0.3, 1.2],
-      [0.2, 4.2, 0.3, 1.1]
-    ];
-
-    canopyOffsets.forEach(([cx, cy, cz, cr], cIdx) => {
-      const mat = new THREE.MeshStandardMaterial({
-        color: this.getFoliageColor(idx + cIdx),
-        roughness: 0.8
-      });
-      const sphere = new THREE.Mesh(new THREE.DodecahedronGeometry(cr, 1), mat);
-      sphere.scale.set(1.2, 0.82, 1.1);
-      sphere.position.set(cx, cy, cz);
-      group.add(sphere);
-      this.seonamsaTreeCanopies.push({ mat, seed: idx + cIdx });
-    });
-
-    return group;
-  }
-
-  getFoliageColor(seed) {
-    if (this.foliageMode === 'autumn') {
-      const autumnColors = [0xd94832, 0xe87a24, 0xf2a922, 0xb8332a];
-      return new THREE.Color(autumnColors[seed % autumnColors.length]);
-    } else {
-      const springColors = [0xf9cbd6, 0xfde2e8, 0xf4a7b9, 0x76a07d];
-      return new THREE.Color(springColors[seed % springColors.length]);
-    }
-  }
-
-  /* ------------------------------------------------------------------------
-     3D FALLING PETALS / MAPLE LEAVES IN 3D SPACE
-     ------------------------------------------------------------------------ */
   initFallingFoliage3D() {
-    this.leafCount = 110;
-    this.leafDummy = new THREE.Object3D();
+    this.leafCount = 95;
+    this.leafDummy = new C_ENGINE.Object3D();
     this.leafData = [];
 
-    const leafGeo = new THREE.PlaneGeometry(0.16, 0.12);
-    this.leafInstancedMat = new THREE.MeshBasicMaterial({
+    const leafGeo = new C_ENGINE.PlaneGeometry(0.18, 0.14);
+    this.leafInstancedMat = new C_ENGINE.MeshBasicMaterial({
       color: 0xe86a38,
-      side: THREE.DoubleSide,
+      side: C_ENGINE.DoubleSide,
       transparent: true,
       opacity: 0.88
     });
 
-    this.leafInstancedMesh = new THREE.InstancedMesh(leafGeo, this.leafInstancedMat, this.leafCount);
+    this.leafInstancedMesh = new C_ENGINE.InstancedMesh(
+      leafGeo,
+      this.leafInstancedMat,
+      this.leafCount
+    );
     for (let i = 0; i < this.leafCount; i++) {
       this.leafData.push({
-        x: (Math.random() - 0.5) * 28,
-        y: -2 + Math.random() * 10,
-        z: -16 + Math.random() * 20,
-        vx: 0.4 + Math.random() * 0.8,
-        vy: -0.45 - Math.random() * 0.55,
-        vz: (Math.random() - 0.5) * 0.4,
+        ox: (Math.random() - 0.5) * 28,
+        y: Math.random() * 9,
+        oz: (Math.random() - 0.5) * 24,
+        vx: 0.35 + Math.random() * 0.65,
+        vy: -0.42 - Math.random() * 0.5,
+        vz: (Math.random() - 0.5) * 0.35,
         rx: Math.random() * Math.PI,
         ry: Math.random() * Math.PI,
         spin: 0.8 + Math.random() * 1.8,
@@ -1620,11 +796,7 @@ class Chakyeong3DWorld {
     this.fxRoot.add(this.leafInstancedMesh);
   }
 
-  /* ------------------------------------------------------------------------
-     3D WISH LANTERNS BUILDER (처마 밑 / 돌담길 3D 한지 연등)
-     ------------------------------------------------------------------------ */
   rebuild3DLanterns(wishesForSpace, activeWishId) {
-    // Clear existing 3D lanterns
     while (this.lanternsRoot.children.length > 0) {
       this.lanternsRoot.remove(this.lanternsRoot.children[0]);
     }
@@ -1635,103 +807,112 @@ class Chakyeong3DWorld {
 
     const total = wishesForSpace.length;
 
-    // Prepare reusable 3D lotus/hanji lantern profile (LatheGeometry)
     const lanternPts = [];
     for (let i = 0; i <= 14; i++) {
       const t = i / 14;
-      const y = (t - 0.5) * 0.56;
-      const r = 0.08 + Math.sin(t * Math.PI) * 0.19;
-      lanternPts.push(new THREE.Vector2(r, y));
+      const y = (t - 0.5) * 0.62;
+      const r = 0.09 + Math.sin(t * Math.PI) * 0.22;
+      lanternPts.push(new C_ENGINE.Vector2(r, y));
     }
-    const bodyGeo = new THREE.LatheGeometry(lanternPts, 20);
-    const capGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.04, 16);
-    const tagGeo = new THREE.PlaneGeometry(0.11, 0.34);
+    const bodyGeo = new C_ENGINE.LatheGeometry(lanternPts, 24);
+    const capGeo = new C_ENGINE.CylinderGeometry(0.14, 0.14, 0.045, 16);
+    const tagGeo = new C_ENGINE.PlaneGeometry(0.12, 0.38);
+    const haloGeo = new C_ENGINE.PlaneGeometry(1, 1);
+    const hitSphereGeo = new C_ENGINE.SphereGeometry(0.55, 8, 8);
+    const hitSphereMat = new C_ENGINE.MeshBasicMaterial({ visible: false });
 
     wishesForSpace.forEach((wish, idx) => {
-      const pivot = new THREE.Group();
-
-      // Compute 3D hanging coordinate along Muryangsujeon Eaves or Seonamsa Rope
+      const pivot = new C_ENGINE.Group();
       const t = total <= 1 ? 0.5 : idx / (total - 1);
-      const x = -5.0 + t * 9.2; // leaves room on far right for the bronze windbell
-      const normX = x / 9.5;
 
-      let y, z;
+      let x, y, z;
       if (this.spaceMode === 'buseoksa') {
-        const eaveCurve = normX * normX * 0.65;
-        y = 3.18 + eaveCurve;
-        z = 1.25 + (idx % 2) * 0.35;
+        // Hang gracefully along the front eave outside the Korean timber hall facade (`z = 23.2`)
+        x = -10.5 + t * 21.0;
+        const normX = x / 14.0;
+        y = 8.45 + normX * normX * 0.28;
+        z = 24.55 + (idx % 2) * 0.25;
       } else {
-        // Catenary sag along the Seonamsa rope
-        y = 2.55 + normX * normX * 1.15;
-        z = 0.85 + (idx % 2) * 0.25;
+        // Hang along the Lotus Pond & Seungseongyo path (`x = -26..-17`, `z = 32..39`)
+        const angle = 0.35 + t * 2.15;
+        x = -28.0 + Math.cos(angle) * 7.4;
+        z = 36.0 + Math.sin(angle) * 7.2;
+        y = 2.65 + (idx % 2) * 0.18;
       }
 
       pivot.position.set(x, y, z);
 
-      const cordLen = 0.42 + (idx % 3) * 0.12;
-      const cordMesh = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.008, 0.008, cordLen, 6),
+      const cordLen = 0.45 + (idx % 3) * 0.14;
+      const cordMesh = new C_ENGINE.Mesh(
+        new C_ENGINE.CylinderGeometry(0.01, 0.01, cordLen, 6),
         this.bronzeMat
       );
       cordMesh.position.y = -cordLen * 0.5;
       pivot.add(cordMesh);
 
-      const lanternCenterY = -cordLen - 0.28;
+      const lanternCenterY = -cordLen - 0.31;
       const colorKey = wish.color || 'amber';
       const pal = LANTERN_COLORS[colorKey] || LANTERN_COLORS.amber;
       const isSelected = wish.id === activeWishId;
 
-      const bodyMat = new THREE.MeshStandardMaterial({
+      const bodyMat = new C_ENGINE.MeshStandardMaterial({
         map: this.lanternTextures[colorKey] || this.lanternTextures.amber,
-        emissive: new THREE.Color(pal.hex),
+        emissive: new C_ENGINE.Color(pal.hex),
         emissiveMap: this.lanternTextures[colorKey] || this.lanternTextures.amber,
-        emissiveIntensity: isSelected ? 1.45 : 0.95,
+        emissiveIntensity: isSelected ? 1.65 : 1.05,
         roughness: 0.4
       });
 
-      const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-      bodyMesh.position.y = lanternCenterY;
-      bodyMesh.userData = {
+      const lanternData = {
         type: 'lantern',
         wishId: wish.id,
         wish,
-        worldPos: new THREE.Vector3(x, y + lanternCenterY, z)
+        worldPos: new C_ENGINE.Vector3(x, y + lanternCenterY, z)
       };
+
+      const bodyMesh = new C_ENGINE.Mesh(bodyGeo, bodyMat);
+      bodyMesh.position.y = lanternCenterY;
+      bodyMesh.castShadow = true;
+      bodyMesh.userData = lanternData;
       pivot.add(bodyMesh);
       this.interactiveTargets.push(bodyMesh);
 
-      // Top & Bottom Wooden Caps
-      const topCap = new THREE.Mesh(capGeo, this.woodMat);
-      topCap.position.y = lanternCenterY + 0.28;
+      const hitMesh = new C_ENGINE.Mesh(hitSphereGeo, hitSphereMat);
+      hitMesh.position.y = lanternCenterY - 0.1;
+      hitMesh.userData = lanternData;
+      pivot.add(hitMesh);
+      this.interactiveTargets.push(hitMesh);
+
+      const topCap = new C_ENGINE.Mesh(capGeo, this.darkWoodCapMat);
+      topCap.position.y = lanternCenterY + 0.31;
       pivot.add(topCap);
 
-      const botCap = new THREE.Mesh(capGeo, this.woodMat);
-      botCap.position.y = lanternCenterY - 0.28;
+      const botCap = new C_ENGINE.Mesh(capGeo, this.darkWoodCapMat);
+      botCap.position.y = lanternCenterY - 0.31;
       pivot.add(botCap);
 
-      // Optical Glow Sprite around each 3D Lantern
-      const haloMat = new THREE.SpriteMaterial({
+      const haloMat = new C_ENGINE.MeshBasicMaterial({
         map: this.glowTex,
         color: pal.hex,
+        side: C_ENGINE.DoubleSide,
         transparent: true,
-        opacity: isSelected ? 0.95 : 0.62,
-        blending: THREE.AdditiveBlending,
+        opacity: isSelected ? 0.95 : 0.65,
+        blending: C_ENGINE.AdditiveBlending,
         depthWrite: false
       });
-      const halo = new THREE.Sprite(haloMat);
-      const haloScale = isSelected ? 2.1 : 1.45;
+      const halo = new C_ENGINE.Mesh(haloGeo, haloMat);
+      const haloScale = isSelected ? 2.4 : 1.65;
       halo.scale.set(haloScale, haloScale, 1);
       halo.position.y = lanternCenterY;
       pivot.add(halo);
 
-      // Fluttering 3D Hanji Paper Wish Tag (소원지 꼬리표)
-      const tagMat = new THREE.MeshBasicMaterial({
+      const tagMat = new C_ENGINE.MeshBasicMaterial({
         color: 0xf5efe2,
-        side: THREE.DoubleSide
+        side: C_ENGINE.DoubleSide
       });
-      const tagMesh = new THREE.Mesh(tagGeo, tagMat);
-      tagMesh.position.y = lanternCenterY - 0.52;
-      tagMesh.userData = bodyMesh.userData;
+      const tagMesh = new C_ENGINE.Mesh(tagGeo, tagMat);
+      tagMesh.position.y = lanternCenterY - 0.56;
+      tagMesh.userData = lanternData;
       pivot.add(tagMesh);
       this.interactiveTargets.push(tagMesh);
 
@@ -1748,22 +929,21 @@ class Chakyeong3DWorld {
     });
   }
 
-  /* ------------------------------------------------------------------------
-     3D EFFECTS: WINDBELL SONIC RING & HAPJANG GOLDEN LOTUS EMBERS
-     ------------------------------------------------------------------------ */
   exciteWindBell() {
     this.bellExcitation = 1.0;
 
-    // Spawn expanding 3D golden sonic ring around the wind-bell
-    const ringGeo = new THREE.RingGeometry(0.18, 0.24, 32);
-    const ringMat = new THREE.MeshBasicMaterial({
+    const ringGeo = new C_ENGINE.PlaneGeometry(0.6, 0.6);
+    const ringMat = new C_ENGINE.MeshBasicMaterial({
+      map: this.glowTex,
       color: 0xfbbf24,
-      side: THREE.DoubleSide,
+      side: C_ENGINE.DoubleSide,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.9,
+      blending: C_ENGINE.AdditiveBlending,
+      depthWrite: false
     });
-    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-    ringMesh.position.set(5.35, 2.55, 1.15);
+    const ringMesh = new C_ENGINE.Mesh(ringGeo, ringMat);
+    ringMesh.position.set(12.6, 7.85, 24.6);
     this.fxRoot.add(ringMesh);
     this.sonicRings.push({ mesh: ringMesh, mat: ringMat, scale: 1, alpha: 0.9 });
   }
@@ -1772,102 +952,107 @@ class Chakyeong3DWorld {
     const targetLantern = this.lanternMeshes.find((l) => l.wishId === wishId);
     const origin = targetLantern
       ? targetLantern.bodyMesh.userData.worldPos.clone()
-      : new THREE.Vector3(0, 1.5, 1.0);
+      : this.camTarget.clone();
 
+    const particleGeo = new C_ENGINE.PlaneGeometry(1, 1);
     for (let i = 0; i < 28; i++) {
-      const spriteMat = new THREE.SpriteMaterial({
+      const spriteMat = new C_ENGINE.MeshBasicMaterial({
         map: this.glowTex,
         color: i % 2 === 0 ? 0xfef08a : 0xf59e0b,
+        side: C_ENGINE.DoubleSide,
         transparent: true,
         opacity: 0.95,
-        blending: THREE.AdditiveBlending,
+        blending: C_ENGINE.AdditiveBlending,
         depthWrite: false
       });
-      const sprite = new THREE.Sprite(spriteMat);
-      const s = 0.22 + Math.random() * 0.28;
+      const sprite = new C_ENGINE.Mesh(particleGeo, spriteMat);
+      const s = 0.26 + Math.random() * 0.32;
       sprite.scale.set(s, s, 1);
       sprite.position.set(
-        origin.x + (Math.random() - 0.5) * 0.7,
-        origin.y + (Math.random() - 0.5) * 0.4,
-        origin.z + (Math.random() - 0.5) * 0.5
+        origin.x + (Math.random() - 0.5) * 0.8,
+        origin.y + (Math.random() - 0.5) * 0.45,
+        origin.z + (Math.random() - 0.5) * 0.8
       );
+      sprite.lookAt(this.camera.position);
       this.fxRoot.add(sprite);
 
       this.hapjangParticles.push({
         sprite,
         mat: spriteMat,
         vx: (Math.random() - 0.5) * 0.6,
-        vy: 0.7 + Math.random() * 1.1,
-        vz: (Math.random() - 0.5) * 0.5,
+        vy: 0.75 + Math.random() * 1.15,
+        vz: (Math.random() - 0.5) * 0.6,
         alpha: 0.98
       });
     }
   }
 
   /* ------------------------------------------------------------------------
-     STATE TRANSITIONS: SPACE, TIME, FOLIAGE, CAMERA PRESETS & FOCUS
+     ATMOSPHERE, TIME OF DAY & SPACE TRANSITIONS
      ------------------------------------------------------------------------ */
   setSpace(space) {
     this.spaceMode = space;
-    this.buseoksaGroup.visible = space === 'buseoksa';
-    this.seonamsaGroup.visible = space === 'seonamsa';
     this.setCameraPreset(this.camPreset);
   }
 
   setTimeMode(timeKey) {
     this.timeMode = timeKey;
-    const pal = TIME_PALETTES[timeKey] || TIME_PALETTES.sunset;
+    if (timeKey === 'dawn') {
+      this.targetNightAmount = 0.0;
+    } else if (timeKey === 'sunset') {
+      this.targetNightAmount = 0.42;
+    } else {
+      this.targetNightAmount = 1.0;
+    }
+    this.applyAtmosphereLighting();
+  }
 
-    this.skyUniforms.uTopColor.value.copy(pal.skyTop);
-    this.skyUniforms.uMidColor.value.copy(pal.skyMid);
-    this.skyUniforms.uHorizonColor.value.copy(pal.skyHorizon);
-    this.skyUniforms.uSunPos.value.copy(pal.sunPos);
-    this.skyUniforms.uSunColor.value.copy(pal.sunColor);
+  applyAtmosphereLighting() {
+    const e = this.nightAmount;
+    const isSunset = this.timeMode === 'sunset';
 
-    this.scene.fog.color.copy(pal.fogColor);
-    this.scene.fog.density = pal.fogDensity;
+    const dayFog = new C_ENGINE.Color(isSunset ? '#d8a88e' : '#dce9df');
+    const nightFog = new C_ENGINE.Color('#343a50');
+    const dayUpper = new C_ENGINE.Color(isSunset ? '#ffd4b2' : '#e8f3f0');
+    const nightUpper = new C_ENGINE.Color('#adbcdb');
+    const dayLower = new C_ENGINE.Color(isSunset ? '#8f7562' : '#a4b99b');
+    const nightLower = new C_ENGINE.Color('#8f9b8c');
+    const daySun = new C_ENGINE.Color(isSunset ? '#ff9e58' : '#fff4e3');
+    const nightSun = new C_ENGINE.Color('#b2c0e5');
 
-    this.ambientLight.color.copy(pal.ambientColor);
-    this.ambientLight.intensity = pal.ambientIntensity;
-    this.dirLight.color.copy(pal.dirColor);
-    this.dirLight.intensity = pal.dirIntensity;
-    this.dirLight.position.copy(pal.sunPos);
+    this.fallbackSky.copy(dayFog).lerp(nightFog, e);
+    this.scene.background = this.woodland ?? this.fallbackSky;
+    this.scene.backgroundIntensity = isSunset
+      ? 0.72 * (1 - e * 0.5)
+      : 0.95 + (0.16 - 0.95) * e;
 
-    this.starMat.opacity = pal.starOpacity;
-    const isNight = timeKey === 'night';
-    this.moonMesh.material.opacity = isNight ? 0.95 : 0;
-    this.moonHalo.material.opacity = isNight ? 0.65 : 0;
+    if (this.scene.fog) {
+      this.scene.fog.color.copy(dayFog).lerp(nightFog, e);
+    }
 
-    // Update cloud tint & opacity
-    this.cloudPlanes.forEach((c) => {
-      c.mat.color.copy(pal.cloudColor);
-      c.mat.opacity = pal.cloudOpacity * 0.55;
-    });
+    const { sky, ambient, sun, altar, fill } = this.lighting;
+    sky.color.copy(dayUpper).lerp(nightUpper, e);
+    sky.groundColor.copy(dayLower).lerp(nightLower, e);
+    sky.intensity = 0.9 + (0.62 - 0.9) * e;
 
-    // Update mountain ridge atmospheric colors per time of day
-    const ridgeColorsByTime = {
-      dawn: ['#202E3D', '#2B3E52', '#384F66', '#46617A', '#56748F', '#6B89A3'],
-      sunset: ['#1F1626', '#2E1E33', '#3F2740', '#52304B', '#663B54', '#7C485E'],
-      night: ['#090F1C', '#0E1729', '#142038', '#1A2946', '#213354', '#283D63']
-    };
-    const rCols = ridgeColorsByTime[timeKey] || ridgeColorsByTime.sunset;
-    this.ridgeMaterials.forEach(({ mat, layerIndex }) => {
-      mat.color.set(rCols[layerIndex] || rCols[0]);
-    });
+    ambient.color.set(isSunset ? '#ffd8be' : '#fff1e6').lerp(new C_ENGINE.Color('#efd2c4'), e);
+    ambient.intensity = 0.22 + (0.42 - 0.22) * e;
 
-    // Update water shader colors
-    if (this.waterUniforms) {
-      this.waterUniforms.uDeepColor.value.copy(pal.waterDeep);
-      this.waterUniforms.uShallowColor.value.copy(pal.waterShallow);
-      this.waterUniforms.uSunColor.value.copy(pal.sunColor);
+    sun.color.copy(daySun).lerp(nightSun, e);
+    sun.intensity = (isSunset ? 2.45 : 2.25) * (1 - e) + 0.48 * e;
+
+    altar.intensity = (480 + 60 * e) * 1.44;
+    fill.intensity = (250 + 40 * e) * 1.44;
+
+    this.scene.environmentIntensity = 0.38 + (0.22 - 0.38) * e;
+
+    if (this.sanctuary) {
+      this.sanctuary.setNightAmount(e);
     }
   }
 
   setFoliageMode(foliageKey) {
     this.foliageMode = foliageKey;
-    this.seonamsaTreeCanopies.forEach(({ mat, seed }) => {
-      mat.color.copy(this.getFoliageColor(seed));
-    });
     this.leafInstancedMat.color.set(foliageKey === 'autumn' ? 0xe86434 : 0xfbcfe8);
   }
 
@@ -1877,21 +1062,35 @@ class Chakyeong3DWorld {
     this.targetPitch = 0;
     this.zoomOffset = 0;
 
-    if (preset === 'closeup') {
-      if (this.spaceMode === 'buseoksa') {
-        this.desiredCamPos.set(1.6, 1.3, 4.2);
-        this.desiredCamTarget.set(2.8, 0.8, -6.5);
+    const aspect = this.width / Math.max(1, this.height);
+    const portraitPullback = aspect < 0.85 ? (0.85 - aspect) * 6.5 : 0;
+
+    if (this.spaceMode === 'buseoksa') {
+      if (preset === 'closeup') {
+        // Right outside the front Korean timber eaves looking at columns, brackets, plaque, lanterns & wind-bell
+        this.desiredCamPos.set(5.2, 4.8, 29.2 + portraitPullback * 0.5);
+        this.desiredCamTarget.set(2.5, 6.8, 23.0);
+      } else if (preset === 'wide') {
+        // Grand panoramic view from the mountain gate across the courtyard, temple hall, pine woodland & panorama
+        this.desiredCamPos.set(0, 3.6, 48.0 + portraitPullback);
+        this.desiredCamTarget.set(0, 4.8, 14.0);
       } else {
-        this.desiredCamPos.set(0, 0.2, 3.8);
-        this.desiredCamTarget.set(0, 0.4, -10.5);
+        // Default courtyard & eave borrowed-scenery framing (matching sansatemple.com garden framing)
+        this.desiredCamPos.set(-4.5, 2.65, 36.5 + portraitPullback * 0.8);
+        this.desiredCamTarget.set(0, 5.2, 20.0);
       }
-    } else if (preset === 'wide') {
-      this.desiredCamPos.set(0, 0.8, 8.8);
-      this.desiredCamTarget.set(0, 0.1, -18.0);
     } else {
-      // 'default' borrowed scenery framing
-      this.desiredCamPos.set(0, 0.45, 6.8);
-      this.desiredCamTarget.set(0, 0.25, -14.0);
+      // Space 2: Lotus Pond (`Bt = {-28, 36}`) & Seungseongyo Stone Bridge (`es = {-21.1, 36}`)
+      if (preset === 'closeup') {
+        this.desiredCamPos.set(-17.8, 1.55, 39.2 + portraitPullback * 0.45);
+        this.desiredCamTarget.set(-26.5, 0.85, 35.8);
+      } else if (preset === 'wide') {
+        this.desiredCamPos.set(-11.5, 3.1, 46.5 + portraitPullback * 0.8);
+        this.desiredCamTarget.set(-27.0, 1.4, 35.0);
+      } else {
+        this.desiredCamPos.set(-15.5, 2.05, 42.5 + portraitPullback * 0.65);
+        this.desiredCamTarget.set(-27.5, 1.0, 35.5);
+      }
     }
   }
 
@@ -1899,12 +1098,20 @@ class Chakyeong3DWorld {
     const item = this.lanternMeshes.find((l) => l.wishId === wishId);
     if (!item) return;
     const wp = item.bodyMesh.userData.worldPos;
-    this.desiredCamPos.set(wp.x * 0.55, 1.4, 4.6);
-    this.desiredCamTarget.set(wp.x, wp.y - 0.15, wp.z - 2.0);
+    const aspect = this.width / Math.max(1, this.height);
+    const mobileOffset = aspect < 0.85 ? 1.4 : 0;
+
+    if (this.spaceMode === 'buseoksa') {
+      this.desiredCamPos.set(wp.x * 0.85, wp.y - 0.35, wp.z + 4.2 + mobileOffset);
+      this.desiredCamTarget.set(wp.x, wp.y - 0.1, wp.z - 2.0);
+    } else {
+      this.desiredCamPos.set(wp.x + 3.6 + mobileOffset, wp.y + 0.4, wp.z + 3.6 + mobileOffset);
+      this.desiredCamTarget.set(wp.x, wp.y - 0.1, wp.z);
+    }
   }
 
   /* ------------------------------------------------------------------------
-     RAYCASTER & ORBIT MOUSE/TOUCH INTERACTION
+     RAYCASTER, MOUSE ORBIT & MOBILE PINCH-TO-ZOOM INTERACTION
      ------------------------------------------------------------------------ */
   initInteractionEvents() {
     const el = this.renderer.domElement;
@@ -1914,41 +1121,86 @@ class Chakyeong3DWorld {
       this.pointerMoved = false;
       this.pointerStart.x = e.clientX;
       this.pointerStart.y = e.clientY;
+      this.mouseNDC.x = (e.clientX / this.width) * 2 - 1;
+      this.mouseNDC.y = -(e.clientY / this.height) * 2 + 1;
     });
 
     window.addEventListener('pointermove', (e) => {
       this.mouseNDC.x = (e.clientX / this.width) * 2 - 1;
       this.mouseNDC.y = -(e.clientY / this.height) * 2 + 1;
 
-      if (this.isPointerDown) {
+      if (this.isPointerDown && this.pinchStartDist === null) {
         const dx = e.clientX - this.pointerStart.x;
         const dy = e.clientY - this.pointerStart.y;
         if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
           this.pointerMoved = true;
         }
-        this.targetYaw = Math.max(-0.55, Math.min(0.55, this.targetYaw - dx * 0.0022));
-        this.targetPitch = Math.max(-0.28, Math.min(0.32, this.targetPitch - dy * 0.0018));
+        const sensitivity = this.isMobile ? 0.0034 : 0.0024;
+        this.targetYaw = Math.max(-1.35, Math.min(1.35, this.targetYaw - dx * sensitivity));
+        this.targetPitch = Math.max(-0.42, Math.min(0.45, this.targetPitch - dy * (sensitivity * 0.8)));
         this.pointerStart.x = e.clientX;
         this.pointerStart.y = e.clientY;
         return;
       }
 
-      this.checkHoverIntersection(e.clientX, e.clientY);
+      if (!this.isMobile) {
+        this.checkHoverIntersection(e.clientX, e.clientY);
+      }
     });
 
     window.addEventListener('pointerup', (e) => {
       if (!this.isPointerDown) return;
       this.isPointerDown = false;
-      if (!this.pointerMoved && e.target === el) {
+      if (!this.pointerMoved && e.target === el && this.pinchStartDist === null) {
+        this.mouseNDC.x = (e.clientX / this.width) * 2 - 1;
+        this.mouseNDC.y = -(e.clientY / this.height) * 2 + 1;
         this.handleSceneClick();
       }
     });
 
     el.addEventListener(
+      'touchstart',
+      (e) => {
+        if (e.touches.length === 2) {
+          this.pointerMoved = true;
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          this.pinchStartDist = Math.hypot(dx, dy);
+          this.pinchStartZoom = this.zoomOffset;
+        }
+      },
+      { passive: true }
+    );
+
+    el.addEventListener(
+      'touchmove',
+      (e) => {
+        if (e.touches.length === 2 && this.pinchStartDist !== null) {
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.hypot(dx, dy);
+          const delta = (this.pinchStartDist - dist) * 0.025;
+          this.zoomOffset = Math.max(-6.0, Math.min(8.0, this.pinchStartZoom + delta));
+        }
+      },
+      { passive: true }
+    );
+
+    el.addEventListener(
+      'touchend',
+      (e) => {
+        if (e.touches.length < 2) {
+          this.pinchStartDist = null;
+        }
+      },
+      { passive: true }
+    );
+
+    el.addEventListener(
       'wheel',
       (e) => {
         e.preventDefault();
-        this.zoomOffset = Math.max(-2.6, Math.min(2.6, this.zoomOffset + e.deltaY * 0.0025));
+        this.zoomOffset = Math.max(-6.0, Math.min(8.0, this.zoomOffset + e.deltaY * 0.005));
       },
       { passive: false }
     );
@@ -1962,11 +1214,6 @@ class Chakyeong3DWorld {
     if (hits.length > 0) {
       const hitObj = hits[0].object;
       const data = hitObj.userData;
-
-      if (data.type === 'windbell' && this.spaceMode !== 'buseoksa') {
-        this.clearHover(tooltip);
-        return;
-      }
 
       this.hoveredObject = hitObj;
       this.container.classList.add('pointer-hover');
@@ -1998,7 +1245,7 @@ class Chakyeong3DWorld {
 
     if (hits.length > 0) {
       const data = hits[0].object.userData;
-      if (data.type === 'windbell' && this.spaceMode === 'buseoksa') {
+      if (data.type === 'windbell') {
         triggerBellRingInteraction();
         return;
       }
@@ -2014,115 +1261,112 @@ class Chakyeong3DWorld {
   onResize() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.camera.aspect = this.width / this.height;
+    this.isMobile = this.width < 768;
+    this.camera.fov = this.getResponsiveFov();
+    this.camera.aspect = this.width / Math.max(1, this.height);
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.width, this.height);
+    this.renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio || 1, this.width < 700 ? 1.6 : 1.75)
+    );
+    if (!activeWishId) {
+      this.setCameraPreset(this.camPreset);
+    }
   }
 
-  /* ------------------------------------------------------------------------
-     MAIN 3D ANIMATION LOOP
-     ------------------------------------------------------------------------ */
   animate() {
     requestAnimationFrame(() => this.animate());
 
-    const dt = Math.min(this.clock.getDelta(), 0.05);
-    const elapsed = this.clock.getElapsedTime();
+    const now = performance.now();
+    const dt = Math.min(Math.max((now - this.lastFrameTime) / 1000, 0.001), 0.05);
+    this.lastFrameTime = now;
+    this.elapsedTime += dt;
+    const elapsed = this.elapsedTime;
 
-    // 1. Smoothly interpolate camera position & orbit look
+    // Smoothly transition day/sunset/night lighting & sanctuary vertex GI
+    if (Math.abs(this.nightAmount - this.targetNightAmount) > 0.001) {
+      this.nightAmount += (this.targetNightAmount - this.nightAmount) * Math.min(1, dt * 3.5);
+      this.applyAtmosphereLighting();
+    }
+
+    // Update SANSA_CORE sanctuary (wind sway on bamboo/pines, pond water ripples, butterflies, dust motes)
+    if (this.sanctuary) {
+      try {
+        this.sanctuary.update(elapsed, dt, true);
+      } catch (e) {
+        // Guard against partial load state during first async frames
+      }
+    }
+
+    // Smoothly interpolate camera position & spherical orbit
     this.orbitYaw += (this.targetYaw - this.orbitYaw) * 0.08;
     this.orbitPitch += (this.targetPitch - this.orbitPitch) * 0.08;
 
-    const breathSwayX = Math.sin(elapsed * 0.35) * 0.08;
-    const breathSwayY = Math.cos(elapsed * 0.28) * 0.05;
+    const breathSwayX = Math.sin(elapsed * 0.35) * 0.05;
+    const breathSwayY = Math.cos(elapsed * 0.28) * 0.035;
 
-    const targetPosWithZoom = this.desiredCamPos.clone();
-    targetPosWithZoom.z += this.zoomOffset;
-    this.camPos.lerp(targetPosWithZoom, 0.05);
+    this.camPos.lerp(this.desiredCamPos, 0.06);
     this.camTarget.lerp(this.desiredCamTarget, 0.06);
 
+    const viewDir = new C_ENGINE.Vector3().subVectors(this.camTarget, this.camPos);
+    const baseDist = Math.max(2.0, viewDir.length() + this.zoomOffset);
+    const baseYaw = Math.atan2(viewDir.x, viewDir.z) + this.orbitYaw;
+    const basePitch = Math.asin(Math.max(-0.85, Math.min(0.85, viewDir.y / Math.max(0.1, viewDir.length())))) + this.orbitPitch;
+
     this.camera.position.set(
-      this.camPos.x + breathSwayX + Math.sin(this.orbitYaw) * 3.2,
-      this.camPos.y + breathSwayY + this.orbitPitch * 2.4,
-      this.camPos.z
+      this.camPos.x + breathSwayX - Math.sin(this.orbitYaw) * 2.2,
+      Math.max(0.6, this.camPos.y + breathSwayY - this.orbitPitch * 2.0),
+      this.camPos.z - this.zoomOffset * 0.75
     );
+
     this.camera.lookAt(
-      this.camTarget.x - this.orbitYaw * 4.5,
-      this.camTarget.y + this.orbitPitch * 3.5,
-      this.camTarget.z
+      this.camera.position.x + Math.sin(baseYaw) * Math.cos(basePitch) * baseDist,
+      this.camera.position.y + Math.sin(basePitch) * baseDist,
+      this.camera.position.z + Math.cos(baseYaw) * Math.cos(basePitch) * baseDist
     );
 
-    // 2. Rotate night starfield gently
-    if (this.starField) {
-      this.starField.rotation.y = elapsed * 0.006;
-    }
+    // Animate 3D Bronze Wind-Bell
+    if (this.windBellPivot) {
+      this.bellExcitation = Math.max(0, this.bellExcitation - dt * 0.42);
+      const swayAmp = 0.045 + this.bellExcitation * 0.22;
+      const swaySpeed = 1.8 + this.bellExcitation * 6.5;
+      this.windBellPivot.rotation.z = Math.sin(elapsed * swaySpeed) * swayAmp;
+      this.windBellPivot.rotation.x = Math.cos(elapsed * 1.3) * 0.03;
 
-    // 3. Space 1: Animate Sea of Clouds, Stone Lantern flicker, and 3D Bronze Wind-Bell
-    if (this.spaceMode === 'buseoksa') {
-      for (const c of this.cloudPlanes) {
-        c.mesh.position.x += c.speed * dt;
-        c.mesh.position.y = c.baseY + Math.sin(elapsed * 0.4 + c.phase) * 0.22;
-        if (c.mesh.position.x > 68) c.mesh.position.x = -68;
-      }
-
-      if (this.stoneLanternLight) {
-        const flicker = 2.0 + Math.sin(elapsed * 7.5) * 0.25 + Math.cos(elapsed * 13.0) * 0.15;
-        this.stoneLanternLight.intensity = flicker;
-        if (this.stoneLanternHalo) {
-          const hs = 2.6 + Math.sin(elapsed * 6.0) * 0.25;
-          this.stoneLanternHalo.scale.set(hs, hs, 1);
-        }
-      }
-
-      if (this.windBellPivot) {
-        this.bellExcitation = Math.max(0, this.bellExcitation - dt * 0.42);
-        const swayAmp = 0.045 + this.bellExcitation * 0.22;
-        const swaySpeed = 1.8 + this.bellExcitation * 6.5;
-        this.windBellPivot.rotation.z = Math.sin(elapsed * swaySpeed) * swayAmp;
-        this.windBellPivot.rotation.x = Math.cos(elapsed * 1.3) * 0.03;
-
-        if (this.windFishPivot) {
-          this.windFishPivot.rotation.y = Math.sin(elapsed * 2.6) * (0.28 + this.bellExcitation * 0.8);
-          this.windFishPivot.rotation.z = Math.cos(elapsed * 3.4) * (0.08 + this.bellExcitation * 0.25);
-        }
+      if (this.windFishPivot) {
+        this.windFishPivot.rotation.y = Math.sin(elapsed * 2.6) * (0.28 + this.bellExcitation * 0.8);
+        this.windFishPivot.rotation.z = Math.cos(elapsed * 3.4) * (0.08 + this.bellExcitation * 0.25);
       }
     }
 
-    // 4. Space 2: Animate Valley Stream Shader
-    if (this.spaceMode === 'seonamsa' && this.waterUniforms) {
-      this.waterUniforms.uTime.value = elapsed;
-    }
-
-    // 5. Animate 3D Hanging Wish Lanterns (gentle pendulum sway + paper tag wave)
+    // Animate 3D Hanging Wish Lanterns
     for (const l of this.lanternMeshes) {
       l.pivot.rotation.z = Math.sin(elapsed * l.speed + l.phase) * 0.055;
       l.pivot.rotation.x = Math.cos(elapsed * (l.speed * 0.8) + l.phase) * 0.035;
       l.tagMesh.rotation.z = Math.sin(elapsed * 2.4 + l.phase) * 0.14;
       l.tagMesh.rotation.y = Math.cos(elapsed * 1.7 + l.phase) * 0.25;
+      if (l.halo) {
+        l.halo.lookAt(this.camera.position);
+      }
     }
 
-    // 6. Animate 3D Falling Petals / Maple Leaves
-    const activeLeaves = this.spaceMode === 'seonamsa' ? this.leafCount : 36;
+    // Animate 3D Falling Petals / Maple Leaves around active camera area
+    const center = this.camTarget;
     for (let i = 0; i < this.leafCount; i++) {
-      if (i >= activeLeaves) {
-        this.leafDummy.scale.setScalar(0);
-        this.leafDummy.updateMatrix();
-        this.leafInstancedMesh.setMatrixAt(i, this.leafDummy.matrix);
-        continue;
-      }
       const d = this.leafData[i];
-      d.x += (d.vx + Math.sin(elapsed * 1.5 + d.phase) * 0.45) * dt;
+      d.ox += (d.vx + Math.sin(elapsed * 1.5 + d.phase) * 0.45) * dt;
       d.y += d.vy * dt;
-      d.z += d.vz * dt;
+      d.oz += d.vz * dt;
       d.rx += d.spin * dt;
       d.ry += d.spin * 0.8 * dt;
 
-      if (d.y < -3.4 || d.x > 16) {
-        d.x = -14 + Math.random() * 20;
-        d.y = 4.5 + Math.random() * 4.0;
-        d.z = -14 + Math.random() * 18;
+      if (d.y < -0.5 || d.ox > 15) {
+        d.ox = -14 + Math.random() * 28;
+        d.y = 6.5 + Math.random() * 4.5;
+        d.oz = -12 + Math.random() * 24;
       }
 
-      this.leafDummy.position.set(d.x, d.y, d.z);
+      this.leafDummy.position.set(center.x + d.ox, d.y, center.z + d.oz);
       this.leafDummy.rotation.set(d.rx, d.ry, 0);
       this.leafDummy.scale.setScalar(1);
       this.leafDummy.updateMatrix();
@@ -2130,7 +1374,7 @@ class Chakyeong3DWorld {
     }
     this.leafInstancedMesh.instanceMatrix.needsUpdate = true;
 
-    // 7. Animate Expanding Sonic Rings & Hapjang Particles
+    // Animate Sonic Rings & Hapjang Particles
     for (let i = this.sonicRings.length - 1; i >= 0; i--) {
       const r = this.sonicRings[i];
       r.scale += dt * 7.5;
@@ -2149,6 +1393,7 @@ class Chakyeong3DWorld {
       p.sprite.position.x += p.vx * dt;
       p.sprite.position.y += p.vy * dt;
       p.sprite.position.z += p.vz * dt;
+      p.sprite.lookAt(this.camera.position);
       p.alpha -= dt * 0.48;
       p.mat.opacity = Math.max(0, p.alpha);
       if (p.alpha <= 0) {
@@ -2168,7 +1413,7 @@ const audioEngine = new SanSaAudioEngine();
 let world3D = null;
 
 let currentSpace = 'buseoksa';
-let currentTime = 'sunset';
+let currentTime = 'dawn';
 let currentFoliage = 'autumn';
 let wishes = loadWishes();
 let likedWishIds = loadLikedWishes();
@@ -2244,7 +1489,7 @@ function openWishReader(wishId) {
   document.getElementById('reader-tag').textContent = wish.tag || '소원 기원';
   document.getElementById('reader-text').textContent = wish.text;
   document.getElementById('reader-author').textContent = wish.author || '익명의 순례자';
-  document.getElementById('reader-date').textContent = wish.date || '2026.11.02';
+  document.getElementById('reader-date').textContent = wish.date || '2026.11.03';
   document.getElementById('reader-hapjang-count').textContent = wish.hapjang;
 
   const hapjangBtn = document.getElementById('hapjang-btn');
@@ -2441,7 +1686,7 @@ function toggleZenMode(forceState) {
   if (isZen) {
     closeWishReader();
     document.getElementById('sound-mixer-panel').classList.remove('open');
-    showToast('풍경멍 모드입니다. 마우스 드래그로 3D 풍경을 둘러보세요 (Esc/Space로 복귀).');
+    showToast('풍경멍 모드입니다. 드래그/터치로 3D 풍경을 둘러보세요 (Esc/Space로 복귀).');
   }
 }
 
@@ -2492,6 +1737,20 @@ document.addEventListener('DOMContentLoaded', () => {
   world3D = new Chakyeong3DWorld(container);
   sync3DLanterns();
   world3D.animate();
+
+  // Support drag-and-drop of user's own real Buseoksa photo onto the viewport
+  window.addEventListener('dragover', (e) => e.preventDefault());
+  window.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      if (window.applyCustomBuseoksaPhoto) {
+        window.applyCustomBuseoksaPhoto(url);
+        showToast('📷 직접 찍으신 실사 사진이 3D 원경 배경에 적용되었습니다!');
+      }
+    }
+  });
 
   // Space switcher
   document.querySelectorAll('[data-space-target]').forEach((btn) => {
@@ -2597,17 +1856,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') {
       closeWriteModal();
       closeWishReader();
-      mixerPanel.classList.remove('open');
+      document.getElementById('sound-mixer-panel').classList.remove('open');
       if (document.body.classList.contains('zen-mode')) {
         toggleZenMode(false);
       }
-    } else if (e.key === ' ' && !isTyping) {
+      return;
+    }
+
+    if (
+      e.code === 'Space' &&
+      !isTyping &&
+      !document.getElementById('write-modal-backdrop').classList.contains('open')
+    ) {
       e.preventDefault();
       toggleZenMode();
-    } else if (e.key === 'ArrowRight' && activeWishId && !isTyping) {
-      navigateWish(1);
-    } else if (e.key === 'ArrowLeft' && activeWishId && !isTyping) {
-      navigateWish(-1);
     }
   });
 });

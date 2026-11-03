@@ -1,0 +1,10 @@
+{
+  "name": "view-mung-chakyeong-3d",
+  "version": "2.0.0",
+  "description": "차경(借景) 3D — 한국 명승 산사 풍경 멍 (Three.js r180 WebGL Photorealistic Sanctuary & Mountain Garden)",
+  "private": true,
+  "scripts": {
+    "dev": "npx --yes http-server -p 8080 -c-1 --cors -o",
+    "start": "npx --yes http-server -p 8080 -c-1 --cors"
+  }
+}

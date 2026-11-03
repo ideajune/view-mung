@@ -8,22 +8,26 @@
   --surface-hanji: #F5F0E6;
   --surface-hanji-warm: #EAE0CE;
   --text-primary: #F4F1EA;
-  --text-secondary: rgba(244, 241, 234, 0.72);
-  --text-muted: rgba(244, 241, 234, 0.45);
+  --text-secondary: rgba(244, 241, 234, 0.75);
+  --text-muted: rgba(244, 241, 234, 0.48);
   --text-ink: #1C1A17;
   --text-ink-secondary: #575047;
 
   --accent-lantern: #F59E0B;
   --accent-lantern-core: #FEF3C7;
   --accent-dancheong-red: #B84A39;
-  --border-hairline: rgba(244, 241, 234, 0.15);
-  --border-lantern: rgba(245, 158, 11, 0.5);
+  --border-hairline: rgba(244, 241, 234, 0.16);
+  --border-lantern: rgba(245, 158, 11, 0.52);
 
   --font-display: 'Nanum Myeongjo', 'Batang', serif;
   --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   --transition-ui: 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -32,12 +36,15 @@
   padding: 0;
   user-select: none;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
   background-color: var(--bg-obsidian);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -48,8 +55,9 @@ html, body {
    ========================================================================== */
 .app-stage {
   position: relative;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
   overflow: hidden;
   background: #07090D;
 }
@@ -61,6 +69,13 @@ html, body {
   height: 100%;
   z-index: 1;
   cursor: grab;
+  touch-action: none;
+}
+
+#webgl-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 #webgl-container:active {
@@ -78,8 +93,8 @@ html, body {
   z-index: 2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 50%, transparent 58%, rgba(4, 6, 10, 0.52) 100%),
-    linear-gradient(180deg, rgba(4, 6, 10, 0.38) 0%, transparent 18%, transparent 82%, rgba(4, 6, 10, 0.55) 100%);
+    radial-gradient(circle at 50% 50%, transparent 62%, rgba(4, 6, 10, 0.42) 100%),
+    linear-gradient(180deg, rgba(4, 6, 10, 0.32) 0%, transparent 16%, transparent 84%, rgba(4, 6, 10, 0.48) 100%);
 }
 
 /* 3D Lantern Hover Tooltip in Screen Space */
@@ -110,19 +125,21 @@ html, body {
 /* Interactive 3D Guide Hint */
 .camera-hint-pill {
   position: fixed;
-  bottom: 92px;
+  bottom: calc(92px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
   pointer-events: none;
   background: rgba(12, 15, 20, 0.56);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(244, 241, 234, 0.12);
   padding: 6px 14px;
   border-radius: 999px;
   font-size: 0.76rem;
   color: var(--text-secondary);
   letter-spacing: 0.02em;
+  white-space: nowrap;
   transition: opacity 0.45s ease;
 }
 
@@ -149,38 +166,38 @@ body.zen-mode .top-bar.hud-chrome {
 
 .top-bar {
   position: fixed;
-  top: 22px;
-  left: 26px;
-  right: 26px;
+  top: calc(18px + var(--safe-top));
+  left: calc(22px + var(--safe-left));
+  right: calc(22px + var(--safe-right));
   z-index: 30;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   pointer-events: none;
-  gap: 16px;
+  gap: 14px;
 }
 
 .brand-cluster {
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 15px 22px;
+  gap: 5px;
+  padding: 14px 20px;
   border-radius: 20px;
   background: var(--surface-charcoal);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border-hairline);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-  max-width: 450px;
+  max-width: 440px;
 }
 
 .brand-eyebrow {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
+  font-size: 0.73rem;
+  letter-spacing: 0.12em;
   color: var(--accent-lantern);
   font-weight: 600;
 }
@@ -191,11 +208,12 @@ body.zen-mode .top-bar.hud-chrome {
   border-radius: 50%;
   background: var(--accent-lantern);
   box-shadow: 0 0 10px var(--accent-lantern);
+  flex-shrink: 0;
 }
 
 .space-title {
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 1.9vw, 1.62rem);
+  font-size: clamp(1.18rem, 1.8vw, 1.58rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -203,9 +221,9 @@ body.zen-mode .top-bar.hud-chrome {
 }
 
 .space-caption {
-  font-size: 0.83rem;
+  font-size: 0.81rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.48;
   word-break: keep-all;
 }
 
@@ -213,7 +231,7 @@ body.zen-mode .top-bar.hud-chrome {
   pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -221,8 +239,8 @@ body.zen-mode .top-bar.hud-chrome {
 .glass-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px;
+  gap: 3px;
+  padding: 4px;
   border-radius: 999px;
   background: var(--surface-charcoal);
   backdrop-filter: blur(18px);
@@ -237,15 +255,15 @@ body.zen-mode .top-bar.hud-chrome {
   background: transparent;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-size: 0.79rem;
   font-weight: 500;
-  padding: 7px 13px;
+  padding: 7px 12px;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.25s ease;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   white-space: nowrap;
 }
 
@@ -266,16 +284,18 @@ body.zen-mode .top-bar.hud-chrome {
   border: 1px solid var(--border-hairline);
   background: var(--surface-charcoal);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   color: var(--text-primary);
-  padding: 10px 16px;
+  padding: 9px 15px;
   border-radius: 999px;
   font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
   transition: all 0.25s ease;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
 }
@@ -324,13 +344,13 @@ body.zen-mode .top-bar.hud-chrome {
    ========================================================================== */
 .bottom-dock {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(20px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 30;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 8px 12px;
   border-radius: 999px;
   background: var(--surface-charcoal);
@@ -338,7 +358,7 @@ body.zen-mode .top-bar.hud-chrome {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-hairline);
   box-shadow: 0 20px 52px rgba(0, 0, 0, 0.65);
-  max-width: calc(100vw - 28px);
+  max-width: calc(100vw - 24px);
 }
 
 body.zen-mode .bottom-dock.hud-chrome {
@@ -349,6 +369,7 @@ body.zen-mode .bottom-dock.hud-chrome {
   width: 1px;
   height: 24px;
   background: var(--border-hairline);
+  flex-shrink: 0;
 }
 
 .space-switcher {
@@ -363,15 +384,15 @@ body.zen-mode .bottom-dock.hud-chrome {
   background: transparent;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 500;
-  padding: 9px 15px;
+  padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.25s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   white-space: nowrap;
 }
 
@@ -401,14 +422,14 @@ body.zen-mode .bottom-dock.hud-chrome {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(224, 90, 71, 0.24));
   color: #FFFBEB;
   font-family: var(--font-sans);
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
-  padding: 9px 18px;
+  padding: 8px 16px;
   border-radius: 999px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
   transition: all 0.25s ease;
   box-shadow: 0 4px 18px rgba(245, 158, 11, 0.25);
@@ -426,9 +447,9 @@ body.zen-mode .bottom-dock.hud-chrome {
   background: transparent;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  padding: 9px 13px;
+  padding: 8px 12px;
   border-radius: 999px;
   cursor: pointer;
   display: inline-flex;
@@ -449,14 +470,15 @@ body.zen-mode .bottom-dock.hud-chrome {
    ========================================================================== */
 .zen-restore-pill {
   position: fixed;
-  bottom: 24px;
-  right: 28px;
+  bottom: calc(22px + var(--safe-bottom));
+  right: calc(24px + var(--safe-right));
   z-index: 45;
   appearance: none;
   border: 1px solid rgba(244, 241, 234, 0.2);
-  background: rgba(12, 14, 18, 0.52);
+  background: rgba(12, 14, 18, 0.58);
   backdrop-filter: blur(12px);
-  color: rgba(244, 241, 234, 0.72);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(244, 241, 234, 0.78);
   padding: 9px 16px;
   border-radius: 999px;
   font-family: var(--font-sans);
@@ -472,7 +494,7 @@ body.zen-mode .bottom-dock.hud-chrome {
 }
 
 body.zen-mode .zen-restore-pill {
-  opacity: 0.55;
+  opacity: 0.72;
   pointer-events: auto;
   transform: translateY(0);
 }
@@ -489,9 +511,9 @@ body.zen-mode .zen-restore-pill:hover {
    ========================================================================== */
 .sound-mixer-panel {
   position: fixed;
-  top: 78px;
-  right: 26px;
-  width: 310px;
+  top: calc(78px + var(--safe-top));
+  right: calc(22px + var(--safe-right));
+  width: min(310px, calc(100vw - 28px));
   z-index: 38;
   background: var(--surface-charcoal-strong);
   backdrop-filter: blur(22px);
@@ -565,8 +587,8 @@ body.zen-mode .zen-restore-pill:hover {
 .mixer-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--accent-lantern);
   cursor: pointer;
@@ -576,7 +598,7 @@ body.zen-mode .zen-restore-pill:hover {
 .mixer-strike-btn {
   margin-top: 8px;
   width: 100%;
-  padding: 9px 12px;
+  padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--border-hairline);
   background: rgba(244, 241, 234, 0.06);
@@ -600,12 +622,12 @@ body.zen-mode .zen-restore-pill:hover {
   top: 50%;
   right: 36px;
   transform: translateY(-50%) translateX(20px) scale(0.96);
-  width: min(390px, calc(100vw - 36px));
+  width: min(390px, calc(100vw - 28px));
   z-index: 40;
   background: linear-gradient(165deg, var(--surface-hanji) 0%, var(--surface-hanji-warm) 100%);
   color: var(--text-ink);
   border-radius: 22px;
-  padding: 28px 26px 24px;
+  padding: 26px 24px 22px;
   box-shadow:
     0 24px 64px rgba(0, 0, 0, 0.72),
     0 0 40px rgba(245, 158, 11, 0.24),
@@ -633,10 +655,10 @@ body.zen-mode .zen-restore-pill:hover {
 
 .card-close-btn {
   position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 30px;
-  height: 30px;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: none;
   background: rgba(28, 30, 33, 0.08);
@@ -657,7 +679,7 @@ body.zen-mode .zen-restore-pill:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .wish-location-badge {
@@ -679,12 +701,12 @@ body.zen-mode .zen-restore-pill:hover {
 
 .wish-card-body {
   font-family: var(--font-display);
-  font-size: 1.14rem;
-  line-height: 1.8;
+  font-size: 1.1rem;
+  line-height: 1.78;
   color: var(--text-ink);
-  margin: 16px 0 20px;
+  margin: 14px 0 18px;
   word-break: keep-all;
-  min-height: 76px;
+  min-height: 70px;
   display: flex;
   align-items: center;
 }
@@ -695,9 +717,9 @@ body.zen-mode .zen-restore-pill:hover {
   justify-content: space-between;
   font-size: 0.8rem;
   color: var(--text-ink-secondary);
-  padding-top: 14px;
+  padding-top: 12px;
   border-top: 1px dashed rgba(28, 30, 33, 0.16);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .wish-meta-time {
@@ -718,10 +740,10 @@ body.zen-mode .zen-restore-pill:hover {
   border: 1px solid rgba(180, 83, 9, 0.35);
   background: linear-gradient(135deg, #241E1A 0%, #382D26 100%);
   color: #FEF3C7;
-  padding: 13px 18px;
+  padding: 13px 16px;
   border-radius: 14px;
   font-family: var(--font-sans);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -787,6 +809,7 @@ body.zen-mode .zen-restore-pill:hover {
   inset: 0;
   background: rgba(6, 8, 12, 0.65);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 42;
   opacity: 0;
   visibility: hidden;
@@ -794,7 +817,7 @@ body.zen-mode .zen-restore-pill:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
 }
 
 .modal-backdrop.open {
@@ -805,10 +828,12 @@ body.zen-mode .zen-restore-pill:hover {
 .write-lantern-modal {
   position: relative;
   width: min(440px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   background: linear-gradient(165deg, var(--surface-hanji) 0%, var(--surface-hanji-warm) 100%);
   color: var(--text-ink);
   border-radius: 24px;
-  padding: 30px 28px 26px;
+  padding: 28px 24px 24px;
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75);
   border: 1px solid rgba(212, 195, 168, 0.85);
   transform: translateY(16px) scale(0.97);
@@ -821,20 +846,20 @@ body.zen-mode .zen-restore-pill:hover {
 
 .write-modal-title {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-ink);
   margin-bottom: 6px;
 }
 
 .write-modal-desc {
-  font-size: 0.84rem;
+  font-size: 0.83rem;
   color: var(--text-ink-secondary);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 15px;
 }
 
 .form-label {
@@ -889,8 +914,8 @@ body.zen-mode .zen-restore-pill:hover {
 
 .hanji-textarea {
   width: 100%;
-  height: 104px;
-  padding: 14px;
+  height: 98px;
+  padding: 13px;
   border-radius: 14px;
   border: 1px solid rgba(28, 30, 33, 0.18);
   background: rgba(255, 255, 255, 0.62);
@@ -922,7 +947,7 @@ body.zen-mode .zen-restore-pill:hover {
   border: 1px solid rgba(28, 30, 33, 0.18);
   background: rgba(255, 255, 255, 0.62);
   font-family: var(--font-sans);
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   color: var(--text-ink);
   outline: none;
   user-select: text;
@@ -930,7 +955,7 @@ body.zen-mode .zen-restore-pill:hover {
 
 .submit-lantern-btn {
   width: 100%;
-  margin-top: 8px;
+  margin-top: 6px;
   padding: 14px;
   border-radius: 14px;
   border: none;
@@ -954,7 +979,7 @@ body.zen-mode .zen-restore-pill:hover {
    ========================================================================== */
 .breathing-guide {
   position: fixed;
-  bottom: 132px;
+  bottom: calc(132px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 26;
@@ -966,6 +991,8 @@ body.zen-mode .zen-restore-pill:hover {
   opacity: 0;
   visibility: hidden;
   transition: all 0.6s ease;
+  width: calc(100vw - 32px);
+  text-align: center;
 }
 
 .breathing-guide.active {
@@ -974,8 +1001,8 @@ body.zen-mode .zen-restore-pill:hover {
 }
 
 .breath-orb {
-  width: 68px;
-  height: 68px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   border: 1.5px solid rgba(245, 158, 11, 0.65);
   background: radial-gradient(circle, rgba(245, 158, 11, 0.32) 0%, rgba(245, 158, 11, 0.02) 70%);
@@ -985,10 +1012,10 @@ body.zen-mode .zen-restore-pill:hover {
 
 .breath-text {
   font-family: var(--font-display);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--text-primary);
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 
 @keyframes breath-cycle {
@@ -1002,17 +1029,20 @@ body.zen-mode .zen-restore-pill:hover {
    ========================================================================== */
 .toast-banner {
   position: fixed;
-  top: 90px;
+  top: calc(90px + var(--safe-top));
   left: 50%;
   transform: translateX(-50%) translateY(-12px);
   z-index: 50;
   background: rgba(14, 17, 23, 0.92);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-lantern);
   color: var(--text-primary);
-  padding: 10px 22px;
+  padding: 10px 20px;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
+  max-width: calc(100vw - 24px);
+  text-align: center;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6);
   opacity: 0;
   pointer-events: none;
@@ -1024,47 +1054,142 @@ body.zen-mode .zen-restore-pill:hover {
   transform: translateX(-50%) translateY(0);
 }
 
+/* ==========================================================================
+   TABLET & MOBILE RESPONSIVE DESIGN
+   ========================================================================== */
 @media (max-width: 960px) {
   .top-bar {
-    top: 12px;
-    left: 12px;
-    right: 12px;
+    top: calc(10px + var(--safe-top));
+    left: calc(10px + var(--safe-left));
+    right: calc(10px + var(--safe-right));
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
   .brand-cluster {
     max-width: 100%;
     width: 100%;
-    padding: 12px 16px;
+    padding: 11px 15px;
+    border-radius: 16px;
+  }
+
+  .space-caption {
+    font-size: 0.77rem;
   }
 
   .top-controls {
     width: 100%;
-    justify-content: space-between;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .top-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .glass-pill,
+  .icon-btn {
+    flex-shrink: 0;
   }
 
   .wish-reader-card {
     right: auto;
     left: 50%;
-    transform: translate(-50%, -46%) scale(0.96);
+    top: auto;
+    bottom: calc(118px + var(--safe-bottom));
+    transform: translate(-50%, 16px) scale(0.96);
   }
 
   .wish-reader-card.open {
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, 0) scale(1);
   }
 
   .bottom-dock {
-    bottom: 12px;
+    bottom: calc(10px + var(--safe-bottom));
     flex-wrap: wrap;
     justify-content: center;
-    border-radius: 24px;
-    padding: 8px 12px;
-    gap: 6px;
+    border-radius: 22px;
+    padding: 7px 10px;
+    gap: 5px;
+    width: calc(100vw - 20px);
   }
 
   .dock-divider,
   .camera-hint-pill {
     display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-cluster {
+    padding: 9px 13px;
+    gap: 2px;
+  }
+
+  .brand-eyebrow {
+    font-size: 0.66rem;
+  }
+
+  .space-title {
+    font-size: 1.06rem;
+  }
+
+  .space-caption {
+    display: none;
+  }
+
+  .pill-btn {
+    font-size: 0.73rem;
+    padding: 5px 10px;
+  }
+
+  .icon-btn {
+    font-size: 0.74rem;
+    padding: 6px 11px;
+  }
+
+  .space-switcher {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .space-tab {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.76rem;
+    padding: 7px 9px;
+  }
+
+  .cta-lantern-btn {
+    font-size: 0.76rem;
+    padding: 7px 12px;
+  }
+
+  .dock-action-btn {
+    font-size: 0.74rem;
+    padding: 6px 9px;
+  }
+
+  .sound-mixer-panel {
+    top: auto;
+    bottom: calc(108px + var(--safe-bottom));
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+
+  .wish-reader-card {
+    padding: 20px 18px 18px;
+    bottom: calc(106px + var(--safe-bottom));
+  }
+
+  .wish-card-body {
+    font-size: 0.98rem;
+    margin: 10px 0 14px;
+    min-height: 54px;
   }
 }
