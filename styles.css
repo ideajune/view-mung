@@ -125,7 +125,7 @@ html, body {
 /* Interactive 3D Guide Hint */
 .camera-hint-pill {
   position: fixed;
-  bottom: calc(92px + var(--safe-bottom));
+  bottom: calc(144px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;

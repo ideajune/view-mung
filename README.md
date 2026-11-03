@@ -16,11 +16,21 @@
 
 ## 📋 2026-11-03 작업 및 대화 요약 (Context Handoff)
 
-- **3차 전면 업그레이드 (`SANSA_CORE` Three.js `r180` 실사 3D 엔진 이식)**:
-  - `sansatemple.com`과 100% 동일한 Three.js `r180` + `PE` (`buildSanctuary`) 사찰·정원·연꽃연못·소나무숲 빌더 엔진을 `sansa-core.js`로 통합
-  - 원본 실사 에셋 전체(`assets/environment/woodland.jpg` 360° 파노라마, `assets/models/` 삼존불·소나무 `.glb`, `assets/materials/` 7종 실사 PBR `color`/`normal`/`roughness` 텍스처) 로컬 내장
-  - **공간 1 (영주 부석사 무량수전 앞마당)** & **공간 2 (순천 선암사 승선교·연꽃 연못)** 카메라 시점, 시간대별(`새벽 안개` / `노을 차경` / `산사 밤하늘`) 조명·안개 전환, 3D 소원 연등·합장 파티클(빌보드 메쉬), 3D 청동 풍경종 및 Web Audio 사운드 엔진 연동
-  - 사용자 촬영 부석사 원경 사진 화면 드래그 앤 드롭 즉시 반영 기능(`window.applyCustomBuseoksaPhoto`) 및 모바일 핀치 줌·세로 화면 자동 화각 보정 반응형 UI 구현
+- **최종 개편 (`view-mung` 고유의 차경(借景) 콘텐츠 100% 복원 + `sansatemple.com` 실사 3D 그래픽 엔진 결합)**:
+  - `sansatemple.com`의 공간·UI(청연당 법당, 동자승 3인칭 산책, 절하기/향 올리기/염주 돌리기 등)를 그대로 복제했던 요소를 모두 제거하고, **`view-mung` 본연의 한국 명승 산사 차경(借景) 콘텐츠와 인터랙션을 100% 유지**하면서 **`sansatemple.com` 수준의 실사 3D 그래픽 품질(느낌)**로 재구축
+  - **실사 3D 그래픽 엔진 (`sansa-core.js` + `Chakyeong3DWorld`)**:
+    - Three.js `r180` + `ACESFilmicToneMapping` + 3072×3072 `PCFSoftShadowMap` + `PMREMGenerator` 환경 반사(`RoomEnvironment`)
+    - 7종 실사 PBR 표면 재질 매니저(`createSurfaceManager`: 고목 나뭇결, 기와 지붕, 화강암, 자연석, 회벽, 마당 흙/모래, 마루) 및 3D 공간 UV 자동 투영(`projectUvs`)
+    - 360° 산림 원경 파노라마(`assets/environment/woodland.jpg`) 및 지평선 블렌딩 셰이더(`attachLandscapeHorizon`), 스캔된 3D 한국 소나무 모델(`assets/models/pine.glb`) + 바람 흔들림 버텍스 셰이더
+  - **공간 1 — 영주 부석사 무량수전 앞마당 (`buildBuseoksaWorld`)**:
+    - 무량수전 우물마루 널빤지(개별 `RoundedBoxGeometry` 조립), 배흘림기둥(`LatheGeometry`), 다포 공포·주두·첨차, 38개 곡선 서까래와 연화문 단청 마구리, `無量壽殿` 현판
+    - 앞마당 박석길과 석축 단, 통일신라 석등(`PointLight` 화사석 등불), `安養樓`(안양루) 2층 팔작지붕 누각, 소백산맥 6겹 중첩 능선과 실시간 38겹 3D 운해(구름 바다), 처마 밑 소원 연등과 청동 풍경종
+  - **공간 2 — 순천 선암사 승선교와 강선루 (`buildSeonamsaWorld`)**:
+    - 28개 홍예석(쐐기돌)을 정교하게 쌓아 올린 반원형 무지개 돌다리 **승선교(昇仙橋)**와 중앙 용두석(龍頭石), 수면에 비친 원형 그림자 반영 아치
+    - `enhanceWaterMaterial` 물결·하늘 반사 셰이더가 적용된 조계산 계곡물과 이끼 낀 화강암 계곡 바위, 계곡 너머 2층 누각 **강선루(`降仙樓`)**, 조계산 소나무 및 계절별 단풍/벚나무 숲, 돌담길 소원 연등
+  - **기존 `view-mung` 핵심 UI 및 힐링 인터랙션 완벽 유지**:
+    - 상단 컨트롤 바: 시간대 전환(`🌅 새벽 운해`, `🌇 석양 노을`, `🌌 별 헤는 밤`), 계절 전환(`🍁 가을 단풍`, `🌸 봄 꽃잎`), 3D 카메라 구도 프리셋(`🧘 기본 차경`, `🎐 처마·다리 가까이`, `⛰️ 광각 파노라마`), 산사 소리 믹서(`풍경종` / `계곡 물소리` / `산바람`)
+    - 하단 독 및 모달: 공간 전환(`🏯 부석사 무량수전` / `🌉 선암사 승선교`), `🏮 소원 연등 달기`(4색 한지 선택), 3D 연등 클릭 시 한지 소원 카드 읽기 & `🙏 합장` 불티 파티클, `🔔 풍경종 울리기`, `🌬️ 숨 고르기`(4-2-4 호흡 가이드), `👁️ 풍경멍 모드`(`Space`/`Esc`), 사용자 사진 드래그 앤 드롭(`window.applyCustomBuseoksaPhoto`)
   - 전체 대화 및 개발 기록 문서: [`오늘_대화내용_2026-11-03.doc`](./오늘_대화내용_2026-11-03.doc)
 
 ---
