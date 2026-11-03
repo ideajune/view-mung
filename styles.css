@@ -378,6 +378,12 @@ body.zen-mode .bottom-dock.hud-chrome {
   gap: 4px;
 }
 
+.dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .space-tab {
   appearance: none;
   border: 1px solid transparent;
@@ -1055,14 +1061,44 @@ body.zen-mode .zen-restore-pill:hover {
 }
 
 /* ==========================================================================
-   TABLET & MOBILE RESPONSIVE DESIGN
+   DESKTOP MEDIUM, TABLET & MOBILE RESPONSIVE DESIGN
    ========================================================================== */
+@media (max-width: 1200px) {
+  .brand-cluster {
+    max-width: 360px;
+    padding: 12px 16px;
+  }
+
+  .pill-btn {
+    font-size: 0.76rem;
+    padding: 6px 10px;
+  }
+
+  .icon-btn {
+    font-size: 0.77rem;
+    padding: 8px 13px;
+  }
+
+  .bottom-dock {
+    padding: 7px 10px;
+    gap: 6px;
+  }
+
+  .space-tab,
+  .cta-lantern-btn,
+  .dock-action-btn {
+    font-size: 0.79rem;
+    padding: 7px 11px;
+  }
+}
+
 @media (max-width: 960px) {
   .top-bar {
     top: calc(10px + var(--safe-top));
     left: calc(10px + var(--safe-left));
     right: calc(10px + var(--safe-right));
     flex-direction: column;
+    align-items: stretch;
     gap: 8px;
   }
 
@@ -1085,6 +1121,7 @@ body.zen-mode .zen-restore-pill:hover {
     padding-bottom: 2px;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .top-controls::-webkit-scrollbar {
@@ -1096,12 +1133,19 @@ body.zen-mode .zen-restore-pill:hover {
     flex-shrink: 0;
   }
 
+  .sound-mixer-panel {
+    top: calc(134px + var(--safe-top));
+    right: calc(10px + var(--safe-right));
+  }
+
   .wish-reader-card {
     right: auto;
     left: 50%;
     top: auto;
-    bottom: calc(118px + var(--safe-bottom));
+    bottom: calc(122px + var(--safe-bottom));
     transform: translate(-50%, 16px) scale(0.96);
+    max-height: calc(100dvh - 260px);
+    overflow-y: auto;
   }
 
   .wish-reader-card.open {
@@ -1110,24 +1154,55 @@ body.zen-mode .zen-restore-pill:hover {
 
   .bottom-dock {
     bottom: calc(10px + var(--safe-bottom));
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
     justify-content: center;
     border-radius: 22px;
-    padding: 7px 10px;
-    gap: 5px;
-    width: calc(100vw - 20px);
+    padding: 8px 10px;
+    gap: 6px;
+    width: min(620px, calc(100vw - 20px));
+  }
+
+  .space-switcher {
+    width: 100%;
+    justify-content: center;
+    background: rgba(244, 241, 234, 0.04);
+    border-radius: 999px;
+    padding: 3px;
+  }
+
+  .space-tab {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .dock-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .dock-actions::-webkit-scrollbar {
+    display: none;
   }
 
   .dock-divider,
   .camera-hint-pill {
     display: none;
   }
+
+  .breathing-guide {
+    bottom: calc(126px + var(--safe-bottom));
+  }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 600px) {
   .brand-cluster {
     padding: 9px 13px;
-    gap: 2px;
+    gap: 3px;
   }
 
   .brand-eyebrow {
@@ -1135,7 +1210,7 @@ body.zen-mode .zen-restore-pill:hover {
   }
 
   .space-title {
-    font-size: 1.06rem;
+    font-size: 1.05rem;
   }
 
   .space-caption {
@@ -1152,44 +1227,171 @@ body.zen-mode .zen-restore-pill:hover {
     padding: 6px 11px;
   }
 
-  .space-switcher {
-    width: 100%;
-    justify-content: center;
+  .space-tab {
+    font-size: 0.76rem;
+    padding: 7px 8px;
+    gap: 5px;
   }
 
-  .space-tab {
-    flex: 1;
-    justify-content: center;
-    font-size: 0.76rem;
-    padding: 7px 9px;
+  .dock-actions {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    justify-content: space-between;
+    gap: 4px;
   }
 
   .cta-lantern-btn {
-    font-size: 0.76rem;
-    padding: 7px 12px;
+    font-size: 0.75rem;
+    padding: 7px 11px;
+    justify-content: center;
   }
 
   .dock-action-btn {
-    font-size: 0.74rem;
-    padding: 6px 9px;
+    font-size: 0.73rem;
+    padding: 7px 8px;
+    justify-content: center;
   }
 
   .sound-mixer-panel {
     top: auto;
-    bottom: calc(108px + var(--safe-bottom));
-    right: 12px;
-    left: 12px;
+    bottom: calc(114px + var(--safe-bottom));
+    right: 10px;
+    left: 10px;
     width: auto;
+    padding: 16px;
   }
 
   .wish-reader-card {
     padding: 20px 18px 18px;
-    bottom: calc(106px + var(--safe-bottom));
+    bottom: calc(112px + var(--safe-bottom));
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 220px);
   }
 
   .wish-card-body {
-    font-size: 0.98rem;
+    font-size: 0.96rem;
     margin: 10px 0 14px;
-    min-height: 54px;
+    min-height: 48px;
+  }
+
+  .write-lantern-modal {
+    padding: 22px 18px 18px;
+    border-radius: 20px;
+  }
+
+  .write-modal-title {
+    font-size: 1.14rem;
+  }
+
+  .color-picker-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hanji-input-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .zen-restore-pill {
+    right: 50%;
+    transform: translate(50%, 8px);
+    bottom: calc(16px + var(--safe-bottom));
+    white-space: nowrap;
+  }
+
+  body.zen-mode .zen-restore-pill {
+    transform: translate(50%, 0);
+  }
+}
+
+@media (max-width: 400px) {
+  .dock-actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+  }
+
+  .cta-lantern-btn,
+  .dock-action-btn {
+    width: 100%;
+    font-size: 0.74rem;
+    padding: 7px 8px;
+  }
+
+  .wish-reader-card,
+  .sound-mixer-panel {
+    bottom: calc(146px + var(--safe-bottom));
+  }
+}
+
+/* Mobile & Tablet Landscape Compact Mode */
+@media (max-height: 540px) and (orientation: landscape) {
+  .top-bar {
+    top: calc(8px + var(--safe-top));
+    left: calc(10px + var(--safe-left));
+    right: calc(10px + var(--safe-right));
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .brand-cluster {
+    padding: 7px 12px;
+    max-width: 240px;
+    gap: 2px;
+  }
+
+  .brand-eyebrow {
+    font-size: 0.62rem;
+  }
+
+  .space-title {
+    font-size: 0.95rem;
+  }
+
+  .space-caption,
+  .camera-hint-pill {
+    display: none;
+  }
+
+  .top-controls {
+    width: auto;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .bottom-dock {
+    bottom: calc(8px + var(--safe-bottom));
+    flex-direction: row;
+    width: auto;
+    max-width: calc(100vw - 20px);
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  .space-switcher,
+  .dock-actions {
+    width: auto;
+    background: transparent;
+    padding: 0;
+  }
+
+  .wish-reader-card {
+    top: 50%;
+    bottom: auto;
+    right: 14px;
+    left: auto;
+    transform: translateY(-50%) scale(0.95);
+    width: min(340px, 52vw);
+    max-height: calc(100dvh - 20px);
+    padding: 16px;
+  }
+
+  .wish-reader-card.open {
+    transform: translateY(-50%) scale(1);
+  }
+
+  .wish-card-body {
+    font-size: 0.9rem;
+    min-height: 40px;
+    margin: 8px 0 10px;
   }
 }

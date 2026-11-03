@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>차경(借景) 3D — 한국 명승 산사 '풍경 멍'</title>
-  <link rel="stylesheet" href="styles.css?v=20261103-v4" />
+  <link rel="stylesheet" href="styles.css?v=20261103-v5" />
   <!-- Three.js r180 + PBR Surface & Photorealistic Landscape Core -->
-  <script src="sansa-core.js?v=20261103-v4"></script>
+  <script src="sansa-core.js?v=20261103-v5"></script>
 </head>
 <body>
   <main class="app-stage" id="app-stage">
@@ -22,8 +22,8 @@
     <div class="lantern-3d-tooltip" id="lantern-3d-tooltip"></div>
 
     <!-- 3. Subtle 3D Camera Interaction Guide -->
-    <div class="camera-hint-pill" id="camera-hint-pill">
-      🖱️ 마우스 드래그로 3D 시선 회전 · 휠로 원근 조절 · 3D 연등과 풍경종을 클릭해보세요
+    <div class="camera-hint-pill hud-chrome" id="camera-hint-pill">
+      🖱️ 마우스·터치 드래그로 3D 시선 회전 · 휠·핀치로 원근 조절 · 3D 연등과 풍경종을 클릭해보세요
     </div>
 
     <!-- 4. Breathing Meditation Guide (숨 고르기) -->
@@ -214,7 +214,7 @@
     </div>
 
     <!-- 9. Bottom Floating Navigation Dock -->
-    <nav class="bottom-dock hud-chrome" aria-label="공간 및 기능 탐색">
+    <nav class="bottom-dock hud-chrome" id="bottom-dock" aria-label="공간 및 기능 탐색">
       <div class="space-switcher" role="tablist">
         <button
           class="space-tab active"
@@ -242,21 +242,23 @@
 
       <div class="dock-divider"></div>
 
-      <button class="cta-lantern-btn" id="open-write-modal-btn" type="button">
-        <span>🏮 소원 연등 달기</span>
-      </button>
+      <div class="dock-actions">
+        <button class="cta-lantern-btn" id="open-write-modal-btn" type="button">
+          <span>🏮 소원 연등 달기</span>
+        </button>
 
-      <button class="dock-action-btn" id="ring-bell-dock-btn" type="button" title="처마 끝 풍경종 울리기">
-        <span>🔔 풍경종 울리기</span>
-      </button>
+        <button class="dock-action-btn" id="ring-bell-dock-btn" type="button" title="처마 끝 풍경종 울리기">
+          <span>🔔 풍경종 울리기</span>
+        </button>
 
-      <button class="dock-action-btn" id="breath-toggle-btn" type="button" title="호흡 명상 가이드">
-        <span>🌬️ 숨 고르기</span>
-      </button>
+        <button class="dock-action-btn" id="breath-toggle-btn" type="button" title="호흡 명상 가이드">
+          <span>🌬️ 숨 고르기</span>
+        </button>
 
-      <button class="dock-action-btn" id="zen-mode-btn" type="button" title="UI 숨기기 (단축키: Space)">
-        <span>👁️ 풍경멍 모드</span>
-      </button>
+        <button class="dock-action-btn" id="zen-mode-btn" type="button" title="UI 숨기기 (단축키: Space)">
+          <span>👁️ 풍경멍 모드</span>
+        </button>
+      </div>
     </nav>
 
     <!-- 10. Zen Mode Restore Pill -->
@@ -268,6 +270,6 @@
     <div class="toast-banner" id="toast-banner" role="status" aria-live="polite"></div>
   </main>
 
-  <script src="app.js?v=20261103-v4"></script>
+  <script src="app.js?v=20261103-v5"></script>
 </body>
 </html>

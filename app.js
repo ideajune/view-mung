@@ -551,8 +551,8 @@ class TextureFactory {
 class Chakyeong3DWorld {
   constructor(container) {
     this.container = container;
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
+    this.width = container.clientWidth || window.innerWidth;
+    this.height = container.clientHeight || window.innerHeight;
     this.isMobile = this.width < 768;
 
     this.spaceMode = 'buseoksa';
@@ -610,6 +610,13 @@ class Chakyeong3DWorld {
     this.bindViewportEvents();
 
     window.addEventListener('resize', () => this.onResize());
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => this.onResize());
+    }
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.onResize());
+      this.resizeObserver.observe(this.container);
+    }
     this.animate();
   }
 
@@ -2706,15 +2713,16 @@ class Chakyeong3DWorld {
   }
 
   onResize() {
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
+    this.width = this.container.clientWidth || window.innerWidth;
+    this.height = this.container.clientHeight || window.innerHeight;
     this.isMobile = this.width < 768;
 
     const aspect = this.width / Math.max(1, this.height);
     this.camera.aspect = aspect;
-    this.camera.fov = aspect < 0.85 ? 58 : 48;
+    this.camera.fov = aspect < 0.65 ? 64 : aspect < 0.85 ? 58 : 48;
     this.camera.updateProjectionMatrix();
 
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.isMobile ? 1.75 : 2));
     this.renderer.setSize(this.width, this.height);
     if (!activeWishId) {
       this.setCameraPreset(this.camPreset);
