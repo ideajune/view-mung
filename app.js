@@ -1,8 +1,7 @@
 /**
- * 차경(借景) 3D — 한국 명승 산사 '풍경 멍' 힐링 웹 프로토타입
- * - 그래픽 엔진: Three.js r180 + 실사 PBR 7종 표면 재질(createSurfaceManager) + 360° 산림 파노라마 & 호라이즌 블렌딩 + 3D 소나무(pine.glb) + 수면 반사 셰이더
- * - 공간 1 (영주 부석사 무량수전 앞마당): 배흘림기둥·우물마루·처마 서까래·무량수전 현판·석등·안양루·소백산맥 6겹 능선과 실시간 운해·처마 끝 3D 풍경종·소원 연등
- * - 공간 2 (순천 선암사 승선교와 강선루): 28개 홍예석 반원형 무지개 돌다리(승선교)와 용두석·수면 원형 반영·실시간 계곡물 셰이더·강선루 누각·조계산 단풍/봄꽃 숲·돌담길 소원 연등
+ * 차경(借景) 3D — 한국 명승 산사 '풍경 멍' 힐링 웹 프로토타입 (부석사 무량수전 단일 공간 & 모바일 발열 최적화 버전)
+ * - 그래픽 엔진: Three.js r180 + 실사 PBR 7종 표면 재질(createSurfaceManager) + 360° 산림 파노라마 & 호라이즌 블렌딩 + 3D 소나무(pine.glb)
+ * - 공간 (영주 부석사 무량수전 앞마당): 배흘림기둥·우물마루·처마 서까래·무량수전 현판·석등·안양루·소백산맥 능선과 실시간 운해·처마 끝 3D 풍경종·소원 연등
  */
 
 const C_ENGINE = window.SANSA_CORE;
@@ -12,24 +11,14 @@ const HAPJANG_STORAGE_KEY = 'chakyeong_3d_hapjang_v2';
 
 const SPACE_META = {
   buseoksa: {
-    eyebrow: '차경(借景) 3D 제1경 · 경북 영주 봉황산',
-    title: '부석사 무량수전 앞마당',
-    caption: '배흘림기둥과 서까래 처마 밑, 안양루 너머로 겹겹이 펼쳐지는 소백산맥의 능선과 운해',
-    locationBadge: '부석사 무량수전 처마 밑',
-    writeDesc: '무량수전 처마 밑 서까래에 3D 연등을 매달아 소백산 바람에 소원을 실어 보냅니다.',
+    eyebrow: '차경(借景) 3D · 영주 부석사',
+    title: '부석사 무량수전과 안양루',
+    caption: '광활한 박석 마당과 안양루 처마 너머로 시원하게 펼쳐지는 소백산맥의 능선과 운해',
+    locationBadge: '부석사 안양루 처마 밑',
+    writeDesc: '소백산맥이 내려다보이는 안양루 처마 밑에 3D 연등을 매달아 바람에 소원을 실어 보냅니다.',
     defaultBellMix: 80,
     defaultWaterMix: 20,
     defaultWindMix: 65
-  },
-  seonamsa: {
-    eyebrow: '차경(借景) 3D 제2경 · 전남 순천 조계산',
-    title: '순천 선암사 승선교와 강선루',
-    caption: '둥근 무지개 돌다리 아래 흐르는 맑은 계곡물, 수면 위에 어리는 반영과 바람에 흩날리는 계절의 잎',
-    locationBadge: '선암사 승선교 돌담길',
-    writeDesc: '승선교 무지개 다리와 계곡 돌담길에 3D 연등을 걸어 맑은 물결 위에 마음을 비춥니다.',
-    defaultBellMix: 45,
-    defaultWaterMix: 85,
-    defaultWindMix: 50
   }
 };
 
@@ -106,72 +95,6 @@ const INITIAL_WISHES = [
     date: '2026.11.02',
     hapjang: 85,
     slot: 5
-  },
-  {
-    id: 'sa-1',
-    space: 'seonamsa',
-    color: 'lotus',
-    author: '조계산 산책자',
-    tag: '마음 평안',
-    text: '승선교 아래 흐르는 맑은 물결처럼 지난 후회와 미련은 흘려보내고 오늘만 온전히 살아가기를.',
-    date: '2026.10.28',
-    hapjang: 72,
-    slot: 0
-  },
-  {
-    id: 'sa-2',
-    space: 'seonamsa',
-    color: 'amber',
-    author: '홍매화 기다림',
-    tag: '가족 건강',
-    text: '우리 가족 모두 아픈 곳 없이 사계절 내내 웃음소리가 돌담길 너머까지 퍼져나가기를 기원합니다.',
-    date: '2026.10.30',
-    hapjang: 98,
-    slot: 1
-  },
-  {
-    id: 'sa-3',
-    space: 'seonamsa',
-    color: 'jade',
-    author: '강선루 나그네',
-    tag: '오늘의 감사',
-    text: '물에 비친 둥근 무지개 다리를 보며 내 마음의 모난 구석도 둥글게 다듬어 봅니다.',
-    date: '2026.10.31',
-    hapjang: 61,
-    slot: 2
-  },
-  {
-    id: 'sa-4',
-    space: 'seonamsa',
-    color: 'moon',
-    author: '단풍잎 편지',
-    tag: '인연과 사랑',
-    text: '붉게 물든 단풍잎이 물결 위를 나란히 떠가듯, 소중한 사람과 오래도록 같은 보폭으로 걷고 싶습니다.',
-    date: '2026.11.01',
-    hapjang: 104,
-    slot: 3
-  },
-  {
-    id: 'sa-5',
-    space: 'seonamsa',
-    color: 'amber',
-    author: '차향기',
-    tag: '소망 성취',
-    text: '새로운 시작 앞에서 두려움보다 설렘이 한 뼘 더 크기를, 지치지 않는 호흡을 주소서.',
-    date: '2026.11.02',
-    hapjang: 49,
-    slot: 4
-  },
-  {
-    id: 'sa-6',
-    space: 'seonamsa',
-    color: 'lotus',
-    author: '선암사 달빛',
-    tag: '마음 평안',
-    text: '지금 이 화면을 바라보며 잠시 숨을 고르는 당신에게 산사의 고요한 평화가 깃들기를.',
-    date: '2026.11.02',
-    hapjang: 128,
-    slot: 5
   }
 ];
 
@@ -182,9 +105,9 @@ class SanSaAudioEngine {
   constructor() {
     this.ctx = null;
     this.isPlaying = false;
-    this.bellLevel = 0.75;
-    this.waterLevel = 0.65;
-    this.windLevel = 0.55;
+    this.bellLevel = 0.80;
+    this.waterLevel = 0.20;
+    this.windLevel = 0.65;
 
     this.waterGain = null;
     this.windGain = null;
@@ -777,12 +700,282 @@ class TextureFactory {
 
     return tex;
   }
+
+  /**
+   * Generates a photorealistic Korean Traditional Giwa Roof Tile (전통 수키와·암키와 기왓골)
+   * Diffuse Color Map + 3D Relief Bump Map so Muryangsujeon & Anyangru roofs look deeply authentic.
+   */
+  static createRealisticGiwaRoofTexture() {
+    const W = 1024;
+    const H = 1024;
+    const colorCanvas = document.createElement('canvas');
+    colorCanvas.width = W;
+    colorCanvas.height = H;
+    const ctx = colorCanvas.getContext('2d');
+
+    const bumpCanvas = document.createElement('canvas');
+    bumpCanvas.width = W;
+    bumpCanvas.height = H;
+    const bctx = bumpCanvas.getContext('2d');
+
+    // 1. Base charcoal-slate clay fill
+    ctx.fillStyle = '#2d3336';
+    ctx.fillRect(0, 0, W, H);
+    bctx.fillStyle = '#606060';
+    bctx.fillRect(0, 0, W, H);
+
+    // 16 vertical columns of Am-giwa (concave pan tiles) + Su-giwa (convex semi-cylindrical ridge tiles)
+    const cols = 16;
+    const colW = W / cols; // 64px per course
+    const rows = 16;
+    const rowH = H / rows; // 64px per tile length
+
+    let seed = 4219;
+    const rand = () => {
+      seed = (seed * 16807) % 2147483647;
+      return (seed - 1) / 2147483646;
+    };
+
+    for (let c = 0; c < cols; c++) {
+      const x0 = c * colW;
+      const suW = colW * 0.36; // Convex ridge width
+      const amW = colW - suW;  // Concave pan width
+
+      // Draw Am-giwa (concave pan valley) with horizontal overlapping tile joints
+      for (let r = 0; r < rows; r++) {
+        const y0 = r * rowH;
+        const shade = (rand() - 0.5) * 10;
+        const baseR = Math.round(44 + shade);
+        const baseG = Math.round(50 + shade);
+        const baseB = Math.round(53 + shade);
+
+        const amGrad = ctx.createLinearGradient(x0, 0, x0 + amW, 0);
+        amGrad.addColorStop(0.0, `rgb(${baseR - 12}, ${baseG - 12}, ${baseB - 12})`);
+        amGrad.addColorStop(0.25, `rgb(${baseR + 4}, ${baseG + 5}, ${baseB + 6})`);
+        amGrad.addColorStop(0.5, `rgb(${baseR + 10}, ${baseG + 12}, ${baseB + 14})`);
+        amGrad.addColorStop(0.75, `rgb(${baseR + 3}, ${baseG + 4}, ${baseB + 5})`);
+        amGrad.addColorStop(1.0, `rgb(${baseR - 14}, ${baseG - 14}, ${baseB - 14})`);
+        ctx.fillStyle = amGrad;
+        ctx.fillRect(x0, y0, amW, rowH);
+
+        // Concave bump gradient for Am-giwa
+        const bAmGrad = bctx.createLinearGradient(x0, 0, x0 + amW, 0);
+        bAmGrad.addColorStop(0.0, '#525252');
+        bAmGrad.addColorStop(0.5, '#282828');
+        bAmGrad.addColorStop(1.0, '#525252');
+        bctx.fillStyle = bAmGrad;
+        bctx.fillRect(x0, y0, amW, rowH);
+
+        // Horizontal overlap step shadow at bottom of each Am-giwa tile
+        ctx.fillStyle = 'rgba(10, 13, 15, 0.72)';
+        ctx.fillRect(x0, y0 + rowH - 5, amW, 5);
+        ctx.fillStyle = 'rgba(130, 142, 148, 0.25)';
+        ctx.fillRect(x0, y0 + rowH - 7, amW, 2);
+
+        bctx.fillStyle = '#121212';
+        bctx.fillRect(x0, y0 + rowH - 5, amW, 5);
+        bctx.fillStyle = '#888888';
+        bctx.fillRect(x0, y0, amW, 4);
+      }
+
+      // Draw Su-giwa (convex semi-cylindrical ridge tile) with deep side AO shadows
+      const sx0 = x0 + amW;
+      // Ambient occlusion shadow cast onto adjacent Am-giwa
+      ctx.fillStyle = 'rgba(8, 10, 12, 0.58)';
+      ctx.fillRect(sx0 - 5, 0, 5, H);
+      ctx.fillRect(sx0 + suW, 0, 5, H);
+
+      for (let r = 0; r < rows; r++) {
+        const y0 = r * rowH;
+        const tone = (rand() - 0.5) * 12;
+        const sr = Math.round(58 + tone);
+        const sg = Math.round(65 + tone);
+        const sb = Math.round(68 + tone);
+
+        const suGrad = ctx.createLinearGradient(sx0, 0, sx0 + suW, 0);
+        suGrad.addColorStop(0.0, `rgb(${sr - 22}, ${sg - 22}, ${sb - 22})`);
+        suGrad.addColorStop(0.28, `rgb(${sr + 14}, ${sg + 16}, ${sb + 18})`);
+        suGrad.addColorStop(0.48, `rgb(${sr + 28}, ${sg + 31}, ${sb + 34})`);
+        suGrad.addColorStop(0.72, `rgb(${sr + 8}, ${sg + 10}, ${sb + 12})`);
+        suGrad.addColorStop(1.0, `rgb(${sr - 24}, ${sg - 24}, ${sb - 24})`);
+        ctx.fillStyle = suGrad;
+        ctx.fillRect(sx0, y0, suW, rowH);
+
+        // Convex high bump gradient for Su-giwa
+        const bSuGrad = bctx.createLinearGradient(sx0, 0, sx0 + suW, 0);
+        bSuGrad.addColorStop(0.0, '#686868');
+        bSuGrad.addColorStop(0.5, '#ffffff');
+        bSuGrad.addColorStop(1.0, '#686868');
+        bctx.fillStyle = bSuGrad;
+        bctx.fillRect(sx0, y0, suW, rowH);
+
+        // Su-giwa joint ring (언강·연결 마디)
+        ctx.fillStyle = 'rgba(12, 15, 18, 0.78)';
+        ctx.fillRect(sx0, y0 + rowH - 5, suW, 5);
+        ctx.fillStyle = 'rgba(185, 198, 204, 0.35)';
+        ctx.fillRect(sx0 + 2, y0 + rowH - 8, suW - 4, 3);
+
+        bctx.fillStyle = '#303030';
+        bctx.fillRect(sx0, y0 + rowH - 4, suW, 4);
+      }
+    }
+
+    // Subtle weathered lichen / mountain moss micro-accents on aged roof tiles
+    for (let i = 0; i < 650; i++) {
+      const mx = rand() * W;
+      const my = rand() * H;
+      const mr = 2 + rand() * 8;
+      ctx.fillStyle =
+        rand() > 0.45 ? 'rgba(92, 110, 82, 0.08)' : 'rgba(180, 186, 178, 0.05)';
+      ctx.beginPath();
+      ctx.arc(mx, my, mr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const colorMap = new C_ENGINE.CanvasTexture(colorCanvas);
+    colorMap.colorSpace = C_ENGINE.SRGBColorSpace;
+    colorMap.wrapS = C_ENGINE.RepeatWrapping;
+    colorMap.wrapT = C_ENGINE.RepeatWrapping;
+    colorMap.anisotropy = 8;
+
+    const bumpMap = new C_ENGINE.CanvasTexture(bumpCanvas);
+    bumpMap.wrapS = C_ENGINE.RepeatWrapping;
+    bumpMap.wrapT = C_ENGINE.RepeatWrapping;
+    bumpMap.anisotropy = 8;
+
+    return { colorMap, bumpMap };
+  }
+
+  /**
+   * Generates a realistic 7-lobed Korean Autumn Maple Leaf (단풍잎) alpha-cutout texture
+   * with organic serrated lobes, golden-crimson gradient, leaf veins (잎맥), and petiole stem.
+   */
+  static createRealisticMapleLeafTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    ctx.clearRect(0, 0, 256, 256);
+    ctx.save();
+    ctx.translate(128, 142);
+
+    // Draw slender petiole stem (잎자루)
+    ctx.strokeStyle = '#8c3318';
+    ctx.lineWidth = 4.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.quadraticCurveTo(4, 48, 12, 92);
+    ctx.stroke();
+
+    // 7-lobed Korean Maple (당단풍/내장단풍) silhouette path
+    const lobes = [
+      { angle: -Math.PI * 0.82, len: 58, width: 15 },
+      { angle: -Math.PI * 0.56, len: 92, width: 22 },
+      { angle: -Math.PI * 0.28, len: 112, width: 25 },
+      { angle: 0, len: 124, width: 27 },
+      { angle: Math.PI * 0.28, len: 112, width: 25 },
+      { angle: Math.PI * 0.56, len: 92, width: 22 },
+      { angle: Math.PI * 0.82, len: 58, width: 15 }
+    ];
+
+    ctx.beginPath();
+    ctx.moveTo(0, 12);
+
+    lobes.forEach((lobe, idx) => {
+      const a = lobe.angle - Math.PI / 2;
+      const tipX = Math.cos(a) * lobe.len;
+      const tipY = Math.sin(a) * lobe.len;
+
+      const leftA = a - 0.16;
+      const rightA = a + 0.16;
+      const midLen = lobe.len * 0.64;
+
+      const lx = Math.cos(leftA) * midLen;
+      const ly = Math.sin(leftA) * midLen;
+      const rx = Math.cos(rightA) * midLen;
+      const ry = Math.sin(rightA) * midLen;
+
+      // Serrated side notch going out to the sharp maple lobe tip
+      ctx.quadraticCurveTo(lx * 0.75, ly * 0.75, lx, ly);
+      ctx.quadraticCurveTo(
+        Math.cos(a - 0.06) * (lobe.len * 0.88),
+        Math.sin(a - 0.06) * (lobe.len * 0.88),
+        tipX,
+        tipY
+      );
+      ctx.quadraticCurveTo(
+        Math.cos(a + 0.06) * (lobe.len * 0.88),
+        Math.sin(a + 0.06) * (lobe.len * 0.88),
+        rx,
+        ry
+      );
+
+      // Deep sinus valley between adjacent lobes
+      if (idx < lobes.length - 1) {
+        const nextA = lobes[idx + 1].angle - Math.PI / 2;
+        const valleyA = (a + nextA) * 0.5;
+        const valleyLen = Math.min(lobe.len, lobes[idx + 1].len) * 0.36;
+        ctx.quadraticCurveTo(
+          Math.cos(valleyA) * (valleyLen * 1.15),
+          Math.sin(valleyA) * (valleyLen * 1.15),
+          Math.cos(valleyA) * valleyLen,
+          Math.sin(valleyA) * valleyLen
+        );
+      }
+    });
+
+    ctx.closePath();
+
+    // Rich sunlit autumn leaf gradient (tinted per-instance via InstancedMesh instanceColor)
+    const leafGrad = ctx.createRadialGradient(0, -18, 8, 0, -24, 125);
+    leafGrad.addColorStop(0.0, '#fff2b2');
+    leafGrad.addColorStop(0.35, '#ffbe55');
+    leafGrad.addColorStop(0.75, '#f26d35');
+    leafGrad.addColorStop(1.0, '#b82514');
+    ctx.fillStyle = leafGrad;
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(110, 22, 10, 0.55)';
+    ctx.lineWidth = 2.0;
+    ctx.stroke();
+
+    // Delicate primary & secondary leaf veins (잎맥)
+    ctx.strokeStyle = 'rgba(255, 238, 175, 0.52)';
+    ctx.lineWidth = 1.8;
+    lobes.forEach((lobe) => {
+      const a = lobe.angle - Math.PI / 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 6);
+      ctx.lineTo(Math.cos(a) * (lobe.len * 0.88), Math.sin(a) * (lobe.len * 0.88));
+      ctx.stroke();
+    });
+
+    ctx.restore();
+
+    const tex = new C_ENGINE.CanvasTexture(canvas);
+    tex.colorSpace = C_ENGINE.SRGBColorSpace;
+    return tex;
+  }
 }
 
 /* ==========================================================================
    REAL-TIME 3D CHAKYEONG WORLD ENGINE (Three.js r180 + Photorealistic PBR)
    ========================================================================== */
 class Chakyeong3DWorld {
+  static getAutoTimeMode() {
+    const hour = new Date().getHours();
+    const min = new Date().getMinutes();
+    const decimalHour = hour + min / 60;
+    if (decimalHour >= 6.0 && decimalHour < 17.0) {
+      return 'dawn'; // 아침·낮 청명한 운해 산사
+    } else if (decimalHour >= 17.0 && decimalHour < 19.5) {
+      return 'sunset'; // 해질녘 석양 노을 산사
+    }
+    return 'night'; // 밤·새벽 별빛 산사
+  }
+
   constructor(container) {
     this.container = container;
     this.width = container.clientWidth || window.innerWidth;
@@ -790,7 +983,7 @@ class Chakyeong3DWorld {
     this.isMobile = this.width < 768;
 
     this.spaceMode = 'buseoksa';
-    this.timeMode = 'dawn';
+    this.timeMode = Chakyeong3DWorld.getAutoTimeMode();
     this.foliageMode = 'autumn';
     this.camPreset = 'default';
 
@@ -808,8 +1001,8 @@ class Chakyeong3DWorld {
     this.pinchStartDist = null;
     this.pinchStartZoom = 0;
 
-    this.camPos = new C_ENGINE.Vector3(0, 2.35, 9.2);
-    this.camLook = new C_ENGINE.Vector3(0, 2.1, -18);
+    this.camPos = new C_ENGINE.Vector3(0, 2.55, 8.5);
+    this.camLook = new C_ENGINE.Vector3(0, 2.15, -22);
     this.targetCamPos = this.camPos.clone();
     this.targetCamLook = this.camLook.clone();
 
@@ -817,30 +1010,29 @@ class Chakyeong3DWorld {
     this.interactiveTargets = [];
     this.cloudPlanes = [];
     this.buseoksaPineAnchors = [];
-    this.seonamsaPineAnchors = [];
     this.seasonalCanopies = [];
     this.sonicRings = [];
     this.hapjangParticles = [];
     this.bellExcitation = 0;
-    this.waterEnhancer = null;
     this.horizonUpdaters = [];
     this.windUniform = { value: 0 };
 
     this.mouseNDC = new C_ENGINE.Vector2(-99, -99);
     this.raycaster = new C_ENGINE.Raycaster();
     this.lastFrameTime = performance.now();
+    this.lastRenderTime = 0;
+    this.isPageHidden = document.hidden || false;
 
     this.initRendererAndScene();
     this.initMaterials();
     this.initSkyStarsAndMoon();
     this.buildBuseoksaWorld();
-    this.buildSeonamsaWorld();
     this.initInteractiveWindBell();
     this.initFallingFoliage3D();
     this.loadPhotorealisticAssets();
 
     this.setSpace('buseoksa', true);
-    this.setTimeMode('dawn');
+    this.setTimeMode(this.timeMode);
     this.bindViewportEvents();
 
     window.addEventListener('resize', () => this.onResize());
@@ -851,28 +1043,40 @@ class Chakyeong3DWorld {
       this.resizeObserver = new ResizeObserver(() => this.onResize());
       this.resizeObserver.observe(this.container);
     }
+    document.addEventListener('visibilitychange', () => {
+      this.isPageHidden = document.hidden;
+      if (!this.isPageHidden) {
+        this.lastFrameTime = performance.now();
+      }
+    });
     this.animate();
   }
 
   initRendererAndScene() {
     this.scene = new C_ENGINE.Scene();
-    this.scene.fog = new C_ENGINE.Fog(0xd8e4df, 42, 215);
+    this.scene.fog = new C_ENGINE.Fog(0xd8e4df, 48, 235);
 
     const aspect = this.width / Math.max(1, this.height);
     const baseFov = aspect < 0.85 ? 58 : 48;
-    this.camera = new C_ENGINE.PerspectiveCamera(baseFov, aspect, 0.15, 420);
+    this.camera = new C_ENGINE.PerspectiveCamera(baseFov, aspect, 0.15, 450);
 
+    // Mobile thermal & battery optimization:
+    // - Disable hardware MSAA on mobile high-DPI screens
+    // - Use default power preference instead of forcing high-performance GPU boost
+    // - Cap mobile pixelRatio to 1.25x and use lightweight PCFShadowMap (1024px)
     this.renderer = new C_ENGINE.WebGLRenderer({
-      antialias: true,
-      powerPreference: 'high-performance'
+      antialias: !this.isMobile,
+      powerPreference: this.isMobile ? 'default' : 'high-performance'
     });
     this.renderer.setSize(this.width, this.height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.isMobile ? 1.75 : 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.isMobile ? 1.25 : 2));
     this.renderer.outputColorSpace = C_ENGINE.SRGBColorSpace;
     this.renderer.toneMapping = C_ENGINE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.04;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = C_ENGINE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = this.isMobile
+      ? C_ENGINE.PCFShadowMap
+      : C_ENGINE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
 
     // Subtle PBR environment reflections (RoomEnvironment + PMREMGenerator)
@@ -897,32 +1101,30 @@ class Chakyeong3DWorld {
     this.scene.add(this.ambientLight);
 
     this.sunLight = new C_ENGINE.DirectionalLight(0xfff1dc, 2.45);
-    this.sunLight.position.set(-28, 36, -24);
+    this.sunLight.position.set(-28, 38, -24);
     this.sunLight.castShadow = true;
-    const shadowRes = this.isMobile ? 1536 : 3072;
+    const shadowRes = this.isMobile ? 1024 : 2048;
     this.sunLight.shadow.mapSize.set(shadowRes, shadowRes);
     this.sunLight.shadow.camera.near = 4;
-    this.sunLight.shadow.camera.far = 120;
-    this.sunLight.shadow.camera.left = -32;
-    this.sunLight.shadow.camera.right = 32;
-    this.sunLight.shadow.camera.top = 32;
-    this.sunLight.shadow.camera.bottom = -32;
+    this.sunLight.shadow.camera.far = 140;
+    this.sunLight.shadow.camera.left = -42;
+    this.sunLight.shadow.camera.right = 42;
+    this.sunLight.shadow.camera.top = 42;
+    this.sunLight.shadow.camera.bottom = -42;
     this.sunLight.shadow.bias = -0.00035;
     this.sunLight.shadow.normalBias = 0.02;
     this.scene.add(this.sunLight);
 
-    // Warm under-eave fill light for Buseoksa veranda & Seonamsa pavilion
-    this.eaveFillLight = new C_ENGINE.PointLight(0xffb86b, 1.4, 24, 1.6);
-    this.eaveFillLight.position.set(0, 3.8, 6.2);
+    // Warm under-eave fill light for Buseoksa veranda & Anyangru
+    this.eaveFillLight = new C_ENGINE.PointLight(0xffb86b, 1.5, 32, 1.5);
+    this.eaveFillLight.position.set(0, 4.2, -16.5);
     this.scene.add(this.eaveFillLight);
 
     this.buseoksaGroup = new C_ENGINE.Group();
-    this.seonamsaGroup = new C_ENGINE.Group();
     this.lanternsRoot = new C_ENGINE.Group();
     this.fxRoot = new C_ENGINE.Group();
 
     this.scene.add(this.buseoksaGroup);
-    this.scene.add(this.seonamsaGroup);
     this.scene.add(this.lanternsRoot);
     this.scene.add(this.fxRoot);
   }
@@ -934,6 +1136,8 @@ class Chakyeong3DWorld {
     this.dancheongCapTex = TextureFactory.createDancheongCapTexture();
     this.forestCanopyTex = TextureFactory.createForestCanopyTexture();
     this.sobaeksanVistaTex = TextureFactory.createSobaeksanVistaTexture();
+    this.giwaTexSet = TextureFactory.createRealisticGiwaRoofTexture();
+    this.mapleLeafTex = TextureFactory.createRealisticMapleLeafTexture();
 
     this.lanternTextures = {};
     Object.keys(LANTERN_COLORS).forEach((k) => {
@@ -1014,10 +1218,21 @@ class Chakyeong3DWorld {
       metalness: 0.0,
       vertexColors: true
     });
+    // High-definition Korean Traditional Giwa Roof Material (preserves custom tile course UVs & 3D bump relief)
+    this.matRealisticGiwa = new C_ENGINE.MeshStandardMaterial({
+      map: this.giwaTexSet.colorMap,
+      bumpMap: this.giwaTexSet.bumpMap,
+      bumpScale: 0.09,
+      color: 0xd8dedc,
+      roughness: 0.72,
+      metalness: 0.08,
+      side: C_ENGINE.DoubleSide,
+      vertexColors: true
+    });
     this.matGiwaRoof = new C_ENGINE.MeshStandardMaterial({
-      color: 0x454b49,
-      roughness: 0.84,
-      metalness: 0.06,
+      color: 0x3b4143,
+      roughness: 0.78,
+      metalness: 0.08,
       side: C_ENGINE.DoubleSide,
       vertexColors: true
     });
@@ -1099,7 +1314,9 @@ class Chakyeong3DWorld {
     const tone = opts.tone ?? 1.0;
     const variance = opts.variance ?? 0.025;
     this.paintVertexTone(geometry, tone, variance);
-    this.trackedGeometries.push({ geometry, material });
+    if (!opts.preserveUvs && material !== this.matRealisticGiwa) {
+      this.trackedGeometries.push({ geometry, material });
+    }
 
     const mesh = new C_ENGINE.Mesh(geometry, material);
     if (opts.pos) mesh.position.set(opts.pos[0], opts.pos[1], opts.pos[2]);
@@ -1172,9 +1389,6 @@ class Chakyeong3DWorld {
           if (this.buseoksaGroundMat) {
             surfaceMgr.apply(this.buseoksaGroundMat, 'ground', { tint: '#c5c2af', normal: 0.42 });
           }
-          if (this.seonamsaGroundMat) {
-            surfaceMgr.apply(this.seonamsaGroundMat, 'ground', { tint: '#b5b8a3', normal: 0.45 });
-          }
           surfaceMgr.apply(this.matGravel, 'gravel', { tint: '#c4c2b2', normal: 0.42 });
           surfaceMgr.apply(this.matGiwaRoof, 'roof', { tint: '#7f8782', normal: 0.32 });
 
@@ -1186,11 +1400,6 @@ class Chakyeong3DWorld {
           if (this.buseoksaGroundMat && C_ENGINE.attachLandscapeHorizon) {
             this.horizonUpdaters.push(
               C_ENGINE.attachLandscapeHorizon(this.buseoksaGroundMat, this.scene)
-            );
-          }
-          if (this.seonamsaGroundMat && C_ENGINE.attachLandscapeHorizon) {
-            this.horizonUpdaters.push(
-              C_ENGINE.attachLandscapeHorizon(this.seonamsaGroundMat, this.scene)
             );
           }
         })
@@ -1237,8 +1446,8 @@ class Chakyeong3DWorld {
 
       clone.traverse((child) => {
         if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
+          child.castShadow = !this.isMobile;
+          child.receiveShadow = !this.isMobile;
           const mats = Array.isArray(child.material) ? child.material : [child.material];
           mats.forEach((m) => {
             if (!m) return;
@@ -1272,7 +1481,7 @@ class Chakyeong3DWorld {
       return m;
     });
 
-    // Subtle natural seasonal twig materials for Seonamsa / distant seasonal accents
+    // Subtle natural seasonal twig materials for distant seasonal accents
     this.scannedSeasonalTwigMats = [0xd88c52, 0xc96b43, 0xe2ab5a].map((hex) => {
       if (!baseTwigMat) return null;
       const m = baseTwigMat.clone();
@@ -1298,6 +1507,7 @@ class Chakyeong3DWorld {
     };
 
     // 3. Place single or full-crowned multi-bough scanned 3D trees at each anchor
+    //    On mobile, skip 3x sub-bough duplication to reduce pine vertex & alpha-test load by 66%
     const placePineAt = (spec, idx, targetGroup) => {
       const treeGroup = new C_ENGINE.Group();
       const mainTpl = normalizedTemplates[idx % normalizedTemplates.length];
@@ -1312,14 +1522,13 @@ class Chakyeong3DWorld {
 
       // Primary scanned tree trunk & crown
       const primary = mainTpl.node.clone(true);
-      const widthBoost = spec.widthScale || 1.12;
+      const widthBoost = (spec.widthScale || 1.12) * (this.isMobile ? 1.16 : 1.0);
       primary.scale.set(mainScale * widthBoost, mainScale, mainScale * widthBoost);
       applyTwigMaterial(primary, chooseTwigMat(0));
       treeGroup.add(primary);
 
-      // For hero courtyard & forest trees, compose a lush full-crowned multi-bough silhouette
-      // using 2 additional scanned tree templates (same technique as sansa-core ME woodland)
-      if (spec.cluster !== false) {
+      // For hero courtyard & forest trees on desktop, compose a lush full-crowned multi-bough silhouette
+      if (spec.cluster !== false && !this.isMobile) {
         const subSpecs = [
           { dx: -0.22, dz: -0.12, hMul: 0.86, wMul: 1.15, yaw: 1.15, tiltX: 0.04, tiltZ: -0.05 },
           { dx: 0.24, dz: -0.15, hMul: 0.91, wMul: 1.12, yaw: 2.55, tiltX: -0.03, tiltZ: 0.04 }
@@ -1342,7 +1551,6 @@ class Chakyeong3DWorld {
     };
 
     this.buseoksaPineAnchors.forEach((spec, idx) => placePineAt(spec, idx, this.buseoksaGroup));
-    this.seonamsaPineAnchors.forEach((spec, idx) => placePineAt(spec, idx, this.seonamsaGroup));
   }
 
   initSkyStarsAndMoon() {
@@ -1400,29 +1608,203 @@ class Chakyeong3DWorld {
   }
 
   /* ------------------------------------------------------------------------
-     SPACE 1: 영주 부석사 무량수전 앞마당 (Muryangsujeon & Sobaeksan Chakyeong)
+     REALISTIC 3D KOREAN PALJAK GIWA ROOF BUILDER (무량수전 · 안양루 리얼 기와지붕)
+     ------------------------------------------------------------------------ */
+  buildRealisticPaljakRoof(parent, spec) {
+    const {
+      width = 34.0,
+      depth = 13.0,
+      baseY = 6.2,
+      ridgeHeight = 4.2,
+      ridgeLength = 21.0,
+      tileRepeatX = 24,
+      tileRepeatZ = 8
+    } = spec;
+
+    const rg = new C_ENGINE.Group();
+    rg.position.set(spec.x || 0, baseY, spec.z || 0);
+
+    const segX = 48;
+    const segZ = 28;
+    const roofGeo = new C_ENGINE.BufferGeometry();
+    const verts = [];
+    const uvs = [];
+    const indices = [];
+
+    const halfW = width * 0.5;
+    const halfD = depth * 0.5;
+    const halfRidge = ridgeLength * 0.5;
+
+    for (let iz = 0; iz <= segZ; iz++) {
+      const vz = iz / segZ - 0.5;
+      const absZ = Math.abs(vz) * 2;
+      for (let ix = 0; ix <= segX; ix++) {
+        const vx = ix / segX - 0.5;
+        const absX = Math.abs(vx) * 2;
+
+        const cornerFlare = Math.pow(absX, 2.2) * Math.pow(absZ, 1.8) * 0.08;
+        const x = vx * width * (1 + cornerFlare);
+        const z = vz * depth * (1 + cornerFlare);
+
+        const pastGable = Math.max(0, (Math.abs(x) - halfRidge) / Math.max(0.1, halfW - halfRidge));
+        const mainSlopeDrop = Math.pow(absZ, 1.32) * ridgeHeight;
+        const hipSlopeDrop = Math.pow(pastGable, 1.45) * (ridgeHeight * 0.62) * (1 - absZ * 0.55);
+        const cornerLift = Math.pow(absX, 2.6) * Math.pow(absZ, 1.6) * (ridgeHeight * 0.28);
+        const y = ridgeHeight - mainSlopeDrop - hipSlopeDrop + cornerLift;
+
+        verts.push(x, y, z);
+        uvs.push((vx + 0.5) * tileRepeatX, absZ * tileRepeatZ);
+      }
+    }
+
+    for (let iz = 0; iz < segZ; iz++) {
+      for (let ix = 0; ix < segX; ix++) {
+        const a = iz * (segX + 1) + ix;
+        const b = a + segX + 1;
+        indices.push(a, b, a + 1, a + 1, b, b + 1);
+      }
+    }
+
+    roofGeo.setAttribute('position', new C_ENGINE.Float32BufferAttribute(verts, 3));
+    roofGeo.setAttribute('uv', new C_ENGINE.Float32BufferAttribute(uvs, 2));
+    roofGeo.setIndex(indices);
+    roofGeo.computeVertexNormals();
+
+    this.createMesh(roofGeo, this.matRealisticGiwa, rg, {
+      preserveUvs: true,
+      tone: 0.98
+    });
+
+    const soffitGeo = roofGeo.clone();
+    soffitGeo.translate(0, -0.14, 0);
+    this.matDarkTimber.side = C_ENGINE.DoubleSide;
+    this.createMesh(soffitGeo, this.matDarkTimber, rg, {
+      preserveUvs: true,
+      castShadow: false,
+      tone: 0.84
+    });
+
+    // Main Roof Ridge (용마루 적새기와 단) & Finials (망와·취두)
+    this.createMesh(
+      new C_ENGINE.RoundedBoxGeometry(ridgeLength + 0.6, 0.42, 0.46, 2, 0.06),
+      this.matRealisticGiwa,
+      rg,
+      { pos: [0, ridgeHeight + 0.16, 0], preserveUvs: true, tone: 1.06 }
+    );
+    this.createMesh(
+      new C_ENGINE.RoundedBoxGeometry(ridgeLength + 0.8, 0.12, 0.54, 2, 0.03),
+      this.matStone,
+      rg,
+      { pos: [0, ridgeHeight + 0.02, 0], tone: 0.92 }
+    );
+    for (const endX of [-halfRidge - 0.18, halfRidge + 0.18]) {
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(0.42, 0.68, 0.54, 2, 0.06),
+        this.matRealisticGiwa,
+        rg,
+        { pos: [endX, ridgeHeight + 0.34, 0], preserveUvs: true, tone: 1.08 }
+      );
+    }
+
+    // 4 Descending Gable Ridges (내림마루) & 4 Corner Hip Ridges (추녀마루) + Gable Walls (합각벽)
+    for (const sideSign of [-1, 1]) {
+      const gx = sideSign * halfRidge;
+      const gableH = ridgeHeight * 0.52;
+      const gableW = depth * 0.44;
+      this.createMesh(
+        new C_ENGINE.CylinderGeometry(0.06, gableW * 0.5, gableH, 3),
+        this.matPlaster,
+        rg,
+        {
+          pos: [gx, ridgeHeight - gableH * 0.52, 0],
+          rot: [0, sideSign > 0 ? Math.PI * 0.5 : -Math.PI * 0.5, 0],
+          scale: [1, 1, 0.18],
+          tone: 0.94
+        }
+      );
+
+      for (const zSign of [-1, 1]) {
+        const naerimCurve = new C_ENGINE.CatmullRomCurve3([
+          new C_ENGINE.Vector3(gx, ridgeHeight + 0.12, 0),
+          new C_ENGINE.Vector3(gx, ridgeHeight * 0.62, zSign * halfD * 0.28),
+          new C_ENGINE.Vector3(gx * 1.02, ridgeHeight * 0.38, zSign * halfD * 0.52)
+        ]);
+        this.createMesh(
+          new C_ENGINE.TubeGeometry(naerimCurve, 10, 0.16, 8, false),
+          this.matRealisticGiwa,
+          rg,
+          { preserveUvs: true, tone: 1.04 }
+        );
+
+        const chunyeoCurve = new C_ENGINE.CatmullRomCurve3([
+          new C_ENGINE.Vector3(gx, ridgeHeight * 0.42, zSign * halfD * 0.48),
+          new C_ENGINE.Vector3(sideSign * (halfRidge + (halfW - halfRidge) * 0.55), ridgeHeight * 0.16, zSign * halfD * 0.78),
+          new C_ENGINE.Vector3(sideSign * halfW * 1.05, ridgeHeight * 0.25, zSign * halfD * 1.05)
+        ]);
+        this.createMesh(
+          new C_ENGINE.TubeGeometry(chunyeoCurve, 12, 0.17, 8, false),
+          this.matRealisticGiwa,
+          rg,
+          { preserveUvs: true, tone: 1.05 }
+        );
+      }
+    }
+
+    // Front & Back Eave End-Tiles (수막새 와당)
+    const sumaksaeCount = Math.min(36, Math.round(width * 1.1));
+    for (const zSign of [-1, 1]) {
+      for (let i = 0; i < sumaksaeCount; i++) {
+        const u = i / (sumaksaeCount - 1) - 0.5;
+        const absX = Math.abs(u) * 2;
+        const cornerFlare = Math.pow(absX, 2.2) * 0.08;
+        const sx = u * width * (1 + cornerFlare);
+        const sz = zSign * halfD * (1 + cornerFlare);
+        const pastGable = Math.max(0, (Math.abs(sx) - halfRidge) / Math.max(0.1, halfW - halfRidge));
+        const hipDrop = Math.pow(pastGable, 1.45) * (ridgeHeight * 0.62) * 0.45;
+        const cornerLift = Math.pow(absX, 2.6) * (ridgeHeight * 0.28);
+        const sy = -hipDrop + cornerLift - 0.04;
+
+        this.createMesh(
+          new C_ENGINE.CylinderGeometry(0.11, 0.11, 0.08, 12),
+          this.matRealisticGiwa,
+          rg,
+          {
+            pos: [sx, sy, sz],
+            rot: [Math.PI * 0.5, 0, 0],
+            preserveUvs: true,
+            castShadow: false,
+            tone: 1.06
+          }
+        );
+      }
+    }
+
+    parent.add(rg);
+    return rg;
+  }
+
+  /* ------------------------------------------------------------------------
+     SPACE 1: 영주 부석사 무량수전 앞마당 & 안양루 대확장 (Grand Muryangsujeon & Anyangru)
      ------------------------------------------------------------------------ */
   buildBuseoksaWorld() {
     const g = this.buseoksaGroup;
 
-    // 1. Continuous 360° Courtyard & Mountain Apron Ground (무량수전 좌우·전후방 전체를 감싸는 자연 지형)
+    // 1. Expanded 360° Courtyard & Mountain Apron Ground (대확장된 마당과 산자락 지형)
     this.buseoksaGroundMat = this.matGround.clone();
-    const groundGeo = new C_ENGINE.PlaneGeometry(280, 260, 72, 72);
+    const groundGeo = new C_ENGINE.PlaneGeometry(340, 320, 84, 84);
     groundGeo.rotateX(-Math.PI / 2);
     const gPos = groundGeo.getAttribute('position');
     for (let i = 0; i < gPos.count; i++) {
       const x = gPos.getX(i);
       const z = gPos.getZ(i);
       let y = -0.82;
-      if (z < -12) {
-        // Gentle slope down past Anyangru stone terrace, then rising into Sobaeksan foothills
-        const d = -12 - z;
-        y = -0.82 - Math.min(4.2, d * 0.18) + Math.sin(x * 0.08) * Math.min(1.5, d * 0.04);
+      if (z < -25.0) {
+        const d = -25.0 - z;
+        y = -0.82 - Math.min(5.2, d * 0.2) + Math.sin(x * 0.07) * Math.min(1.4, d * 0.035);
       } else {
-        // Gentle rising mountain slopes flanking the left and right of Muryangsujeon (|x| > 15)
-        const sideDist = Math.max(0, Math.abs(x) - 15.0);
-        const sideLift = Math.min(6.5, Math.pow(sideDist * 0.08, 1.35) * 4.2);
-        y = -0.82 + sideLift + Math.sin(x * 0.25 + z * 0.2) * 0.03;
+        const sideDist = Math.max(0, Math.abs(x) - 22.0);
+        const sideLift = Math.min(7.5, Math.pow(sideDist * 0.075, 1.35) * 4.4);
+        y = -0.82 + sideLift + Math.sin(x * 0.2 + z * 0.18) * 0.025;
       }
       gPos.setY(i, y);
     }
@@ -1434,125 +1816,118 @@ class Chakyeong3DWorld {
       variance: 0.04
     });
 
-    // 2. Muryangsujeon Dressed Stone Foundation (기단) & Steps (계단)
+    // 2. Grand Muryangsujeon Dressed Stone Foundation (웅장하게 확장된 무량수전 화강암 기단 · 계단)
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(26.4, 0.92, 6.8, 2, 0.06),
+      new C_ENGINE.RoundedBoxGeometry(34.8, 0.98, 9.4, 2, 0.06),
       this.matStone,
       g,
-      { pos: [0, -0.44, 8.6], tone: 0.96 }
+      { pos: [0, -0.42, 9.9], tone: 0.96 }
     );
-    // Top border stones of foundation (면석·갑석)
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(26.6, 0.16, 6.96, 2, 0.04),
+      new C_ENGINE.RoundedBoxGeometry(35.2, 0.18, 9.6, 2, 0.04),
       this.matStone,
       g,
-      { pos: [0, 0.04, 8.6], tone: 1.02 }
+      { pos: [0, 0.08, 9.9], tone: 1.02 }
     );
 
-    // Central stone steps leading from veranda to courtyard
+    // Wide central stone steps leading from Muryangsujeon veranda (z=5.65, y=0.20) to courtyard (z=3.55, y=-0.78)
     for (let s = 0; s < 4; s++) {
       this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(4.4, 0.22, 0.56, 2, 0.035),
+        new C_ENGINE.RoundedBoxGeometry(5.6, 0.24, 0.62, 2, 0.035),
         this.matStone,
         g,
-        { pos: [0, -0.08 - s * 0.2, 5.15 - s * 0.48], tone: 0.95 + (s % 2) * 0.04 }
+        { pos: [0, -0.05 - s * 0.21, 5.45 - s * 0.54], tone: 0.95 + (s % 2) * 0.04 }
       );
     }
-    for (const sideX of [-2.32, 2.32]) {
-      const cheekGeo = new C_ENGINE.RoundedBoxGeometry(0.28, 0.95, 2.2, 2, 0.04);
+    for (const sideX of [-2.95, 2.95]) {
+      const cheekGeo = new C_ENGINE.RoundedBoxGeometry(0.34, 1.02, 2.45, 2, 0.04);
       cheekGeo.rotateX(0.32);
       this.createMesh(cheekGeo, this.matStone, g, {
-        pos: [sideX, -0.36, 4.4],
+        pos: [sideX, -0.34, 4.65],
         tone: 0.92
       });
     }
 
-    // 3. Individual Umulmaru Wooden Veranda Planks (우물마루 널빤지 개별 조립)
-    const plankCountX = 48;
-    const totalVerandaWidth = 24.0;
+    // 3. Expanded Umulmaru Wooden Veranda Planks (웅장한 무량수전 우물마루: 폭 32m × 깊이 6m)
+    const plankCountX = 56;
+    const totalVerandaWidth = 32.0;
     const plankW = totalVerandaWidth / plankCountX - 0.012;
-    for (let row = 0; row < 2; row++) {
-      const rowZ = 6.55 + row * 2.15;
+    for (let row = 0; row < 3; row++) {
+      const rowZ = 6.65 + row * 1.95;
       for (let i = 0; i < plankCountX; i++) {
         const px = -totalVerandaWidth / 2 + (i + 0.5) * (totalVerandaWidth / plankCountX);
         const tone = 0.95 + ((i * 7 + row * 13) % 9) * 0.012;
         this.createMesh(
-          new C_ENGINE.RoundedBoxGeometry(plankW, 0.09, 2.08, 2, 0.008),
+          new C_ENGINE.RoundedBoxGeometry(plankW, 0.1, 1.88, 2, 0.008),
           this.matFloorWood,
           g,
-          { pos: [px, 0.14, rowZ], tone, variance: 0.015 }
+          { pos: [px, 0.15, rowZ], tone, variance: 0.015 }
         );
       }
     }
-    // Cross tie beams (장귀틀)
-    for (const zBeam of [5.48, 7.62, 9.72]) {
+    for (const zBeam of [5.72, 7.62, 9.58, 11.52]) {
       this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(24.4, 0.12, 0.22, 2, 0.02),
+        new C_ENGINE.RoundedBoxGeometry(32.6, 0.14, 0.24, 2, 0.02),
         this.matDarkTimber,
         g,
-        { pos: [0, 0.145, zBeam], tone: 0.9 }
+        { pos: [0, 0.155, zBeam], tone: 0.9 }
       );
     }
 
-    // 4. Muryangsujeon Entasis Columns (배흘림기둥) & Multi-tier Brackets (공포·주두·첨차)
-    const columnXs = [-10.8, -6.2, -2.6, 2.6, 6.2, 10.8];
-    const colZ = 6.0;
+    // 4. Grand Muryangsujeon Entasis Columns (배흘림기둥 6주 대확장) & 4-Tier Jusimpo Brackets (주심포 공포)
+    const columnXs = [-14.2, -8.4, -3.2, 3.2, 8.4, 14.2];
+    const colZ = 6.8;
     const entasisPts = [
-      new C_ENGINE.Vector2(0.34, 0.0),
-      new C_ENGINE.Vector2(0.38, 0.35),
-      new C_ENGINE.Vector2(0.42, 1.45),
-      new C_ENGINE.Vector2(0.435, 2.35),
-      new C_ENGINE.Vector2(0.4, 3.55),
-      new C_ENGINE.Vector2(0.355, 4.55),
-      new C_ENGINE.Vector2(0.33, 5.05)
+      new C_ENGINE.Vector2(0.42, 0.0),
+      new C_ENGINE.Vector2(0.47, 0.45),
+      new C_ENGINE.Vector2(0.52, 1.75),
+      new C_ENGINE.Vector2(0.54, 2.75),
+      new C_ENGINE.Vector2(0.49, 4.15),
+      new C_ENGINE.Vector2(0.44, 5.25),
+      new C_ENGINE.Vector2(0.41, 5.85)
     ];
 
     columnXs.forEach((cx, idx) => {
-      // Natural Granite Plinth (초석)
       this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(1.04, 0.26, 1.04, 2, 0.06),
+        new C_ENGINE.RoundedBoxGeometry(1.28, 0.3, 1.28, 2, 0.06),
         this.matStone,
         g,
-        { pos: [cx, 0.25, colZ], tone: 0.94 + (idx % 2) * 0.04 }
+        { pos: [cx, 0.27, colZ], tone: 0.94 + (idx % 2) * 0.04 }
       );
 
-      // Contact shadow around column base
       const cShadow = new C_ENGINE.Mesh(
-        new C_ENGINE.PlaneGeometry(1.8, 1.8),
+        new C_ENGINE.PlaneGeometry(2.2, 2.2),
         this.matContactShadow
       );
       cShadow.rotation.x = -Math.PI / 2;
-      cShadow.position.set(cx, 0.195, colZ);
+      cShadow.position.set(cx, 0.205, colZ);
       g.add(cShadow);
 
-      // Entasis Timber Column (배흘림기둥)
       const colGeo = new C_ENGINE.LatheGeometry(entasisPts, 28);
       this.createMesh(colGeo, this.matTimber, g, {
-        pos: [cx, 0.36, colZ],
+        pos: [cx, 0.38, colZ],
         tone: 0.97 + (idx % 3) * 0.025
       });
 
-      // Capital Block (주두)
       this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(0.86, 0.22, 0.86, 2, 0.03),
+        new C_ENGINE.RoundedBoxGeometry(1.06, 0.26, 1.06, 2, 0.03),
         this.matDarkTimber,
         g,
-        { pos: [cx, 5.48, colZ] }
+        { pos: [cx, 6.28, colZ] }
       );
 
-      // 3-Tiered Bracket Arms (첨차·살미·소로)
-      for (let tier = 0; tier < 3; tier++) {
-        const ty = 5.68 + tier * 0.24;
-        const span = 1.28 + tier * 0.38;
+      for (let tier = 0; tier < 4; tier++) {
+        const ty = 6.52 + tier * 0.26;
+        const span = 1.48 + tier * 0.44;
         this.createMesh(
-          new C_ENGINE.RoundedBoxGeometry(span, 0.16, 0.34, 2, 0.02),
-          tier === 1 ? this.matDancheongJade : this.matDarkTimber,
+          new C_ENGINE.RoundedBoxGeometry(span, 0.18, 0.38, 2, 0.02),
+          tier % 2 === 1 ? this.matDancheongJade : this.matDarkTimber,
           g,
           { pos: [cx, ty, colZ] }
         );
         this.createMesh(
-          new C_ENGINE.RoundedBoxGeometry(0.34, 0.16, span, 2, 0.02),
-          tier === 1 ? this.matDancheongRed : this.matPaleTimber,
+          new C_ENGINE.RoundedBoxGeometry(0.38, 0.18, span, 2, 0.02),
+          tier % 2 === 1 ? this.matDancheongRed : this.matPaleTimber,
           g,
           { pos: [cx, ty + 0.04, colZ] }
         );
@@ -1561,149 +1936,151 @@ class Chakyeong3DWorld {
 
     // Horizontal Lintels & Beams (창방 · 평방 · 도리)
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(23.6, 0.34, 0.42, 2, 0.035),
+      new C_ENGINE.RoundedBoxGeometry(31.2, 0.42, 0.48, 2, 0.035),
       this.matTimber,
       g,
-      { pos: [0, 5.22, colZ] }
+      { pos: [0, 5.98, colZ] }
     );
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(23.8, 0.22, 0.48, 2, 0.025),
+      new C_ENGINE.RoundedBoxGeometry(31.6, 0.26, 0.54, 2, 0.025),
       this.matDancheongJade,
       g,
-      { pos: [0, 5.48, colZ] }
+      { pos: [0, 6.28, colZ] }
     );
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(24.8, 0.38, 0.46, 2, 0.035),
+      new C_ENGINE.RoundedBoxGeometry(32.8, 0.44, 0.52, 2, 0.035),
       this.matDarkTimber,
       g,
-      { pos: [0, 6.38, colZ - 0.15] }
+      { pos: [0, 7.36, colZ - 0.18] }
     );
 
-    // Rear Lattice Doors & Warm Earth Plaster Wall behind Veranda (정면 분합문과 회벽)
+    // Rear Lattice Doors & Warm Earth Plaster Wall behind Veranda
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(22.4, 5.2, 0.28, 2, 0.02),
+      new C_ENGINE.RoundedBoxGeometry(30.4, 6.0, 0.32, 2, 0.02),
       this.matPlaster,
       g,
-      { pos: [0, 2.8, 9.55], tone: 0.94 }
+      { pos: [0, 3.2, 11.4], tone: 0.94 }
     );
-    for (let bx = -9.0; bx <= 9.0; bx += 1.8) {
+    for (let bx = -13.2; bx <= 13.2; bx += 2.2) {
       this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(0.14, 4.8, 0.34, 2, 0.015),
+        new C_ENGINE.RoundedBoxGeometry(0.16, 5.6, 0.38, 2, 0.015),
         this.matDarkTimber,
         g,
-        { pos: [bx, 2.75, 9.52] }
+        { pos: [bx, 3.15, 11.35] }
       );
     }
 
-    // 5. Calligraphed Plaque: 無量壽殿 (무량수전 현판)
+    // 5. Calligraphed Plaque: 無量壽殿 (무량수전 대형 현판)
     const muryangPlaqueTex = TextureFactory.createPlaqueTexture('無 量 壽 殿', '부석사 무량수전');
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(4.35, 1.38, 0.18, 2, 0.03),
+      new C_ENGINE.RoundedBoxGeometry(5.2, 1.62, 0.22, 2, 0.03),
       this.matDarkTimber,
       g,
-      { pos: [0, 5.88, 5.55], rot: [0.14, 0, 0] }
+      { pos: [0, 6.72, 6.28], rot: [0.14, 0, 0] }
     );
     const muryangFace = new C_ENGINE.Mesh(
-      new C_ENGINE.PlaneGeometry(4.12, 1.2),
+      new C_ENGINE.PlaneGeometry(4.92, 1.4),
       new C_ENGINE.MeshStandardMaterial({ map: muryangPlaqueTex, roughness: 0.65 })
     );
-    muryangFace.position.set(0, 5.88, 5.45);
+    muryangFace.position.set(0, 6.72, 6.16);
     muryangFace.rotation.x = 0.14 + Math.PI;
     muryangFace.rotation.z = Math.PI;
     g.add(muryangFace);
 
-    // 6. Deep Curved Eaves, 38 Rafters (서까래·부연) & Lotus Dancheong End-Caps
+    // 6. Deep Curved Eaves, 46 Rafters (서까래·부연) & Realistic 3D Paljak Giwa Roof
     const rafterCapMat = new C_ENGINE.MeshStandardMaterial({
       map: this.dancheongCapTex,
       roughness: 0.65
     });
 
-    const rafterCount = 38;
+    const rafterCount = 46;
     for (let i = 0; i < rafterCount; i++) {
       const t = i / (rafterCount - 1) - 0.5;
-      const rx = t * 25.2;
-      const cornerLift = Math.pow(Math.abs(t) * 2, 2.4) * 0.58;
+      const rx = t * 33.4;
+      const cornerLift = Math.pow(Math.abs(t) * 2, 2.4) * 0.72;
 
       const rCurve = new C_ENGINE.CatmullRomCurve3([
-        new C_ENGINE.Vector3(rx, 6.85 + cornerLift * 0.3, 7.6),
-        new C_ENGINE.Vector3(rx * 1.01, 5.95 + cornerLift * 0.65, 5.6),
-        new C_ENGINE.Vector3(rx * 1.025, 5.12 + cornerLift, 3.65)
+        new C_ENGINE.Vector3(rx, 7.65 + cornerLift * 0.3, 8.8),
+        new C_ENGINE.Vector3(rx * 1.01, 6.65 + cornerLift * 0.65, 6.3),
+        new C_ENGINE.Vector3(rx * 1.025, 5.75 + cornerLift, 3.85)
       ]);
-      const rGeo = new C_ENGINE.TubeGeometry(rCurve, 10, 0.088, 8, false);
+      const rGeo = new C_ENGINE.TubeGeometry(rCurve, 10, 0.095, 8, false);
       this.createMesh(rGeo, this.matTimber, g, { tone: 0.94 + (i % 3) * 0.03 });
 
-      // Lotus Dancheong End-Cap (서까래 마구리)
       const capMesh = new C_ENGINE.Mesh(
-        new C_ENGINE.CylinderGeometry(0.088, 0.088, 0.03, 12),
+        new C_ENGINE.CylinderGeometry(0.095, 0.095, 0.032, 12),
         rafterCapMat
       );
       capMesh.rotation.x = Math.PI / 2 - 0.36;
-      capMesh.position.set(rx * 1.025, 5.11 + cornerLift, 3.63);
+      capMesh.position.set(rx * 1.025, 5.74 + cornerLift, 3.82);
       g.add(capMesh);
     }
 
-    // Sweeping Eave Roof Soffit & Giwa Tile Courses above Muryangsujeon
-    const eaveRoofGeo = new C_ENGINE.PlaneGeometry(27.2, 6.6, 36, 12);
-    const ePos = eaveRoofGeo.getAttribute('position');
-    for (let i = 0; i < ePos.count; i++) {
-      const x = ePos.getX(i);
-      const y = ePos.getY(i);
-      const normX = Math.abs(x) / 13.6;
-      const normY = (y + 3.3) / 6.6; // 0 at front eave edge, 1 at ridge side
-      const height = 5.25 + normY * 2.95 + Math.pow(normX, 2.3) * 0.62 * (1 - normY * 0.4);
-      const depthZ = 3.45 + normY * 5.8;
-      ePos.setXYZ(i, x, height, depthZ);
-    }
-    eaveRoofGeo.computeVertexNormals();
-    this.matDarkTimber.side = C_ENGINE.DoubleSide;
-    this.createMesh(eaveRoofGeo, this.matDarkTimber, g, { tone: 0.85 });
+    this.buildRealisticPaljakRoof(g, {
+      x: 0,
+      z: 9.8,
+      baseY: 5.88,
+      width: 36.8,
+      depth: 13.6,
+      ridgeHeight: 4.85,
+      ridgeLength: 22.8,
+      tileRepeatX: 28,
+      tileRepeatZ: 9
+    });
 
-    const roofTopGeo = eaveRoofGeo.clone();
-    roofTopGeo.translate(0, 0.16, 0);
-    this.matGiwaRoof.side = C_ENGINE.DoubleSide;
-    this.createMesh(roofTopGeo, this.matGiwaRoof, g, { tone: 0.96 });
-
-    // 7. Courtyard Flagstone Path (박석길), Terrace Wall (석축), & Boulders
-    for (let i = 0; i < 16; i++) {
-      const fz = 3.1 - i * 0.92;
-      const fx = Math.sin(i * 0.45) * 0.18;
-      const fw = 1.55 + (i % 3) * 0.18;
+    // 7. Expanded Courtyard Flagstone Path (넓고 길게 확장된 박석길: 중앙 주 박석길 + 가로 박석길)
+    for (let i = 0; i < 24; i++) {
+      const fz = 3.2 - i * 0.72;
+      const fx = Math.sin(i * 0.38) * 0.16;
+      const fw = 2.45 + (i % 3) * 0.24;
       this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(fw, 0.08, 0.76, 2, 0.025),
+        new C_ENGINE.RoundedBoxGeometry(fw, 0.08, 0.64, 2, 0.025),
         this.matStone,
         g,
         {
           pos: [fx, -0.79, fz],
-          rot: [0, (i % 2 === 0 ? 1 : -1) * 0.03, 0],
+          rot: [0, (i % 2 === 0 ? 1 : -1) * 0.02, 0],
           tone: 0.92 + (i % 4) * 0.04
         }
       );
     }
+    for (let ix = -7; ix <= 7; ix++) {
+      if (Math.abs(ix) <= 1) continue;
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(1.35, 0.075, 1.55, 2, 0.025),
+        this.matStone,
+        g,
+        {
+          pos: [ix * 1.65, -0.795, -5.8 + Math.cos(ix) * 0.14],
+          rot: [0, (ix % 2) * 0.02, 0],
+          tone: 0.93 + (Math.abs(ix) % 3) * 0.03
+        }
+      );
+    }
 
-    // Courtyard far stone terrace wall (부석사 석축 단)
+    // Courtyard far stone terrace wall (대확장된 부석사 석축 단: z = -24.6m)
     for (let tier = 0; tier < 3; tier++) {
-      for (let bx = -18; bx <= 18; bx += 1.65) {
-        if (bx > -5.5 && bx < -1.8 && tier === 2) continue;
+      for (let bx = -24; bx <= 24; bx += 1.85) {
         this.createMesh(
-          new C_ENGINE.RoundedBoxGeometry(1.58, 0.48, 0.95, 2, 0.07),
+          new C_ENGINE.RoundedBoxGeometry(1.78, 0.52, 1.05, 2, 0.07),
           this.matStone,
           g,
           {
-            pos: [bx + (tier % 2) * 0.35, -1.45 + tier * 0.44, -11.6 + tier * 0.18],
+            pos: [bx + (tier % 2) * 0.35, -1.65 + tier * 0.48, -24.6 + tier * 0.18],
             tone: 0.88 + ((Math.abs(bx) + tier) % 4) * 0.05
           }
         );
       }
     }
 
-    // Mossy courtyard boulders
+    // Mossy courtyard boulders placed along the outer perimeter of the expanded courtyard
     const boulderSpecs = [
-      [-8.5, -0.72, -3.5, 1.35, 0.68, 1.05],
-      [-7.4, -0.78, -2.8, 0.78, 0.45, 0.65],
-      [8.2, -0.74, -4.8, 1.45, 0.72, 1.15],
-      [9.4, -0.78, -3.9, 0.85, 0.48, 0.75],
-      [-10.2, -0.7, -9.4, 1.6, 0.85, 1.25],
-      [10.6, -0.72, -9.8, 1.5, 0.78, 1.15]
+      [-14.5, -0.72, -3.5, 1.45, 0.72, 1.15],
+      [-13.2, -0.78, -2.6, 0.85, 0.48, 0.7],
+      [14.2, -0.74, -4.8, 1.55, 0.76, 1.2],
+      [15.4, -0.78, -3.8, 0.92, 0.52, 0.8],
+      [-15.6, -0.7, -12.4, 1.7, 0.88, 1.3],
+      [15.8, -0.72, -12.8, 1.6, 0.82, 1.25]
     ];
     boulderSpecs.forEach(([bx, by, bz, sx, sy, sz], idx) => {
       this.createMesh(
@@ -1715,55 +2092,48 @@ class Chakyeong3DWorld {
     });
 
     // 8. Unified Silla Buseoksa Stone Lantern (부석사 무량수전 앞 석등)
-    this.buildBuseoksaStoneLantern(g, 2.75, -0.82, -1.65);
+    this.buildBuseoksaStoneLantern(g, 3.6, -0.82, -1.2);
 
-    // 9. Anyangru 2-Story Pavilion (안양루 누각: 석축 단 아래에서 소백산맥 능선을 차경하는 구도)
+    // 9. Grand Walkable Anyangru Pavilion (안양루 대확장: 툇마루 등반 + 명상 방석 + 관통하여 소백산맥 차경)
     this.buildPavilion3D(g, {
-      x: -4.4,
-      y: -2.45,
-      z: -13.9,
-      scale: 0.88,
-      yaw: 0.16,
+      x: 0.0,
+      y: -0.78,
+      z: -19.5,
       hanja: '安 養 樓',
       hangul: '부석사 안양루'
     });
 
-    // 10. Register Scanned 3D Pine Trees (assets/models/pine.glb) around Courtyard, Muryangsujeon Flanks & Bonghwangsan Slope
+    // 10. Scanned 3D Pine Trees flanking the Expanded Courtyard (중앙 안양루~소백산맥 시야는 완전히 개방)
     this.buseoksaPineAnchors = [
-      { x: -11.2, y: -0.85, z: -6.2, height: 8.8, yaw: 0.4 },
-      { x: -14.8, y: -0.95, z: -11.5, height: 10.5, yaw: 1.8 },
-      { x: 10.4, y: -0.85, z: -5.8, height: 8.4, yaw: -0.6 },
-      { x: 14.2, y: -0.75, z: -11.8, height: 11.2, yaw: 2.3 },
-      { x: 4.8, y: -1.45, z: -14.2, height: 8.8, yaw: 0.9 },
-      { x: -10.5, y: -1.55, z: -16.5, height: 9.8, yaw: -1.4 },
-      // Natural pine forest flanking Left & Right of Muryangsujeon (무량수전 좌우 배경 소나무림)
-      { x: -15.6, y: -0.75, z: 3.2, height: 9.8, yaw: 0.8 },
-      { x: -18.2, y: -0.35, z: 7.8, height: 11.4, yaw: 2.1 },
-      { x: -14.8, y: -0.80, z: -1.5, height: 9.2, yaw: -0.5 },
-      { x: 15.6, y: -0.75, z: 3.4, height: 10.2, yaw: -1.1 },
-      { x: 18.5, y: -0.30, z: 8.2, height: 11.6, yaw: 1.4 },
-      // Right-side rising Bonghwangsan pine forest (우측 봉황산 숲 비탈 소나무 군락)
-      { x: 15.8, y: -0.65, z: -3.2, height: 10.8, yaw: 0.7 },
-      { x: 18.4, y: -0.25, z: -8.6, height: 11.8, yaw: -1.2 },
-      { x: 17.2, y: -0.45, z: -15.4, height: 11.5, yaw: 1.5 },
-      { x: 21.5, y: 0.35, z: -12.8, height: 12.6, yaw: 2.8 },
-      { x: 20.2, y: 0.15, z: -19.5, height: 12.2, yaw: -0.4 },
-      { x: -16.5, y: -1.25, z: -17.8, height: 10.4, yaw: 1.1 }
+      { x: -16.5, y: -0.82, z: -6.2, height: 9.2, yaw: 0.4 },
+      { x: -18.8, y: -0.82, z: -13.5, height: 10.8, yaw: 1.8 },
+      { x: 16.4, y: -0.82, z: -5.8, height: 8.8, yaw: -0.6 },
+      { x: 18.6, y: -0.82, z: -13.8, height: 11.4, yaw: 2.3 },
+      { x: 14.8, y: -0.82, z: -21.2, height: 9.4, yaw: 0.9 },
+      { x: -15.2, y: -0.82, z: -21.5, height: 10.2, yaw: -1.4 },
+      { x: -20.6, y: -0.75, z: 3.2, height: 10.2, yaw: 0.8 },
+      { x: -23.2, y: -0.35, z: 8.8, height: 11.8, yaw: 2.1 },
+      { x: -19.8, y: -0.80, z: -1.5, height: 9.6, yaw: -0.5 },
+      { x: 20.6, y: -0.75, z: 3.4, height: 10.6, yaw: -1.1 },
+      { x: 23.5, y: -0.30, z: 9.2, height: 12.0, yaw: 1.4 },
+      { x: 21.8, y: -0.55, z: -4.2, height: 11.2, yaw: 0.7 },
+      { x: 24.4, y: -0.15, z: -10.6, height: 12.2, yaw: -1.2 },
+      { x: 22.2, y: -0.35, z: -18.4, height: 11.8, yaw: 1.5 },
+      { x: -21.5, y: -0.65, z: -19.8, height: 10.8, yaw: 1.1 }
     ];
 
-    // Seasonal Maple / Cherry Trees flanking the courtyard
-    this.buildSeasonalTree(g, -9.4, -0.82, -8.5, 1.15);
-    this.buildSeasonalTree(g, 8.8, -0.82, -8.2, 1.1);
-    this.buildSeasonalTree(g, 1.8, -1.55, -14.8, 1.0);
+    // Seasonal Maple Trees flanking the expanded courtyard
+    this.buildSeasonalTree(g, -14.2, -0.82, -9.5, 1.22);
+    this.buildSeasonalTree(g, 14.0, -0.82, -9.2, 1.18);
+    this.buildSeasonalTree(g, -12.6, -0.82, -16.8, 1.12);
+    this.buildSeasonalTree(g, 12.6, -0.82, -16.8, 1.12);
 
-    // Lush Green Korean Broad-Leaf Forest Trees on Right Bonghwangsan Slope & Mid-Ground Foothills
-    this.buildGreenForestTree(g, 13.6, -0.55, -8.8, 1.25);
-    this.buildGreenForestTree(g, 16.4, 0.25, -13.2, 1.38);
-    this.buildGreenForestTree(g, 19.5, 1.15, -6.5, 1.42);
-    this.buildGreenForestTree(g, 22.8, 2.25, -16.2, 1.55);
-    this.buildGreenForestTree(g, 11.8, -1.35, -17.5, 1.22);
-    this.buildGreenForestTree(g, -13.2, -1.65, -15.2, 1.18);
-    this.buildGreenForestTree(g, -7.8, -2.25, -19.5, 1.25);
+    // Lush Green Korean Broad-Leaf Forest Trees on outer mountain flanks
+    this.buildGreenForestTree(g, 19.6, -0.45, -9.8, 1.3);
+    this.buildGreenForestTree(g, 22.4, 0.35, -15.2, 1.42);
+    this.buildGreenForestTree(g, 25.5, 1.25, -7.5, 1.48);
+    this.buildGreenForestTree(g, -19.2, -0.65, -16.2, 1.25);
+    this.buildGreenForestTree(g, -16.8, -1.25, -24.5, 1.3);
 
     // 11. Realistic Sobaeksan Vista Panorama & Multi-Layered 3D Mountain Ridges
     this.buildSobaeksanMountainRidges(g);
@@ -1868,151 +2238,259 @@ class Chakyeong3DWorld {
     parent.add(lg);
   }
 
+  /**
+   * Builds the Expanded & Walkable Anyangru Pavilion (안양루 누각 대확장):
+   * - Walkable Umulmaru veranda floor at world y = 0.08 (local y = 0.86) with wide front stone steps
+   * - Wide open central column span (6.8m wide between inner columns) so Sobaeksan mountain range
+   *   is clearly visible right through Anyangru (안양루를 관통하여 시원하게 보이는 소백산맥 차경)
+   * - Realistic 3D Paljak Giwa Roof + Dancheong rafters
+   * - 3D Traditional Meditation Cushion (명상 방석) in the center of Anyangru's veranda
+   */
   buildPavilion3D(parent, spec) {
     const pg = new C_ENGINE.Group();
     pg.position.set(spec.x, spec.y, spec.z);
     pg.rotation.y = spec.yaw || 0;
-    pg.scale.setScalar(spec.scale || 1);
 
-    // Stone base platform
+    // 1. Stone Terrace & Tall Under-Pavilion Pillars (누하주와 화강암 기단)
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(8.8, 0.85, 6.2, 2, 0.06),
+      new C_ENGINE.RoundedBoxGeometry(17.2, 0.84, 8.6, 2, 0.06),
       this.matStone,
       pg,
-      { pos: [0, 0.42, 0], tone: 0.93 }
+      { pos: [0, 0.36, 0], tone: 0.94 }
     );
 
-    // Lower story tall pillars (누하주) & upper entasis columns (누상주)
-    const pXs = [-3.4, -1.15, 1.15, 3.4];
-    const pZs = [-2.2, 2.2];
+    // Wide Courtyard-to-Anyangru Stone Steps (마당에서 안양루 툇마루로 올라가는 중앙 돌계단)
+    for (let s = 0; s < 5; s++) {
+      const stepY = 0.12 + s * 0.175;
+      const stepZ = 5.55 - s * 0.38;
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(4.8, 0.2, 0.46, 2, 0.03),
+        this.matStone,
+        pg,
+        { pos: [0, stepY, stepZ], tone: 0.96 + (s % 2) * 0.03 }
+      );
+    }
+    for (const sideX of [-2.55, 2.55]) {
+      const cheekGeo = new C_ENGINE.RoundedBoxGeometry(0.28, 0.96, 2.15, 2, 0.04);
+      cheekGeo.rotateX(-0.38);
+      this.createMesh(cheekGeo, this.matStone, pg, {
+        pos: [sideX, 0.45, 4.78],
+        tone: 0.92
+      });
+    }
+
+    // 2. Walkable Anyangru Umulmaru Wooden Veranda Floor (안양루 툇마루 바닥: 16.4m × 8.2m, world y = 0.08)
+    const deckY = 0.86;
+    const plankCountX = 36;
+    const deckW = 16.4;
+    const plankW = deckW / plankCountX - 0.01;
+    for (let row = 0; row < 2; row++) {
+      const rowZ = -1.95 + row * 3.9;
+      for (let i = 0; i < plankCountX; i++) {
+        const px = -deckW * 0.5 + (i + 0.5) * (deckW / plankCountX);
+        const tone = 0.95 + ((i * 5 + row * 11) % 7) * 0.014;
+        this.createMesh(
+          new C_ENGINE.RoundedBoxGeometry(plankW, 0.12, 3.82, 2, 0.01),
+          this.matFloorWood,
+          pg,
+          { pos: [px, deckY, rowZ], tone }
+        );
+      }
+    }
+    for (const zBeam of [-3.95, 0, 3.95]) {
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(16.6, 0.16, 0.24, 2, 0.02),
+        this.matDarkTimber,
+        pg,
+        { pos: [0, deckY + 0.01, zBeam], tone: 0.9 }
+      );
+    }
+
+    // Low Gyeja-nangan Wooden Railings (계단 입구는 개방, 소백산 쪽은 시야 방해 없는 낮은 난간)
+    for (const sideX of [-8.05, 8.05]) {
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(0.14, 0.1, 8.0, 2, 0.015),
+        this.matDancheongRed,
+        pg,
+        { pos: [sideX, deckY + 0.48, 0] }
+      );
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(0.1, 0.08, 7.9, 2, 0.015),
+        this.matDancheongJade,
+        pg,
+        { pos: [sideX, deckY + 0.26, 0] }
+      );
+    }
+    this.createMesh(
+      new C_ENGINE.RoundedBoxGeometry(16.2, 0.1, 0.14, 2, 0.015),
+      this.matDancheongRed,
+      pg,
+      { pos: [0, deckY + 0.42, -3.98] }
+    );
+    for (const frontSegX of [-5.3, 5.3]) {
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(5.4, 0.1, 0.14, 2, 0.015),
+        this.matDancheongRed,
+        pg,
+        { pos: [frontSegX, deckY + 0.48, 3.98] }
+      );
+    }
+
+    // 3. Wide-Span Entasis Columns (중앙 6.8m 광폭 개방 기둥 배치 -> 안양루를 관통해 소백산맥이 시원하게 조망됨)
+    const pXs = [-7.2, -3.4, 3.4, 7.2];
+    const pZs = [-3.4, 3.4];
+    const colEntasisPts = [
+      new C_ENGINE.Vector2(0.30, 0.0),
+      new C_ENGINE.Vector2(0.34, 1.2),
+      new C_ENGINE.Vector2(0.35, 2.4),
+      new C_ENGINE.Vector2(0.31, 4.1),
+      new C_ENGINE.Vector2(0.28, 4.95)
+    ];
     for (const px of pXs) {
       for (const pz of pZs) {
         this.createMesh(
-          new C_ENGINE.CylinderGeometry(0.24, 0.27, 2.3, 16),
+          new C_ENGINE.CylinderGeometry(0.31, 0.34, 2.6, 18),
           this.matTimber,
           pg,
-          { pos: [px, 1.95, pz] }
+          { pos: [px, -0.45, pz], tone: 0.94 }
         );
         this.createMesh(
-          new C_ENGINE.CylinderGeometry(0.21, 0.24, 2.55, 16),
+          new C_ENGINE.RoundedBoxGeometry(0.84, 0.16, 0.84, 2, 0.04),
+          this.matStone,
+          pg,
+          { pos: [px, deckY + 0.08, pz] }
+        );
+        this.createMesh(
+          new C_ENGINE.LatheGeometry(colEntasisPts, 22),
           this.matTimber,
           pg,
-          { pos: [px, 4.5, pz] }
+          { pos: [px, deckY + 0.14, pz], tone: 0.98 }
+        );
+        for (let tier = 0; tier < 3; tier++) {
+          const ty = deckY + 5.15 + tier * 0.22;
+          const span = 1.15 + tier * 0.34;
+          this.createMesh(
+            new C_ENGINE.RoundedBoxGeometry(span, 0.15, 0.3, 2, 0.02),
+            tier === 1 ? this.matDancheongJade : this.matDarkTimber,
+            pg,
+            { pos: [px, ty, pz] }
+          );
+          this.createMesh(
+            new C_ENGINE.RoundedBoxGeometry(0.3, 0.15, span, 2, 0.02),
+            tier === 1 ? this.matDancheongRed : this.matPaleTimber,
+            pg,
+            { pos: [px, ty + 0.03, pz] }
+          );
+        }
+      }
+    }
+
+    // High Perimeter Lintels & Beams (창방 · 평방 · 도리: y = deckY + 4.95 이상에 배치하여 시선 완전 개방)
+    for (const bz of [-3.4, 3.4]) {
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(15.6, 0.32, 0.38, 2, 0.03),
+        this.matTimber,
+        pg,
+        { pos: [0, deckY + 4.95, bz] }
+      );
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(16.0, 0.22, 0.44, 2, 0.025),
+        this.matDancheongJade,
+        pg,
+        { pos: [0, deckY + 5.22, bz] }
+      );
+    }
+    for (const bx of [-7.2, -3.4, 3.4, 7.2]) {
+      this.createMesh(
+        new C_ENGINE.RoundedBoxGeometry(0.36, 0.3, 7.4, 2, 0.03),
+        this.matDarkTimber,
+        pg,
+        { pos: [bx, deckY + 5.18, 0] }
+      );
+    }
+
+    // 4. Calligraphed Anyangru Plaque: 安養樓 (안양루 현판)
+    const plaqueTex = TextureFactory.createPlaqueTexture(spec.hanja, spec.hangul);
+    this.createMesh(
+      new C_ENGINE.RoundedBoxGeometry(3.6, 1.12, 0.16, 2, 0.03),
+      this.matDarkTimber,
+      pg,
+      { pos: [0, deckY + 5.38, 3.72], rot: [0.12, 0, 0] }
+    );
+    const plaqueMesh = new C_ENGINE.Mesh(
+      new C_ENGINE.PlaneGeometry(3.38, 0.96),
+      new C_ENGINE.MeshStandardMaterial({ map: plaqueTex, roughness: 0.65 })
+    );
+    plaqueMesh.position.set(0, deckY + 5.38, 3.82);
+    plaqueMesh.rotation.x = -0.12;
+    pg.add(plaqueMesh);
+
+    // 5. Anyangru Rafters (서까래) & Realistic 3D Paljak Giwa Roof (안양루 리얼 기와지붕)
+    const anyangRafterCount = 28;
+    for (let i = 0; i < anyangRafterCount; i++) {
+      const t = i / (anyangRafterCount - 1) - 0.5;
+      const rx = t * 18.2;
+      const cornerLift = Math.pow(Math.abs(t) * 2, 2.4) * 0.48;
+      for (const zSign of [-1, 1]) {
+        const rCurve = new C_ENGINE.CatmullRomCurve3([
+          new C_ENGINE.Vector3(rx, deckY + 6.15 + cornerLift * 0.3, zSign * 2.4),
+          new C_ENGINE.Vector3(rx * 1.02, deckY + 5.32 + cornerLift, zSign * 5.2)
+        ]);
+        this.createMesh(
+          new C_ENGINE.TubeGeometry(rCurve, 8, 0.075, 8, false),
+          this.matTimber,
+          pg,
+          { tone: 0.95 }
         );
       }
     }
 
-    // 2nd Floor Pavilion Deck & Intricate Wooden Railing (우물마루와 계자난간)
+    this.buildRealisticPaljakRoof(pg, {
+      x: 0,
+      z: 0,
+      baseY: deckY + 5.35,
+      width: 20.6,
+      depth: 11.4,
+      ridgeHeight: 3.45,
+      ridgeLength: 12.2,
+      tileRepeatX: 18,
+      tileRepeatZ: 7
+    });
+
+    // 6. 3D Traditional Silk Meditation Cushion on Anyangru Veranda (안양루 명상 방석 · 좌구)
+    const cushionGroup = new C_ENGINE.Group();
+    cushionGroup.position.set(0, deckY + 0.06, 0.0);
+
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(8.2, 0.22, 5.6, 2, 0.03),
-      this.matFloorWood,
-      pg,
-      { pos: [0, 3.15, 0] }
+      new C_ENGINE.RoundedBoxGeometry(1.48, 0.03, 1.48, 2, 0.01),
+      this.matPaleTimber,
+      cushionGroup,
+      { pos: [0, 0.015, 0], tone: 1.06 }
     );
-    // Railings
-    for (const rz of [-2.65, 2.65]) {
-      this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(8.3, 0.1, 0.12, 2, 0.015),
-        this.matDancheongRed,
-        pg,
-        { pos: [0, 3.72, rz] }
-      );
-      this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(8.2, 0.08, 0.1, 2, 0.015),
-        this.matDancheongJade,
-        pg,
-        { pos: [0, 3.45, rz] }
-      );
-    }
-    for (const rx of [-3.95, 3.95]) {
-      this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(0.12, 0.1, 5.4, 2, 0.015),
-        this.matDancheongRed,
-        pg,
-        { pos: [rx, 3.72, 0] }
-      );
-    }
-
-    // Upper Beams & Dancheong Frieze
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(8.0, 0.34, 5.2, 2, 0.03),
-      this.matDancheongJade,
-      pg,
-      { pos: [0, 5.82, 0] }
+      new C_ENGINE.CylinderGeometry(0.52, 0.56, 0.14, 28),
+      this.matDancheongRed,
+      cushionGroup,
+      { pos: [0, 0.08, 0], tone: 1.05 }
     );
-
-    // Calligraphed Pavilion Plaque (안양루 / 강선루 현판)
-    const plaqueTex = TextureFactory.createPlaqueTexture(spec.hanja, spec.hangul);
-    const plaqueMesh = new C_ENGINE.Mesh(
-      new C_ENGINE.PlaneGeometry(2.55, 0.78),
-      new C_ENGINE.MeshStandardMaterial({ map: plaqueTex, roughness: 0.65 })
-    );
-    plaqueMesh.position.set(0, 5.55, 2.68);
-    pg.add(plaqueMesh);
-
-    // Traditional Curved Paljak Giwa Roof (팔작지붕 곡선 기와)
-    const roofGeo = new C_ENGINE.BufferGeometry();
-    const rVerts = [];
-    const rUvs = [];
-    const rIndices = [];
-    const segX = 28;
-    const segZ = 18;
-    for (let iz = 0; iz <= segZ; iz++) {
-      const vz = iz / segZ - 0.5; // -0.5 to 0.5
-      for (let ix = 0; ix <= segX; ix++) {
-        const vx = ix / segX - 0.5; // -0.5 to 0.5
-        const absZ = Math.abs(vz) * 2;
-        const absX = Math.abs(vx) * 2;
-        const spanX = 5.4 + absZ * 0.65;
-        const spanZ = 3.9 + absX * 0.35;
-        const x = vx * spanX * 2;
-        const z = vz * spanZ * 2;
-        const ridgeDrop = Math.pow(absZ, 1.35) * 1.95;
-        const cornerLift = Math.pow(absX, 3.0) * Math.pow(absZ, 2.0) * 0.85;
-        const y = 7.75 - ridgeDrop + cornerLift;
-        rVerts.push(x, y, z);
-        rUvs.push(x * 0.4, z * 0.4);
-      }
-    }
-    for (let iz = 0; iz < segZ; iz++) {
-      for (let ix = 0; ix < segX; ix++) {
-        const a = iz * (segX + 1) + ix;
-        const b = a + segX + 1;
-        rIndices.push(a, b, a + 1, a + 1, b, b + 1);
-      }
-    }
-    roofGeo.setAttribute('position', new C_ENGINE.Float32BufferAttribute(rVerts, 3));
-    roofGeo.setAttribute('uv', new C_ENGINE.Float32BufferAttribute(rUvs, 2));
-    roofGeo.setIndex(rIndices);
-    roofGeo.computeVertexNormals();
-
-    this.matGiwaRoof.side = C_ENGINE.DoubleSide;
-    this.createMesh(roofGeo, this.matGiwaRoof, pg, { tone: 0.95 });
-
-    // Roof Ridge Beam (용마루)
     this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(7.2, 0.24, 0.28, 2, 0.04),
-      this.matGiwaRoof,
-      pg,
-      { pos: [0, 7.82, 0], tone: 1.05 }
+      new C_ENGINE.CylinderGeometry(0.32, 0.34, 0.15, 24),
+      this.matWarmHanji,
+      cushionGroup,
+      { pos: [0, 0.085, 0] }
     );
+    pg.add(cushionGroup);
 
-    // Warm interior lantern inside pavilion
-    const innerLantern = new C_ENGINE.Mesh(
-      new C_ENGINE.SphereGeometry(0.24, 14, 14),
-      this.matWarmHanji
-    );
-    innerLantern.position.set(0, 4.85, 0);
-    pg.add(innerLantern);
+    const anyangLight = new C_ENGINE.PointLight(0xffb86c, 1.8, 18, 1.5);
+    anyangLight.position.set(0, deckY + 4.6, 0);
+    pg.add(anyangLight);
 
     parent.add(pg);
   }
 
   buildSeasonalTree(parent, x, y, z, scale = 1.0) {
     // Register as a photorealistic 3D scanned tree (assets/models/pine.glb) instead of procedural sphere balls
-    const isBuseoksa = parent === this.buseoksaGroup;
-    const anchorList = isBuseoksa ? this.buseoksaPineAnchors : this.seonamsaPineAnchors;
-    anchorList.push({
+    this.buseoksaPineAnchors.push({
       x,
       y,
       z,
@@ -2020,15 +2498,13 @@ class Chakyeong3DWorld {
       widthScale: 1.24,
       yaw: (x * 1.37 + z * 0.93) % (Math.PI * 2),
       cluster: true,
-      role: isBuseoksa ? 'pine' : 'seasonal'
+      role: 'pine'
     });
   }
 
   buildGreenForestTree(parent, x, y, z, scale = 1.0) {
     // Register as a photorealistic 3D scanned full-crown mountain tree (assets/models/pine.glb)
-    const isBuseoksa = parent === this.buseoksaGroup;
-    const anchorList = isBuseoksa ? this.buseoksaPineAnchors : this.seonamsaPineAnchors;
-    anchorList.push({
+    this.buseoksaPineAnchors.push({
       x,
       y,
       z,
@@ -2044,24 +2520,22 @@ class Chakyeong3DWorld {
     this.mountainLayers = [];
 
     // 1. Forward Sobaeksan Real-Photo Vista Backdrop (전방 소백산맥·파란하늘·뭉게구름 실사 배경)
-    //    Spans a 100° forward arc strictly in the -Z vista (z = -86m .. -135m) with alpha-feathered edges,
-    //    so looking forward over Anyangru shows the real photo ("부석사 소백산맥 원거리 배경.jpg"),
-    //    while the left/right of Muryangsujeon (+Z / ±X) remain 100% natural green woodland & 3D pines!
+    //    Framed directly through Anyangru's open columns so the Sobaeksan ridges are clearly visible!
     const vistaSegX = 96;
     const vistaSegY = 32;
     const vistaGeo = new C_ENGINE.PlaneGeometry(1, 1, vistaSegX, vistaSegY);
     const vPos = vistaGeo.getAttribute('position');
-    const arcSpan = Math.PI * 0.56; // 100° forward vista arc (-50° to +50°)
-    const radius = 135;
-    const centerZ = 0.0;
+    const arcSpan = Math.PI * 0.62;
+    const radius = 142;
+    const centerZ = -4.0;
 
     for (let i = 0; i < vPos.count; i++) {
-      const u = vPos.getX(i) + 0.5; // 0 (left -X) to 1 (right +X)
-      const v = vPos.getY(i) + 0.5; // 0 (bottom) to 1 (top)
+      const u = vPos.getX(i) + 0.5;
+      const v = vPos.getY(i) + 0.5;
       const angle = (u - 0.5) * arcSpan;
       const wx = Math.sin(angle) * radius;
       const wz = centerZ - Math.cos(angle) * radius;
-      const wy = -16.0 + v * 70.0; // -16m valley floor up to +54m blue sky & cumulus clouds
+      const wy = -18.0 + v * 74.0;
       vPos.setXYZ(i, wx, wy, wz);
     }
     vistaGeo.computeVertexNormals();
@@ -2078,30 +2552,29 @@ class Chakyeong3DWorld {
     this.sobaeksanVistaMesh.renderOrder = -10;
     parent.add(this.sobaeksanVistaMesh);
 
-    // 2. Low 3D Mid-Ground Green Forested Foothills (중경 3D 녹음 산자락)
-    //    Kept low in the center so they never block the real Sobaeksan mountain ridges & blue sky in the photo!
+    // 2. Low 3D Valley Foothills (안양루 정면 중앙은 낮게 열어두어 소백산맥 원경이 시원하게 관통되도록 구성)
     const ridgeConfigs = [
       {
-        z: -30,
-        width: 145,
-        baseH: 0.8,
-        amp: 1.2,
-        freq: 0.052,
+        z: -42,
+        width: 165,
+        baseH: -2.4,
+        amp: 0.9,
+        freq: 0.048,
         phase: 0.5,
         color: 0x3b5834,
         useForestTex: true,
-        rightSlopeLift: 9.5
+        rightSlopeLift: 8.5
       },
       {
-        z: -54,
-        width: 195,
-        baseH: 1.8,
-        amp: 1.6,
-        freq: 0.04,
+        z: -68,
+        width: 215,
+        baseH: -1.2,
+        amp: 1.3,
+        freq: 0.038,
         phase: 1.7,
         color: 0x456340,
         useForestTex: true,
-        rightSlopeLift: 12.0
+        rightSlopeLift: 10.5
       }
     ];
 
@@ -2115,22 +2588,24 @@ class Chakyeong3DWorld {
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i);
         const rawY = pos.getY(i);
-        const v = (rawY + 16) / 32; // 0 at bottom, 1 at ridge crest
+        const v = (rawY + 16) / 32;
 
-        // Gentle hill behind Anyangru + natural rising Bonghwangsan forest slope on the right
-        const leftHillBump = Math.exp(-Math.pow((x + 12) / 24, 2)) * 1.4;
+        // Keep center (|x| < 18m) dipped low so Anyangru's through-vista to Sobaeksan is 100% unobstructed
+        const centerValleyDip = -Math.exp(-Math.pow(x / 16, 2)) * 2.2;
+        const leftHillBump = Math.exp(-Math.pow((x + 28) / 22, 2)) * 2.2;
         const rightSlope =
-          x > 14 ? Math.pow((x - 14) / (cfg.width * 0.45), 1.3) * cfg.rightSlopeLift : 0;
+          x > 18 ? Math.pow((x - 18) / (cfg.width * 0.45), 1.3) * cfg.rightSlopeLift : 0;
 
         const ridgeCurve =
           cfg.baseH +
+          centerValleyDip +
           leftHillBump +
           rightSlope +
           Math.sin(x * cfg.freq + cfg.phase) * cfg.amp +
           Math.cos(x * cfg.freq * 2.1 - cfg.phase * 0.7) * (cfg.amp * 0.4) +
           Math.sin(x * cfg.freq * 4.3 + layerIdx) * (cfg.amp * 0.15);
 
-        const y = -11.5 + v * (ridgeCurve + 11.5);
+        const y = -13.5 + v * (ridgeCurve + 13.5);
         const zOffset = (1 - v) * 6.5 + Math.sin(x * 0.07 + v * 2.8) * 1.6;
         pos.setXYZ(i, x, y, zOffset);
 
@@ -2192,276 +2667,6 @@ class Chakyeong3DWorld {
         baseAlpha: isHighCumulus ? 0.22 + Math.random() * 0.14 : 0.10 + Math.random() * 0.08
       });
     }
-  }
-
-  /* ------------------------------------------------------------------------
-     SPACE 2: 순천 선암사 승선교와 강선루 (Seungseongyo Rainbow Bridge & Valley)
-     ------------------------------------------------------------------------ */
-  buildSeonamsaWorld() {
-    const g = this.seonamsaGroup;
-
-    // 1. Valley Stream Water Surface (계곡 수면 + 실시간 노멀 물결 & 프레넬 반사 셰이더)
-    const waterNormalData = new Uint8Array(128 * 128 * 4);
-    for (let y = 0; y < 128; y++) {
-      for (let x = 0; x < 128; x++) {
-        const idx = (y * 128 + x) * 4;
-        const u = (x / 128) * Math.PI * 2;
-        const v = (y / 128) * Math.PI * 2;
-        const nx = Math.cos(u * 3 + v * 2) * 0.04 + Math.cos(u * 7 - v * 4) * 0.015;
-        const ny = Math.sin(u * 3 + v * 2) * 0.03 - Math.cos(u * 7 - v * 4) * 0.01;
-        const n = new C_ENGINE.Vector3(-nx, -ny, 1).normalize();
-        waterNormalData[idx] = (n.x * 0.5 + 0.5) * 255;
-        waterNormalData[idx + 1] = (n.y * 0.5 + 0.5) * 255;
-        waterNormalData[idx + 2] = (n.z * 0.5 + 0.5) * 255;
-        waterNormalData[idx + 3] = 255;
-      }
-    }
-    this.waterNormalTex = new C_ENGINE.DataTexture(
-      waterNormalData,
-      128,
-      128,
-      C_ENGINE.RGBAFormat
-    );
-    this.waterNormalTex.wrapS = C_ENGINE.RepeatWrapping;
-    this.waterNormalTex.wrapT = C_ENGINE.RepeatWrapping;
-    this.waterNormalTex.repeat.set(10, 10);
-    this.waterNormalTex.minFilter = C_ENGINE.LinearFilter;
-    this.waterNormalTex.magFilter = C_ENGINE.LinearFilter;
-    this.waterNormalTex.needsUpdate = true;
-
-    this.valleyWaterMat = new C_ENGINE.MeshStandardMaterial({
-      color: 0x264446,
-      roughness: 0.18,
-      metalness: 0.08,
-      normalMap: this.waterNormalTex,
-      normalScale: new C_ENGINE.Vector2(0.32, 0.32)
-    });
-
-    if (C_ENGINE.enhanceWaterMaterial) {
-      const reflectionLanternSpots = [
-        { x: -4.2, height: 2.2, z: 0.5 },
-        { x: -2.8, height: 2.6, z: -2.0 },
-        { x: 0.0, height: 3.8, z: -3.5 },
-        { x: 2.8, height: 2.6, z: -2.0 },
-        { x: 4.2, height: 2.2, z: 0.5 },
-        { x: 3.2, height: 4.5, z: -17.5 }
-      ];
-      this.waterEnhancer = C_ENGINE.enhanceWaterMaterial(
-        this.valleyWaterMat,
-        () => this.woodlandPanorama || null,
-        reflectionLanternSpots
-      );
-    }
-
-    const waterGeo = new C_ENGINE.PlaneGeometry(36, 95, 32, 32);
-    waterGeo.rotateX(-Math.PI / 2);
-    const waterMesh = new C_ENGINE.Mesh(waterGeo, this.valleyWaterMat);
-    waterMesh.position.set(0, -0.65, -20);
-    waterMesh.receiveShadow = true;
-    g.add(waterMesh);
-
-    // 2. Valley Banks, Stone Embankments (석축) & Forest Slopes
-    this.seonamsaGroundMat = this.matGround.clone();
-    for (const side of [-1, 1]) {
-      const bankGeo = new C_ENGINE.PlaneGeometry(75, 110, 36, 36);
-      bankGeo.rotateX(-Math.PI / 2);
-      const bPos = bankGeo.getAttribute('position');
-      for (let i = 0; i < bPos.count; i++) {
-        const lx = bPos.getX(i);
-        const lz = bPos.getZ(i);
-        const distFromStream = Math.max(0, (lx + 37.5) / 75);
-        const h =
-          -0.45 +
-          Math.pow(distFromStream, 1.35) * 14.5 +
-          Math.sin(lx * 0.2 + lz * 0.15) * 0.45;
-        bPos.setY(i, h);
-      }
-      bankGeo.computeVertexNormals();
-      this.createMesh(bankGeo, this.seonamsaGroundMat, g, {
-        pos: [side * 42.5, 0, -20],
-        scale: [side, 1, 1],
-        castShadow: false,
-        receiveShadow: true
-      });
-
-      // Natural stone embankment wall (계곡 석축) flanking Seungseongyo
-      for (let tier = 0; tier < 4; tier++) {
-        for (let bz = -18; bz <= 8; bz += 1.55) {
-          this.createMesh(
-            new C_ENGINE.RoundedBoxGeometry(1.35, 0.55, 1.48, 2, 0.08),
-            tier === 0 ? this.matMoss : this.matStone,
-            g,
-            {
-              pos: [
-                side * (5.3 + tier * 0.32 + Math.sin(bz * 0.6) * 0.15),
-                -0.38 + tier * 0.48,
-                bz
-              ],
-              tone: 0.88 + ((Math.abs(bz) + tier) % 4) * 0.05
-            }
-          );
-        }
-      }
-    }
-
-    // 3. Seungseongyo Semicircular Rainbow Stone Arch Bridge (승선교 28개 홍예석 + 용두석 + 수면 원형 반영)
-    const bridgeGroup = new C_ENGINE.Group();
-    bridgeGroup.position.set(0, -0.65, -3.5);
-
-    const archRadius = 4.65;
-    const bridgeDepth = 3.45;
-    const voussoirCount = 28;
-
-    for (let i = 0; i < voussoirCount; i++) {
-      const angle = ((i + 0.5) / voussoirCount) * Math.PI;
-      const vx = Math.cos(angle) * archRadius;
-      const vy = Math.sin(angle) * archRadius;
-      const rotZ = angle - Math.PI / 2;
-      const tone = 0.92 + (i % 4) * 0.035;
-
-      // Upper real arch voussoir stone (홍예석)
-      this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(0.56, 0.64, bridgeDepth, 2, 0.035),
-        this.matStone,
-        bridgeGroup,
-        { pos: [vx, vy, 0], rot: [0, 0, rotZ], tone }
-      );
-
-      // Spandrel stone fill above the arch ring (홍예 옆면 석축 채움)
-      const deckY = archRadius + 0.58;
-      const fillH = Math.max(0.18, deckY - (vy + 0.28));
-      this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(0.58, fillH, bridgeDepth - 0.12, 2, 0.03),
-        i % 5 === 0 ? this.matMoss : this.matStone,
-        bridgeGroup,
-        { pos: [vx, vy + 0.28 + fillH * 0.5, 0], tone: tone * 0.94 }
-      );
-
-      // Underwater inverted arch reflection (수면에 비친 반원형 무지개 다리 원형 반영)
-      const reflMat = this.matStone.clone();
-      reflMat.transparent = true;
-      reflMat.opacity = 0.34;
-      const reflMesh = new C_ENGINE.Mesh(
-        new C_ENGINE.RoundedBoxGeometry(0.54, 0.58, bridgeDepth * 0.92, 2, 0.03),
-        reflMat
-      );
-      reflMesh.position.set(vx, -vy * 0.88 - 0.08, 0);
-      reflMesh.rotation.z = -rotZ;
-      bridgeGroup.add(reflMesh);
-    }
-
-    // Protruding Dragon-Head Keystone (승선교 정중앙 용두석 龍頭石)
-    this.createMesh(
-      new C_ENGINE.RoundedBoxGeometry(0.28, 0.52, 0.68, 2, 0.04),
-      this.matStone,
-      bridgeGroup,
-      { pos: [0, archRadius - 0.38, bridgeDepth * 0.5 + 0.16], tone: 0.86 }
-    );
-
-    // Bridge Deck Flagstones & Low Parapet Stones (승선교 교면과 낮은 돌난간)
-    const deckSteps = 22;
-    for (let i = 0; i < deckSteps; i++) {
-      const t = i / (deckSteps - 1) - 0.5;
-      const dx = t * 11.4;
-      const dy = archRadius + 0.62 - Math.pow(t * 2, 2) * 0.52;
-      this.createMesh(
-        new C_ENGINE.RoundedBoxGeometry(0.56, 0.18, bridgeDepth + 0.16, 2, 0.03),
-        this.matStone,
-        bridgeGroup,
-        { pos: [dx, dy, 0], tone: 0.94 + (i % 3) * 0.03 }
-      );
-      for (const sideZ of [-bridgeDepth * 0.5 + 0.18, bridgeDepth * 0.5 - 0.18]) {
-        this.createMesh(
-          new C_ENGINE.RoundedBoxGeometry(0.54, 0.28, 0.32, 2, 0.035),
-          i % 4 === 0 ? this.matMoss : this.matStone,
-          bridgeGroup,
-          { pos: [dx, dy + 0.2, sideZ], tone: 0.9 }
-        );
-      }
-    }
-
-    g.add(bridgeGroup);
-
-    // 4. Valley Stream Boulders & Stepping Rocks (계곡 바위와 이끼 암석)
-    const valleyRocks = [
-      [-3.8, -0.55, 2.4, 1.45, 0.62, 1.15],
-      [-2.4, -0.6, 3.6, 0.95, 0.42, 0.82],
-      [3.9, -0.52, 1.8, 1.55, 0.68, 1.25],
-      [2.6, -0.58, 3.9, 1.05, 0.45, 0.88],
-      [-4.2, -0.5, -9.5, 1.65, 0.75, 1.3],
-      [4.4, -0.52, -10.8, 1.5, 0.7, 1.2],
-      [-1.8, -0.62, -13.2, 0.95, 0.38, 0.85],
-      [1.9, -0.6, -7.8, 0.88, 0.36, 0.78]
-    ];
-    valleyRocks.forEach(([rx, ry, rz, sx, sy, sz], idx) => {
-      this.createMesh(
-        new C_ENGINE.SphereGeometry(1, 18, 14),
-        idx % 2 === 0 ? this.matRock : this.matMoss,
-        g,
-        { pos: [rx, ry, rz], scale: [sx, sy, sz], rot: [0, idx * 1.3, 0], tone: 0.92 }
-      );
-    });
-
-    // Foreground Stone Wall Path on Right & Left Banks (돌담길)
-    for (const side of [-1, 1]) {
-      for (let z = -1.5; z <= 6.5; z += 0.95) {
-        this.createMesh(
-          new C_ENGINE.RoundedBoxGeometry(0.65, 0.78, 0.9, 2, 0.06),
-          this.matStone,
-          g,
-          {
-            pos: [side * 5.65, 1.45, z],
-            tone: 0.9 + (Math.abs(Math.round(z)) % 3) * 0.04
-          }
-        );
-      }
-    }
-
-    // 5. Gangseollu 2-Story Valley Pavilion (선암사 강선루 누각) beyond Seungseongyo
-    this.buildPavilion3D(g, {
-      x: 2.8,
-      y: -0.25,
-      z: -18.5,
-      scale: 0.95,
-      yaw: -0.22,
-      hanja: '降 仙 樓',
-      hangul: '선암사 강선루'
-    });
-
-    // 6. Jogyesan Scanned 3D Pine Trees & Seasonal Maple / Cherry Forest
-    this.seonamsaPineAnchors = [
-      { x: -9.5, y: 1.2, z: -6.5, height: 9.4, yaw: 0.6 },
-      { x: 9.8, y: 1.25, z: -5.8, height: 9.2, yaw: -0.8 },
-      { x: -11.5, y: 1.6, z: -15.5, height: 10.6, yaw: 1.9 },
-      { x: 11.2, y: 1.5, z: -16.8, height: 10.4, yaw: -1.5 },
-      { x: -6.2, y: 0.9, z: -22.0, height: 9.8, yaw: 0.3 }
-    ];
-
-    this.buildSeasonalTree(g, -7.2, 0.95, -1.2, 1.15);
-    this.buildSeasonalTree(g, 7.4, 0.95, -0.8, 1.18);
-    this.buildSeasonalTree(g, -6.8, 1.05, -9.8, 1.25);
-    this.buildSeasonalTree(g, 7.6, 1.05, -11.2, 1.2);
-    this.buildSeasonalTree(g, -4.5, 0.85, -17.2, 1.1);
-
-    // Distant Jogyesan mountain ridges behind Gangseollu
-    const jogyeRidgeGeo = new C_ENGINE.PlaneGeometry(180, 38, 64, 14);
-    const jPos = jogyeRidgeGeo.getAttribute('position');
-    for (let i = 0; i < jPos.count; i++) {
-      const x = jPos.getX(i);
-      const v = (jPos.getY(i) + 19) / 38;
-      const crest = 14 + Math.sin(x * 0.045 + 0.8) * 5.8 + Math.cos(x * 0.09) * 2.4;
-      jPos.setXYZ(i, x, -4 + v * (crest + 4), (1 - v) * 6);
-    }
-    jogyeRidgeGeo.computeVertexNormals();
-    this.paintVertexTone(jogyeRidgeGeo, 0.9, 0.04);
-    const jogyeMat = new C_ENGINE.MeshStandardMaterial({
-      color: 0x455e55,
-      roughness: 0.95,
-      vertexColors: true
-    });
-    const jogyeMesh = new C_ENGINE.Mesh(jogyeRidgeGeo, jogyeMat);
-    jogyeMesh.position.set(0, 0, -58);
-    g.add(jogyeMesh);
   }
 
   /* ------------------------------------------------------------------------
@@ -2543,16 +2748,28 @@ class Chakyeong3DWorld {
   }
 
   initFallingFoliage3D() {
-    this.leafCount = 95;
+    this.leafCount = this.isMobile ? 48 : 96;
     this.leafDummy = new C_ENGINE.Object3D();
     this.leafData = [];
 
-    const leafGeo = new C_ENGINE.PlaneGeometry(0.16, 0.12);
-    this.leafInstancedMat = new C_ENGINE.MeshBasicMaterial({
-      color: 0xe86a38,
-      side: C_ENGINE.DoubleSide,
+    // 3D Curved Maple Leaf Geometry (자연스럽게 휘어진 단풍잎 곡면 메쉬 + 7갈래 단풍잎 실사 텍스처)
+    const leafGeo = new C_ENGINE.PlaneGeometry(0.24, 0.24, 3, 3);
+    const lPos = leafGeo.getAttribute('position');
+    for (let i = 0; i < lPos.count; i++) {
+      const lx = lPos.getX(i);
+      const ly = lPos.getY(i);
+      const curlZ = (lx * lx * 1.4 - ly * ly * 0.6) * 0.45;
+      lPos.setZ(i, curlZ);
+    }
+    leafGeo.computeVertexNormals();
+
+    this.leafInstancedMat = new C_ENGINE.MeshStandardMaterial({
+      map: this.mapleLeafTex,
+      alphaTest: 0.18,
       transparent: true,
-      opacity: 0.9
+      side: C_ENGINE.DoubleSide,
+      roughness: 0.65,
+      metalness: 0.02
     });
 
     this.leafInstancedMesh = new C_ENGINE.InstancedMesh(
@@ -2562,19 +2779,36 @@ class Chakyeong3DWorld {
     );
     this.leafInstancedMesh.raycast = () => {};
 
+    // Per-instance natural autumn maple palette (단풍 진홍·주홍·황금빛 그라데이션)
+    const leafPalette = [
+      new C_ENGINE.Color(0xff5e2b),
+      new C_ENGINE.Color(0xe6391b),
+      new C_ENGINE.Color(0xf59e0b),
+      new C_ENGINE.Color(0xd94826),
+      new C_ENGINE.Color(0xff8438)
+    ];
+
     for (let i = 0; i < this.leafCount; i++) {
+      this.leafInstancedMesh.setColorAt(i, leafPalette[i % leafPalette.length]);
       this.leafData.push({
-        x: (Math.random() - 0.5) * 24,
-        y: Math.random() * 8.5,
-        z: 6 - Math.random() * 24,
-        vx: 0.32 + Math.random() * 0.58,
-        vy: -0.38 - Math.random() * 0.45,
-        vz: (Math.random() - 0.5) * 0.3,
-        rx: Math.random() * Math.PI,
-        ry: Math.random() * Math.PI,
-        spin: 0.8 + Math.random() * 1.8,
+        x: (Math.random() - 0.5) * 34,
+        y: Math.random() * 9.0,
+        z: 6 - Math.random() * 29,
+        vx: 0.25 + Math.random() * 0.48,
+        vy: -0.34 - Math.random() * 0.36,
+        vz: (Math.random() - 0.5) * 0.34,
+        rx: Math.random() * Math.PI * 2,
+        ry: Math.random() * Math.PI * 2,
+        rz: Math.random() * Math.PI * 2,
+        spinX: (Math.random() - 0.5) * 2.4,
+        spinY: (Math.random() - 0.5) * 2.2,
+        spinZ: (Math.random() - 0.5) * 1.8,
+        scale: 0.78 + Math.random() * 0.52,
         phase: Math.random() * Math.PI * 2
       });
+    }
+    if (this.leafInstancedMesh.instanceColor) {
+      this.leafInstancedMesh.instanceColor.needsUpdate = true;
     }
     this.fxRoot.add(this.leafInstancedMesh);
   }
@@ -2588,7 +2822,7 @@ class Chakyeong3DWorld {
       (obj) => obj.userData?.type === 'windbell'
     );
 
-    const spaceWishes = allWishes.filter((w) => w.space === this.spaceMode);
+    const spaceWishes = allWishes.filter((w) => !w.space || w.space === 'buseoksa');
     const total = spaceWishes.length;
     if (total === 0) return;
 
@@ -2603,7 +2837,7 @@ class Chakyeong3DWorld {
     const capGeo = new C_ENGINE.CylinderGeometry(0.13, 0.13, 0.042, 16);
     const tagGeo = new C_ENGINE.PlaneGeometry(0.11, 0.36);
     const haloGeo = new C_ENGINE.PlaneGeometry(1, 1);
-    const hitSphereGeo = new C_ENGINE.SphereGeometry(0.54, 8, 8);
+    const hitSphereGeo = new C_ENGINE.SphereGeometry(0.62, 8, 8);
     const hitSphereMat = new C_ENGINE.MeshBasicMaterial({ visible: false });
     const darkCapMat = new C_ENGINE.MeshStandardMaterial({ color: 0x3b281e, roughness: 0.8 });
 
@@ -2611,36 +2845,17 @@ class Chakyeong3DWorld {
       const pivot = new C_ENGINE.Group();
       const t = total <= 1 ? 0.5 : idx / (total - 1);
 
-      let x, y, z;
-      if (this.spaceMode === 'buseoksa') {
-        // Hanging gracefully under Muryangsujeon eaves between the entasis columns
-        x = -5.2 + t * 10.4;
-        const normX = Math.abs(x) / 13.6;
-        y = 5.05 + Math.pow(normX, 2.3) * 0.5;
-        z = 4.35 + (idx % 2) * 0.22;
-      } else {
-        // Hanging along the Seungseongyo stone wall & valley arch approach
-        const side = idx % 2 === 0 ? -1 : 1;
-        const pairIdx = Math.floor(idx / 2);
-        const pairCount = Math.max(1, Math.ceil(total / 2));
-        const pt = pairCount <= 1 ? 0.5 : pairIdx / (pairCount - 1);
-        x = side * (3.65 - pt * 1.15);
-        z = 2.8 - pt * 5.2;
-        y = 3.55 + Math.sin(pt * Math.PI) * 0.65;
-
-        // Add subtle lantern post on the valley bank
-        const postH = 2.4;
-        const post = new C_ENGINE.Mesh(
-          new C_ENGINE.CylinderGeometry(0.035, 0.045, postH, 8),
-          darkCapMat
-        );
-        post.position.set(side * 0.28, -postH * 0.5, 0);
-        pivot.add(post);
-      }
+      // Hanging gracefully under Anyangru Pavilion's eaves & perimeter beams (안양루 처마 밑 소원 연등 배치)
+      // Anyangru is centered at x = 0, z = -19.5, with front eave at z ≈ -15.3 and side/back eaves
+      const x = -6.4 + t * 12.8;
+      const normX = Math.abs(x) / 8.2;
+      const y = 4.35 + Math.pow(normX, 2.1) * 0.28;
+      // Alternating along Anyangru's front eave (z = -15.35) and inner veranda beams (z = -16.85)
+      const z = -15.35 - (idx % 2) * 1.45;
 
       pivot.position.set(x, y, z);
 
-      const cordLen = 0.42 + (idx % 3) * 0.12;
+      const cordLen = 0.38 + (idx % 3) * 0.1;
       const cordMesh = new C_ENGINE.Mesh(
         new C_ENGINE.CylinderGeometry(0.009, 0.009, cordLen, 6),
         this.matBronze
@@ -2657,7 +2872,7 @@ class Chakyeong3DWorld {
         map: this.lanternTextures[colorKey] || this.lanternTextures.amber,
         emissive: new C_ENGINE.Color(pal.hex),
         emissiveMap: this.lanternTextures[colorKey] || this.lanternTextures.amber,
-        emissiveIntensity: isSelected ? 1.7 : 1.1,
+        emissiveIntensity: isSelected ? 1.7 : 1.15,
         roughness: 0.4
       });
 
@@ -2670,7 +2885,7 @@ class Chakyeong3DWorld {
 
       const bodyMesh = new C_ENGINE.Mesh(bodyGeo, bodyMat);
       bodyMesh.position.y = lanternCenterY;
-      bodyMesh.castShadow = true;
+      bodyMesh.castShadow = !this.isMobile;
       bodyMesh.userData = lanternData;
       pivot.add(bodyMesh);
       this.interactiveTargets.push(bodyMesh);
@@ -2750,7 +2965,7 @@ class Chakyeong3DWorld {
     const targetLantern = this.lanternMeshes.find((l) => l.wishId === wishId);
     const origin = targetLantern
       ? targetLantern.bodyMesh.userData.worldPos.clone()
-      : new C_ENGINE.Vector3(0, 3.2, 3.5);
+      : new C_ENGINE.Vector3(0, 3.6, -15.8);
 
     const particleGeo = new C_ENGINE.PlaneGeometry(1, 1);
     for (let i = 0; i < 28; i++) {
@@ -2789,19 +3004,12 @@ class Chakyeong3DWorld {
      SPACE, TIME, FOLIAGE & CAMERA PRESET CONTROLLERS
      ------------------------------------------------------------------------ */
   setSpace(space, immediate = false) {
-    this.spaceMode = space;
-    const isBuseoksa = space === 'buseoksa';
+    this.spaceMode = 'buseoksa';
+    this.buseoksaGroup.visible = true;
 
-    this.buseoksaGroup.visible = isBuseoksa;
-    this.seonamsaGroup.visible = !isBuseoksa;
-
-    // Position the 3D wind-bell under the foreground eave/branch of the active space
+    // Position the 3D wind-bell under Muryangsujeon's foreground eave
     if (this.windBellPivot) {
-      if (isBuseoksa) {
-        this.windBellPivot.position.set(3.85, 5.15, 4.35);
-      } else {
-        this.windBellPivot.position.set(3.75, 4.65, 3.85);
-      }
+      this.windBellPivot.position.set(3.85, 5.15, 4.35);
     }
 
     this.setTimeMode(this.timeMode);
@@ -2833,7 +3041,6 @@ class Chakyeong3DWorld {
       this.renderer.toneMappingExposure = 1.04;
       this.starMat.opacity = 0;
       this.moonGroup.visible = false;
-      if (this.waterEnhancer) this.waterEnhancer.setNight(0.12);
       if (this.sobaeksanVistaMat) this.sobaeksanVistaMat.color.set(0xffffff);
 
       const dawnColors = [0x3b5834, 0x456340, 0x526f4f, 0x627e62, 0x748f77, 0x88a18c];
@@ -2866,7 +3073,6 @@ class Chakyeong3DWorld {
       this.renderer.toneMappingExposure = 1.02;
       this.starMat.opacity = 0.22;
       this.moonGroup.visible = false;
-      if (this.waterEnhancer) this.waterEnhancer.setNight(0.48);
       if (this.sobaeksanVistaMat) this.sobaeksanVistaMat.color.set(0xffbb94);
 
       const sunsetColors = [0x3d3538, 0x4f3e45, 0x634952, 0x7a5760, 0x94696e, 0xad7d7c];
@@ -2899,7 +3105,6 @@ class Chakyeong3DWorld {
       this.renderer.toneMappingExposure = 0.96;
       this.starMat.opacity = 0.92;
       this.moonGroup.visible = true;
-      if (this.waterEnhancer) this.waterEnhancer.setNight(0.95);
       if (this.sobaeksanVistaMat) this.sobaeksanVistaMat.color.set(0x243650);
 
       const nightColors = [0x141d26, 0x18232e, 0x1c2938, 0x223042, 0x28384c, 0x2e4057];
@@ -2945,34 +3150,18 @@ class Chakyeong3DWorld {
     const aspect = this.width / Math.max(1, this.height);
     const portraitPullback = aspect < 0.85 ? (0.85 - aspect) * 4.8 : 0;
 
-    if (this.spaceMode === 'buseoksa') {
-      if (preset === 'default') {
-        // 기본 차경: 무량수전 배흘림기둥과 처마 밑에서 석등·안양루·소백산맥을 바라보는 구도
-        this.targetCamPos.set(0, 2.38, 8.8 + portraitPullback * 0.65);
-        this.targetCamLook.set(0, 2.15, -18.0);
-      } else if (preset === 'closeup') {
-        // 처마·풍경 가까이: 서까래 단청, 소원 연등, 청동 풍경종 클로즈업 차경
-        this.targetCamPos.set(1.4, 3.25, 7.4 + portraitPullback * 0.45);
-        this.targetCamLook.set(2.4, 4.15, -6.0);
-      } else if (preset === 'wide') {
-        // 광각 파노라마: 마당 앞으로 나서서 안양루와 소백산맥 6겹 능선·운해 조망
-        this.targetCamPos.set(0, 2.85, 3.2 + portraitPullback * 0.5);
-        this.targetCamLook.set(0, 2.45, -35.0);
-      }
-    } else {
-      if (preset === 'default') {
-        // 기본 차경: 계곡 물가에서 반원형 승선교 무지개 아치와 강선루를 바라보는 구도
-        this.targetCamPos.set(0, 1.85, 8.2 + portraitPullback * 0.7);
-        this.targetCamLook.set(0.4, 1.65, -12.0);
-      } else if (preset === 'closeup') {
-        // 다리·연등 가까이: 승선교 홍예석과 용두석, 수면 원형 반영 클로즈업
-        this.targetCamPos.set(-1.6, 1.45, 4.4 + portraitPullback * 0.45);
-        this.targetCamLook.set(0.8, 1.55, -8.5);
-      } else if (preset === 'wide') {
-        // 광각 파노라마: 승선교와 강선루, 조계산 단풍/벚꽃 계곡 전체 조망
-        this.targetCamPos.set(0, 3.45, 11.2 + portraitPullback * 0.75);
-        this.targetCamLook.set(0.6, 2.1, -16.0);
-      }
+    if (preset === 'default') {
+      // 기본 차경: 넓어진 무량수전 마당에서 안양루를 관통해 소백산맥을 바라보는 구도
+      this.targetCamPos.set(0, 2.45, 7.6 + portraitPullback * 0.65);
+      this.targetCamLook.set(0, 2.15, -24.0);
+    } else if (preset === 'closeup') {
+      // 안양루·연등 가까이: 안양루 처마 밑 소원 연등과 소백산맥 클로즈업 차경
+      this.targetCamPos.set(0.8, 2.55, -10.5 + portraitPullback * 0.45);
+      this.targetCamLook.set(0, 3.15, -24.0);
+    } else if (preset === 'wide') {
+      // 광각 파노라마: 확장된 마당 중앙에서 안양루와 소백산맥 능선·운해 조망
+      this.targetCamPos.set(0, 2.85, 2.2 + portraitPullback * 0.5);
+      this.targetCamLook.set(0, 2.35, -38.0);
     }
 
     if (immediate) {
@@ -2989,19 +3178,18 @@ class Chakyeong3DWorld {
     if (!item) return;
     const wp = item.bodyMesh.userData.worldPos;
     const aspect = this.width / Math.max(1, this.height);
-    const mobileOffset = aspect < 0.85 ? 1.15 : 0;
+    const mobileOffset = aspect < 0.85 ? 1.25 : 0;
 
     this.targetYawOffset = 0;
     this.targetPitchOffset = 0;
     this.targetZoomOffset = 0;
 
-    if (this.spaceMode === 'buseoksa') {
-      this.targetCamPos.set(wp.x * 0.82, wp.y - 0.35, wp.z + 3.4 + mobileOffset);
-      this.targetCamLook.set(wp.x, wp.y - 0.05, wp.z - 2.5);
-    } else {
-      this.targetCamPos.set(wp.x * 0.65, wp.y - 0.25, wp.z + 3.8 + mobileOffset);
-      this.targetCamLook.set(wp.x, wp.y - 0.05, wp.z - 2.0);
+    if (window.wandererManager) {
+      window.wandererManager.followCamEnabled = false;
     }
+
+    this.targetCamPos.set(wp.x * 0.86, wp.y - 0.35, wp.z + 3.6 + mobileOffset);
+    this.targetCamLook.set(wp.x, wp.y - 0.05, wp.z - 2.8);
   }
 
   /* ------------------------------------------------------------------------
@@ -3157,7 +3345,7 @@ class Chakyeong3DWorld {
     this.camera.fov = aspect < 0.65 ? 64 : aspect < 0.85 ? 58 : 48;
     this.camera.updateProjectionMatrix();
 
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.isMobile ? 1.75 : 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.isMobile ? 1.25 : 2));
     this.renderer.setSize(this.width, this.height);
     if (!activeWishId) {
       this.setCameraPreset(this.camPreset);
@@ -3170,7 +3358,18 @@ class Chakyeong3DWorld {
   animate() {
     requestAnimationFrame(() => this.animate());
 
+    if (this.isPageHidden) {
+      this.lastFrameTime = performance.now();
+      return;
+    }
+
     const now = performance.now();
+    // Throttle mobile rendering to ~38 FPS (26ms interval) to drastically reduce mobile GPU heat
+    if (this.isMobile && now - this.lastRenderTime < 26) {
+      return;
+    }
+    this.lastRenderTime = now;
+
     const dt = Math.min(0.05, (now - this.lastFrameTime) * 0.001);
     this.lastFrameTime = now;
     const elapsed = now * 0.001;
@@ -3230,47 +3429,38 @@ class Chakyeong3DWorld {
     }
 
     // 4. Animate Buseoksa Sea of Clouds (운해)
-    if (this.spaceMode === 'buseoksa') {
-      for (const c of this.cloudPlanes) {
-        c.mesh.position.x = c.baseX + Math.sin(elapsed * 0.08 * c.speed + c.phase) * 14;
-        c.mesh.position.y = c.baseY + Math.cos(elapsed * 0.22 + c.phase) * 0.35;
-      }
+    for (const c of this.cloudPlanes) {
+      c.mesh.position.x = c.baseX + Math.sin(elapsed * 0.08 * c.speed + c.phase) * 14;
+      c.mesh.position.y = c.baseY + Math.cos(elapsed * 0.22 + c.phase) * 0.35;
     }
 
-    // 5. Animate Seonamsa Valley Stream Water Ripples
-    if (this.spaceMode === 'seonamsa') {
-      if (this.waterNormalTex) {
-        this.waterNormalTex.offset.set(elapsed * 0.015, elapsed * 0.045);
-      }
-      if (this.waterEnhancer) {
-        this.waterEnhancer.update(elapsed);
-      }
-    }
-
-    // 6. Animate Falling Seasonal Petals / Maple Leaves
+    // 5. Animate Realistic 3D Falling Maple Leaves (마당 전체에 자연스럽게 흩날리는 3D 단풍잎)
     for (let i = 0; i < this.leafCount; i++) {
       const d = this.leafData[i];
-      d.x += (d.vx + Math.sin(elapsed * 1.5 + d.phase) * 0.42) * dt;
-      d.y += d.vy * dt;
-      d.z += d.vz * dt;
-      d.rx += d.spin * dt;
-      d.ry += d.spin * 0.8 * dt;
+      const flutter = Math.sin(elapsed * 2.1 + d.phase);
+      const swayZ = Math.cos(elapsed * 1.6 + d.phase * 1.3);
+      d.x += (d.vx + flutter * 0.48) * dt;
+      d.y += (d.vy + Math.abs(flutter) * 0.08) * dt;
+      d.z += (d.vz + swayZ * 0.32) * dt;
+      d.rx += d.spinX * dt;
+      d.ry += d.spinY * dt;
+      d.rz += d.spinZ * dt;
 
-      if (d.y < -0.6 || d.x > 14) {
-        d.x = -13 + Math.random() * 26;
-        d.y = 6.2 + Math.random() * 3.8;
-        d.z = 6 - Math.random() * 22;
+      if (d.y < -0.78 || d.x > 19 || d.x < -19) {
+        d.x = -17 + Math.random() * 34;
+        d.y = 6.5 + Math.random() * 4.2;
+        d.z = 6 - Math.random() * 29;
       }
 
       this.leafDummy.position.set(d.x, d.y, d.z);
-      this.leafDummy.rotation.set(d.rx, d.ry, 0);
-      this.leafDummy.scale.setScalar(1);
+      this.leafDummy.rotation.set(d.rx, d.ry, d.rz);
+      this.leafDummy.scale.setScalar(d.scale || 1);
       this.leafDummy.updateMatrix();
       this.leafInstancedMesh.setMatrixAt(i, this.leafDummy.matrix);
     }
     this.leafInstancedMesh.instanceMatrix.needsUpdate = true;
 
-    // 7. Animate Sonic Rings & Hapjang Light Particles
+    // 6. Animate Sonic Rings & Hapjang Light Particles
     for (let i = this.sonicRings.length - 1; i >= 0; i--) {
       const r = this.sonicRings[i];
       r.scale += dt * 7.5;
@@ -3326,7 +3516,10 @@ function loadWishes() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) {
+        const filtered = parsed.filter((w) => !w.space || w.space === 'buseoksa');
+        if (filtered.length > 0) return filtered;
+      }
     }
   } catch (e) {
     console.warn('LocalStorage fallback:', e);
@@ -3361,11 +3554,11 @@ function saveLikedWishes() {
 }
 
 function sync3DLanterns() {
-  const buseoksaCount = wishes.filter((w) => w.space === 'buseoksa').length;
-  const seonamsaCount = wishes.filter((w) => w.space === 'seonamsa').length;
-
-  document.getElementById('count-buseoksa').textContent = buseoksaCount;
-  document.getElementById('count-seonamsa').textContent = seonamsaCount;
+  const buseoksaCount = wishes.filter((w) => !w.space || w.space === 'buseoksa').length;
+  const countEl = document.getElementById('count-buseoksa');
+  if (countEl) {
+    countEl.textContent = buseoksaCount;
+  }
 
   if (world3D) {
     world3D.rebuild3DLanterns(wishes, activeWishId);
@@ -3389,7 +3582,7 @@ function openWishReader(wishId) {
     world3D.focusOnLantern(wishId);
   }
 
-  const meta = SPACE_META[wish.space] || SPACE_META.buseoksa;
+  const meta = SPACE_META.buseoksa;
   document.getElementById('reader-location').textContent = meta.locationBadge;
   document.getElementById('reader-tag').textContent = wish.tag || '소원 기원';
   document.getElementById('reader-text').textContent = wish.text;
@@ -3414,7 +3607,7 @@ function closeWishReader() {
 }
 
 function navigateWish(direction) {
-  const spaceWishes = wishes.filter((w) => w.space === currentSpace);
+  const spaceWishes = wishes.filter((w) => !w.space || w.space === 'buseoksa');
   if (spaceWishes.length === 0) return;
   const idx = spaceWishes.findIndex((w) => w.id === activeWishId);
   const nextIdx = (idx + direction + spaceWishes.length) % spaceWishes.length;
@@ -3445,7 +3638,7 @@ function handleHapjangClick() {
 }
 
 function openWriteModal() {
-  const meta = SPACE_META[currentSpace] || SPACE_META.buseoksa;
+  const meta = SPACE_META.buseoksa;
   document.getElementById('write-modal-desc').textContent = meta.writeDesc;
   document.getElementById('write-modal-backdrop').classList.add('open');
   setTimeout(() => {
@@ -3476,7 +3669,7 @@ function handleWriteFormSubmit(e) {
 
   const newWish = {
     id: `wish-${Date.now()}`,
-    space: currentSpace,
+    space: 'buseoksa',
     color: selectedLanternColor,
     author,
     tag,
@@ -3508,42 +3701,25 @@ function triggerBellRingInteraction() {
   showToast('🔔 처마 끝 풍경종이 은은하게 울립니다.');
 }
 
-function switchSpace(targetSpace) {
-  if (!SPACE_META[targetSpace]) return;
-  currentSpace = targetSpace;
-
-  document.querySelectorAll('[data-space-target]').forEach((btn) => {
-    const isTarget = btn.dataset.spaceTarget === currentSpace;
-    btn.classList.toggle('active', isTarget);
-    btn.setAttribute('aria-selected', String(isTarget));
-  });
-
-  const meta = SPACE_META[currentSpace];
-  document.getElementById('space-eyebrow').textContent = meta.eyebrow;
-  document.getElementById('space-title').textContent = meta.title;
-  document.getElementById('space-caption').textContent = meta.caption;
-
-  setMixerSliders(meta.defaultBellMix, meta.defaultWaterMix, meta.defaultWindMix);
-
-  activeWishId = null;
-  document.getElementById('wish-reader-card').classList.remove('open');
-
-  syncCamButtonsUI('default');
-  if (world3D) {
-    world3D.camPreset = 'default';
-    world3D.setSpace(currentSpace);
-  }
-  sync3DLanterns();
-}
-
 function switchTime(targetTime) {
   currentTime = targetTime;
-  document.querySelectorAll('[data-time-btn]').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.timeBtn === currentTime);
-  });
+  const badgeEl = document.getElementById('auto-time-badge');
+  if (badgeEl) {
+    const labelMap = {
+      dawn: '☁️ 실시간 운해 (아침·낮)',
+      sunset: '🌇 실시간 노을 (석양)',
+      night: '✨ 실시간 별빛 (밤 산사)'
+    };
+    badgeEl.textContent = labelMap[currentTime] || '☁️ 실시간 산사';
+  }
   if (world3D) {
     world3D.setTimeMode(currentTime);
   }
+}
+
+function syncAutoTimeAtmosphere() {
+  const autoMode = Chakyeong3DWorld.getAutoTimeMode();
+  switchTime(autoMode);
 }
 
 function switchFoliage(targetFoliage) {
@@ -3592,20 +3768,22 @@ function toggleZenMode(forceState) {
   }
 }
 
-function toggleBreathingGuide() {
+function toggleBreathingGuide(forceState) {
   const guideEl = document.getElementById('breathing-guide');
-  const btnEl = document.getElementById('breath-toggle-btn');
+  if (!guideEl) return;
   const textEl = document.getElementById('breath-text');
 
-  const isActive = guideEl.classList.toggle('active');
-  btnEl.classList.toggle('active', isActive);
+  const isActive =
+    typeof forceState === 'boolean'
+      ? (guideEl.classList.toggle('active', forceState), forceState)
+      : guideEl.classList.toggle('active');
 
   if (breathGuideInterval) {
     clearInterval(breathGuideInterval);
     breathGuideInterval = null;
   }
 
-  if (isActive) {
+  if (isActive && textEl) {
     const prompts = [
       '코끝으로 산사의 맑은 공기를 천천히 들이마십니다 (4초)',
       '가슴 가득 고요함을 잠시 머금어 봅니다 (2초)',
@@ -3623,6 +3801,7 @@ function toggleBreathingGuide() {
 let toastTimeout = null;
 function showToast(message) {
   const banner = document.getElementById('toast-banner');
+  if (!banner) return;
   banner.textContent = message;
   banner.classList.add('show');
   if (toastTimeout) clearTimeout(toastTimeout);
@@ -3637,6 +3816,9 @@ function showToast(message) {
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('webgl-container');
   world3D = new Chakyeong3DWorld(container);
+  syncAutoTimeAtmosphere();
+  // Automatically check connection time every 60 seconds to transition dawn / sunset / night
+  setInterval(syncAutoTimeAtmosphere, 60000);
   sync3DLanterns();
 
   // Support drag-and-drop of user's own real Buseoksa photo onto the viewport
@@ -3653,38 +3835,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Space switcher
-  document.querySelectorAll('[data-space-target]').forEach((btn) => {
-    btn.addEventListener('click', () => switchSpace(btn.dataset.spaceTarget));
-  });
-
-  // Time buttons
-  document.querySelectorAll('[data-time-btn]').forEach((btn) => {
-    btn.addEventListener('click', () => switchTime(btn.dataset.timeBtn));
-  });
-
-  // Foliage buttons
-  document.querySelectorAll('[data-foliage-btn]').forEach((btn) => {
-    btn.addEventListener('click', () => switchFoliage(btn.dataset.foliageBtn));
-  });
-
-  // Camera Preset buttons
-  document.querySelectorAll('[data-cam-btn]').forEach((btn) => {
-    btn.addEventListener('click', () => switchCamPreset(btn.dataset.camBtn));
-  });
-
-  // Audio Toggle & Mixer
+  // Audio Toggle & Mixer (Always visible on both Mobile & Desktop top bar)
   const audioToggleBtn = document.getElementById('audio-toggle-btn');
   const mixerPanel = document.getElementById('sound-mixer-panel');
 
-  audioToggleBtn.addEventListener('click', (e) => {
+  audioToggleBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!audioEngine.isPlaying) {
       const playing = audioEngine.toggle();
       audioToggleBtn.classList.toggle('active-audio', playing);
-      document.getElementById('audio-btn-label').textContent = playing
-        ? '산사 소리 조율'
-        : '산사 소리 켜기';
+      const labelEl = document.getElementById('audio-btn-label');
+      if (labelEl) {
+        labelEl.textContent = playing ? '소리 설정 중' : '소리 설정';
+      }
       mixerPanel.classList.add('open');
       if (world3D) world3D.exciteWindBell();
     } else {
@@ -3692,23 +3855,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('close-mixer-btn').addEventListener('click', () => {
+  document.getElementById('close-mixer-btn')?.addEventListener('click', () => {
     mixerPanel.classList.remove('open');
   });
 
-  document.getElementById('manual-bell-btn').addEventListener('click', triggerBellRingInteraction);
-  document.getElementById('ring-bell-dock-btn').addEventListener('click', triggerBellRingInteraction);
+  document.getElementById('manual-bell-btn')?.addEventListener('click', triggerBellRingInteraction);
 
   ['bell', 'water', 'wind'].forEach((type) => {
     const slider = document.getElementById(`slider-${type}`);
+    if (!slider) return;
     slider.addEventListener('input', () => {
       const val = Number(slider.value);
       document.getElementById(`val-${type}`).textContent = `${val}%`;
       audioEngine[`${type}Level`] = val / 100;
       if (!audioEngine.isPlaying) {
         const playing = audioEngine.toggle();
-        audioToggleBtn.classList.toggle('active-audio', playing);
-        document.getElementById('audio-btn-label').textContent = '산사 소리 조율';
+        audioToggleBtn?.classList.toggle('active-audio', playing);
+        const labelEl = document.getElementById('audio-btn-label');
+        if (labelEl) labelEl.textContent = '소리 설정 중';
       } else {
         audioEngine.updateContinuousVolumes();
       }
@@ -3716,15 +3880,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Wish Reader Actions
-  document.getElementById('close-reader-btn').addEventListener('click', closeWishReader);
-  document.getElementById('prev-wish-btn').addEventListener('click', () => navigateWish(-1));
-  document.getElementById('next-wish-btn').addEventListener('click', () => navigateWish(1));
-  document.getElementById('hapjang-btn').addEventListener('click', handleHapjangClick);
+  document.getElementById('close-reader-btn')?.addEventListener('click', closeWishReader);
+  document.getElementById('prev-wish-btn')?.addEventListener('click', () => navigateWish(-1));
+  document.getElementById('next-wish-btn')?.addEventListener('click', () => navigateWish(1));
+  document.getElementById('hapjang-btn')?.addEventListener('click', handleHapjangClick);
 
   // Write Modal Actions
-  document.getElementById('open-write-modal-btn').addEventListener('click', openWriteModal);
-  document.getElementById('close-write-modal-btn').addEventListener('click', closeWriteModal);
-  document.getElementById('write-modal-backdrop').addEventListener('click', (e) => {
+  document.getElementById('open-write-modal-btn')?.addEventListener('click', openWriteModal);
+  document.getElementById('close-write-modal-btn')?.addEventListener('click', closeWriteModal);
+  document.getElementById('write-modal-backdrop')?.addEventListener('click', (e) => {
     if (e.target.id === 'write-modal-backdrop') closeWriteModal();
   });
 
@@ -3738,16 +3902,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const wishInput = document.getElementById('wish-input');
-  wishInput.addEventListener('input', () => {
+  wishInput?.addEventListener('input', () => {
     document.getElementById('char-counter').textContent = `${wishInput.value.length} / 90자`;
   });
 
-  document.getElementById('write-lantern-form').addEventListener('submit', handleWriteFormSubmit);
+  document.getElementById('write-lantern-form')?.addEventListener('submit', handleWriteFormSubmit);
 
-  // Breathing Guide & Zen Mode
-  document.getElementById('breath-toggle-btn').addEventListener('click', toggleBreathingGuide);
-  document.getElementById('zen-mode-btn').addEventListener('click', () => toggleZenMode(true));
-  document.getElementById('zen-restore-btn').addEventListener('click', () => toggleZenMode(false));
+  // Zen Mode Restore
+  document.getElementById('zen-restore-btn')?.addEventListener('click', () => toggleZenMode(false));
 
   // Keyboard shortcuts
   window.addEventListener('keydown', (e) => {
@@ -3757,7 +3919,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') {
       closeWriteModal();
       closeWishReader();
-      document.getElementById('sound-mixer-panel').classList.remove('open');
+      document.getElementById('sound-mixer-panel')?.classList.remove('open');
       if (document.body.classList.contains('zen-mode')) {
         toggleZenMode(false);
       }
@@ -3767,7 +3929,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (
       e.code === 'Space' &&
       !isTyping &&
-      !document.getElementById('write-modal-backdrop').classList.contains('open')
+      !document.getElementById('write-modal-backdrop')?.classList.contains('open')
     ) {
       e.preventDefault();
       toggleZenMode();
@@ -3777,22 +3939,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /* ==========================================================================
-   SANSA WANDERER (삿갓 쓴 산사 나그네) & SANSATEMPLE-STYLE 3RD-PERSON WALK SYSTEM
+   SANSA WANDERER (귀여운 산사 나그네) & 3RD-PERSON WALK + ANYANGRU MEDITATION
    ========================================================================== */
 const THREE = C_ENGINE;
-const WANDERER_STORAGE_KEY = 'chakyeong_3d_wanderer_profile_v3';
+const WANDERER_STORAGE_KEY = 'chakyeong_3d_wanderer_cute_v1';
 
+// 입장 시 자동 지정되는 귀여운 산사 닉네임 목록
 const WANDERER_POETIC_NAMES = [
-  '솔바람 걷는 나그네',
-  '운해 찾는 삿갓객',
-  '달빛 밟는 산사객',
-  '고즈넉한 댓잎객',
-  '여울물 듣는 행자',
-  '노을빛 청산 나그네',
-  '단풍길 걷는 시인',
-  '산사 찾은 묵객',
-  '청풍명월 유람객',
-  '안개 깃든 대숲객'
+  '도토리 줍는 다람쥐',
+  '꾸벅꾸벅 아기 반달곰',
+  '단풍잎 책갈피 토끼',
+  '구름 위 말랑 찹쌀떡',
+  '산사 마실 나온 아기 참새',
+  '솔방울 모으는 아기 여우',
+  '툇마루 낮잠 치즈냥',
+  '연등 아래 아기 꽃사슴',
+  '약수터 총총 파랑새',
+  '이끼 정원 꼬마 거북'
 ];
 
 const WANDERER_PALETTES = [
@@ -3852,7 +4015,7 @@ const WANDERER_SPOTS = {
       id: 'courtyard_steps',
       label: '무량수전 박석길',
       icon: '🎋',
-      pos: [0.0, -0.78, 2.6],
+      pos: [0.0, -0.78, 1.5],
       facingYaw: 0.0,
       posture: 'walk'
     },
@@ -3860,158 +4023,99 @@ const WANDERER_SPOTS = {
       id: 'stone_lantern',
       label: '석등 앞 참배석',
       icon: '🕯️',
-      pos: [1.15, -0.78, -1.55],
-      facingYaw: -0.25,
+      pos: [1.6, -0.78, -1.5],
+      facingYaw: -0.2,
       posture: 'walk'
     },
     {
       id: 'veranda_center',
       label: '무량수전 툇마루',
       icon: '🍵',
-      pos: [0.0, 0.20, 5.45],
+      pos: [0.0, 0.20, 6.0],
       facingYaw: 0.0,
       posture: 'walk'
     },
     {
-      id: 'anyangnu_edge',
-      label: '안양루 운해 전망',
-      icon: '☁️',
-      pos: [-2.6, -0.78, -8.8],
-      facingYaw: 0.12,
-      posture: 'walk'
+      id: 'anyangnu_cushion',
+      label: '안양루 명상 방석',
+      icon: '🧘',
+      pos: [0.0, 0.14, -19.5],
+      facingYaw: 0.0,
+      posture: 'kneel'
     },
     {
       id: 'maple_garden',
       label: '동쪽 단풍 마당',
       icon: '🍁',
-      pos: [5.4, -0.78, -5.2],
-      facingYaw: -0.35,
-      posture: 'walk'
-    }
-  ],
-  seonamsa: [
-    {
-      id: 'stream_pebble',
-      label: '승선교 앞 여울길',
-      icon: '💧',
-      pos: [0.0, -0.48, 3.6],
-      facingYaw: 0.0,
-      posture: 'walk'
-    },
-    {
-      id: 'west_moss_rock',
-      label: '서쪽 이끼 바위길',
-      icon: '🪨',
-      pos: [-2.1, -0.42, 1.2],
-      facingYaw: 0.28,
-      posture: 'walk'
-    },
-    {
-      id: 'east_maple_bank',
-      label: '동쪽 단풍 물가',
-      icon: '🍁',
-      pos: [2.1, -0.42, 1.0],
-      facingYaw: -0.28,
-      posture: 'walk'
-    },
-    {
-      id: 'bridge_crest',
-      label: '승선교 홍예 위',
-      icon: '🌉',
-      pos: [0.0, 4.71, -3.5],
-      facingYaw: 0.0,
-      posture: 'walk'
-    },
-    {
-      id: 'pavilion_bank',
-      label: '강선루 앞 계곡석',
-      icon: '🍵',
-      pos: [0.3, -0.48, -8.2],
-      facingYaw: -0.15,
+      pos: [7.8, -0.78, -7.2],
+      facingYaw: -0.3,
       posture: 'walk'
     }
   ]
 };
 
 /**
- * 3D Obstacle Collision & Pathfinding Definitions per Temple Space
- * Matches exact coordinates of Entasis Columns (배흘림기둥), Pine/Maple Trees (소나무·단풍나무),
- * Stone Lantern (석등), Courtyard/Stream Boulders (바위), Step Cheek Walls (계단 소매돌), & Foundation Walls.
+ * 3D Obstacle Collision & Pathfinding Definitions for Expanded Buseoksa Muryangsujeon & Walkable Anyangru
  */
 const SPACE_OBSTACLES = {
   buseoksa: {
     circles: [
-      // 6 Muryangsujeon Entasis Columns (배흘림기둥 + 초석, z = 6.0)
-      { x: -10.8, z: 6.0, r: 0.86, label: 'pillar' },
-      { x: -6.2, z: 6.0, r: 0.86, label: 'pillar' },
-      { x: -2.6, z: 6.0, r: 0.86, label: 'pillar' },
-      { x: 2.6, z: 6.0, r: 0.86, label: 'pillar' },
-      { x: 6.2, z: 6.0, r: 0.86, label: 'pillar' },
-      { x: 10.8, z: 6.0, r: 0.86, label: 'pillar' },
+      // 6 Grand Muryangsujeon Entasis Columns (배흘림기둥 + 초석, z = 6.8)
+      { x: -14.2, z: 6.8, r: 0.92, label: 'pillar' },
+      { x: -8.4, z: 6.8, r: 0.92, label: 'pillar' },
+      { x: -3.2, z: 6.8, r: 0.92, label: 'pillar' },
+      { x: 3.2, z: 6.8, r: 0.92, label: 'pillar' },
+      { x: 8.4, z: 6.8, r: 0.92, label: 'pillar' },
+      { x: 14.2, z: 6.8, r: 0.92, label: 'pillar' },
+
+      // 8 Anyangru Pavilion Columns (안양루 누상주 기둥: z = -16.1, -22.9 / 중앙 6.8m는 완전 개방)
+      { x: -7.2, z: -16.1, r: 0.62, label: 'anyang_pillar' },
+      { x: -3.4, z: -16.1, r: 0.62, label: 'anyang_pillar' },
+      { x: 3.4, z: -16.1, r: 0.62, label: 'anyang_pillar' },
+      { x: 7.2, z: -16.1, r: 0.62, label: 'anyang_pillar' },
+      { x: -7.2, z: -22.9, r: 0.62, label: 'anyang_pillar' },
+      { x: -3.4, z: -22.9, r: 0.62, label: 'anyang_pillar' },
+      { x: 3.4, z: -22.9, r: 0.62, label: 'anyang_pillar' },
+      { x: 7.2, z: -22.9, r: 0.62, label: 'anyang_pillar' },
 
       // Silla Stone Lantern in front of Muryangsujeon (부석사 석등)
-      { x: 2.75, z: -1.65, r: 1.15, label: 'stone_lantern' },
+      { x: 3.6, z: -1.2, r: 1.15, label: 'stone_lantern' },
 
-      // Seasonal Maple / Cherry Trees (단풍·벚나무)
-      { x: -9.4, z: -8.5, r: 0.96, label: 'tree' },
-      { x: 8.8, z: -8.2, r: 0.96, label: 'tree' },
-      { x: 1.8, z: -14.8, r: 0.96, label: 'tree' },
+      // Seasonal Maple Trees on expanded perimeter
+      { x: -14.2, z: -9.5, r: 0.96, label: 'tree' },
+      { x: 14.0, z: -9.2, r: 0.96, label: 'tree' },
+      { x: -12.6, z: -16.8, r: 0.96, label: 'tree' },
+      { x: 12.6, z: -16.8, r: 0.96, label: 'tree' },
 
-      // Scanned 3D Korean Pine Trees (소나무)
-      { x: -11.2, z: -6.2, r: 1.05, label: 'pine' },
-      { x: -14.8, z: -11.5, r: 1.15, label: 'pine' },
-      { x: 10.4, z: -5.8, r: 1.05, label: 'pine' },
-      { x: 14.2, z: -11.8, r: 1.15, label: 'pine' },
-      { x: 4.8, z: -14.2, r: 1.05, label: 'pine' },
-      { x: -10.5, z: -16.5, r: 1.05, label: 'pine' },
+      // Scanned 3D Korean Pine Trees on outer courtyard perimeter
+      { x: -16.5, z: -6.2, r: 1.05, label: 'pine' },
+      { x: 16.4, z: -5.8, r: 1.05, label: 'pine' },
+      { x: 14.8, z: -21.2, r: 1.05, label: 'pine' },
+      { x: -15.2, z: -21.5, r: 1.05, label: 'pine' },
 
-      // Mossy Courtyard Boulders (마당 바위)
-      { x: -8.5, z: -3.5, r: 1.52, label: 'boulder' },
-      { x: -7.4, z: -2.8, r: 0.98, label: 'boulder' },
-      { x: 8.2, z: -4.8, r: 1.62, label: 'boulder' },
-      { x: 9.4, z: -3.9, r: 1.05, label: 'boulder' },
-      { x: -10.2, z: -9.4, r: 1.72, label: 'boulder' },
-      { x: 10.6, z: -9.8, r: 1.62, label: 'boulder' }
+      // Mossy Courtyard Boulders along outer courtyard perimeter
+      { x: -14.5, z: -3.5, r: 1.52, label: 'boulder' },
+      { x: -13.2, z: -2.6, r: 0.98, label: 'boulder' },
+      { x: 14.2, z: -4.8, r: 1.62, label: 'boulder' },
+      { x: 15.4, z: -3.8, r: 1.05, label: 'boulder' },
+      { x: -15.6, z: -12.4, r: 1.72, label: 'boulder' },
+      { x: 15.8, z: -12.8, r: 1.62, label: 'boulder' }
     ],
     boxes: [
-      // Left & Right Stone Step Cheeks (중앙 계단 좌우 소매돌)
-      { minX: -2.68, maxX: -1.85, minZ: 3.28, maxZ: 5.28 },
-      { minX: 1.85, maxX: 2.68, minZ: 3.28, maxZ: 5.28 },
-      // Muryangsujeon Stone Foundation Drop-off Wall outside central steps (기단 석축 턱)
-      { minX: -14.5, maxX: -1.85, minZ: 4.72, maxZ: 5.28 },
-      { minX: 1.85, maxX: 14.5, minZ: 4.72, maxZ: 5.28 }
-    ]
-  },
-  seonamsa: {
-    circles: [
-      // Seasonal Maple / Cherry Trees (계곡 단풍·벚나무)
-      { x: -7.2, z: -1.2, r: 0.98, label: 'tree' },
-      { x: 7.4, z: -0.8, r: 0.98, label: 'tree' },
-      { x: -6.8, z: -9.8, r: 1.02, label: 'tree' },
-      { x: 7.6, z: -11.2, r: 1.02, label: 'tree' },
-      { x: -4.5, z: -17.2, r: 0.98, label: 'tree' },
+      // Muryangsujeon Stone Step Cheeks & Foundation Drop-off Wall outside central steps (x in [-2.3, 2.3] is open stairs)
+      { minX: -3.3, maxX: -2.35, minZ: 3.35, maxZ: 5.65 },
+      { minX: 2.35, maxX: 3.3, minZ: 3.35, maxZ: 5.65 },
+      { minX: -18.5, maxX: -2.35, minZ: 5.05, maxZ: 5.65 },
+      { minX: 2.35, maxX: 18.5, minZ: 5.05, maxZ: 5.65 },
 
-      // Scanned 3D Pine Trees (조계산 소나무)
-      { x: -9.5, z: -6.5, r: 1.05, label: 'pine' },
-      { x: 9.8, z: -5.8, r: 1.05, label: 'pine' },
-      { x: -11.5, z: -15.5, r: 1.10, label: 'pine' },
-      { x: 11.2, z: -16.8, r: 1.10, label: 'pine' },
-      { x: -6.2, z: -22.0, r: 1.05, label: 'pine' },
-
-      // Valley Stream Boulders & Mossy Rocks (계곡 바위)
-      { x: -3.8, z: 2.4, r: 1.52, label: 'boulder' },
-      { x: -2.4, z: 3.6, r: 1.05, label: 'boulder' },
-      { x: 3.9, z: 1.8, r: 1.58, label: 'boulder' },
-      { x: 2.6, z: 3.9, r: 1.12, label: 'boulder' },
-      { x: -4.2, z: -9.5, r: 1.68, label: 'boulder' },
-      { x: 4.4, z: -10.8, r: 1.58, label: 'boulder' },
-      { x: -1.8, z: -13.2, r: 1.08, label: 'boulder' },
-      { x: 1.9, z: -7.8, r: 1.00, label: 'boulder' }
-    ],
-    boxes: [
-      // Left & Right Stone Embankment Walls (계곡 좌우 석축 돌담)
-      { minX: -6.8, maxX: -4.85, minZ: -1.8, maxZ: 6.8 },
-      { minX: 4.85, maxX: 6.8, minZ: -1.8, maxZ: 6.8 }
+      // Anyangru Pavilion Stone Step Cheeks & Terrace Drop-off Wall outside central steps (x in [-2.1, 2.1] is open stairs)
+      { minX: -2.85, maxX: -2.15, minZ: -15.65, maxZ: -13.65 },
+      { minX: 2.15, maxX: 2.85, minZ: -15.65, maxZ: -13.65 },
+      { minX: -18.5, maxX: -2.15, minZ: -15.75, maxZ: -15.15 },
+      { minX: 2.15, maxX: 18.5, minZ: -15.75, maxZ: -15.15 },
+      // Side drop-offs of Anyangru veranda (|x| > 7.8 for z < -15.2)
+      { minX: -18.5, maxX: -7.75, minZ: -23.6, maxZ: -15.2 },
+      { minX: 7.75, maxX: 18.5, minZ: -23.6, maxZ: -15.2 }
     ]
   }
 };
@@ -4019,38 +4123,20 @@ const SPACE_OBSTACLES = {
 const FELLOW_WANDERERS_PRESETS = {
   buseoksa: [
     {
-      name: '운해 찾는 삿갓객',
+      name: '솔방울 모으는 아기 여우',
       paletteIdx: 1,
       spotIdx: 1,
-      offset: [-2.6, 0, -1.2],
-      patrolRadius: 2.2,
+      offset: [-3.4, 0, -2.2],
+      patrolRadius: 2.8,
       seed: 1.4
     },
     {
-      name: '솔바람 걷는 시인',
+      name: '단풍잎 책갈피 토끼',
       paletteIdx: 2,
-      spotIdx: 3,
-      offset: [3.2, 0, 1.8],
-      patrolRadius: 2.0,
+      spotIdx: 4,
+      offset: [-2.2, 0, 1.8],
+      patrolRadius: 2.6,
       seed: 3.8
-    }
-  ],
-  seonamsa: [
-    {
-      name: '여울물 듣는 삿갓객',
-      paletteIdx: 3,
-      spotIdx: 1,
-      offset: [0.4, 0, -0.6],
-      patrolRadius: 1.5,
-      seed: 2.1
-    },
-    {
-      name: '달빛 밟는 나그네',
-      paletteIdx: 1,
-      spotIdx: 2,
-      offset: [-0.4, 0, -0.5],
-      patrolRadius: 1.5,
-      seed: 5.2
     }
   ]
 };
@@ -4514,6 +4600,7 @@ class SansaWandererManager {
     this.keys = { w: false, a: false, s: false, d: false };
     this.waypoints = [];
     this.journeyFinalSpotId = null;
+    this.pendingMeditationOnArrival = false;
 
     // Ground raycaster & destination point marker
     this.raycaster = new THREE.Raycaster();
@@ -4547,10 +4634,18 @@ class SansaWandererManager {
     } catch (e) {
       // ignore storage errors
     }
-    return {
-      name: WANDERER_POETIC_NAMES[0],
-      paletteIdx: 0
+    const randomIdx = Math.floor(Math.random() * WANDERER_POETIC_NAMES.length);
+    const randomPal = Math.floor(Math.random() * WANDERER_PALETTES.length);
+    const initial = {
+      name: WANDERER_POETIC_NAMES[randomIdx],
+      paletteIdx: randomPal
     };
+    try {
+      localStorage.setItem(WANDERER_STORAGE_KEY, JSON.stringify(initial));
+    } catch (e) {
+      // ignore
+    }
+    return initial;
   }
 
   saveProfile() {
@@ -4648,44 +4743,52 @@ class SansaWandererManager {
   }
 
   /**
-   * Computes the exact walkable ground height (Y) at (x, z) matching buildBuseoksaWorld & buildSeonamsaWorld
+   * Computes the exact walkable ground height (Y) at (x, z) matching expanded buildBuseoksaWorld
+   * - Muryangsujeon Veranda (z >= 5.65): y = 0.20
+   * - Muryangsujeon Steps (3.55 < z < 5.65): interpolates -0.78 -> 0.20
+   * - Main Courtyard & Flagstone Path (-13.65 <= z <= 3.55): y = -0.78
+   * - Anyangru Stone Steps (-15.55 < z < -13.65): interpolates -0.78 -> 0.08
+   * - Anyangru Walkable Veranda & Meditation Cushion (z <= -15.55): y = 0.08 (0.14 on center cushion)
    */
   getGroundHeightAt(spaceId, x, z) {
-    if (spaceId === 'buseoksa') {
-      // Muryangsujeon wooden veranda (우물마루, z >= 5.25)
-      if (z >= 5.25) {
-        return 0.20;
-      }
-      // Central stone steps connecting veranda (z=5.25, y=0.20) down to courtyard (z=3.35, y=-0.78)
-      if (z > 3.35 && z < 5.25) {
-        const t = (z - 3.35) / (5.25 - 3.35);
-        return -0.78 + t * (0.20 - -0.78);
-      }
-      // Main courtyard & flagstone path (박석길, z <= 3.35)
-      return -0.78;
-    } else {
-      // Seonamsa Seungseongyo rainbow arch bridge (z in [-5.1, -1.9], x in [-5.7, 5.7])
-      if (z >= -5.1 && z <= -1.9 && Math.abs(x) <= 5.8) {
-        const normX = Math.min(1, Math.abs(x) / 5.7);
-        return 4.71 - normX * normX * 0.52;
-      }
-      // Valley stream viewing stones & banks
-      return -0.46 + Math.min(0.18, Math.abs(x) * 0.025);
+    // 1. Muryangsujeon wooden veranda (우물마루, z >= 5.65)
+    if (z >= 5.65) {
+      return 0.20;
     }
+    // 2. Central stone steps connecting Muryangsujeon veranda (z=5.65, y=0.20) to courtyard (z=3.55, y=-0.78)
+    if (z > 3.55 && z < 5.65) {
+      const t = (z - 3.55) / (5.65 - 3.55);
+      return -0.78 + t * (0.20 - -0.78);
+    }
+    // 3. Anyangru wooden veranda & meditation cushion (안양루 툇마루, z <= -15.55)
+    if (z <= -15.55) {
+      const distToCushion = Math.hypot(x - 0.0, z - -19.5);
+      if (distToCushion < 0.65) {
+        return 0.14; // Sitting/standing on top of the silk meditation cushion
+      }
+      return 0.08;
+    }
+    // 4. Central stone steps leading up to Anyangru veranda (z=-13.65 y=-0.78 -> z=-15.55 y=0.08)
+    if (z < -13.65 && z > -15.55) {
+      const t = (-13.65 - z) / (-13.65 - -15.55);
+      return -0.78 + t * (0.08 - -0.78);
+    }
+    // 5. Expanded main courtyard & flagstone path (박석길)
+    return -0.78;
   }
 
   /**
    * Checks whether (x, z) is inside any pillar, tree, stone lantern, boulder, or wall obstacle
    */
   isPointBlocked(spaceId, x, z, extraMargin = 0) {
-    const minX = spaceId === 'buseoksa' ? -9.8 : -5.5;
-    const maxX = spaceId === 'buseoksa' ? 9.8 : 5.5;
-    const minZ = spaceId === 'buseoksa' ? -10.4 : -9.8;
-    const maxZ = spaceId === 'buseoksa' ? 8.3 : 5.8;
+    const minX = -17.8;
+    const maxX = 17.8;
+    const minZ = -23.1;
+    const maxZ = 10.6;
 
     if (x < minX || x > maxX || z < minZ || z > maxZ) return true;
 
-    const obs = SPACE_OBSTACLES[spaceId] || SPACE_OBSTACLES.buseoksa;
+    const obs = SPACE_OBSTACLES.buseoksa;
     for (const c of obs.circles) {
       const r = c.r + extraMargin;
       const dx = x - c.x;
@@ -4713,7 +4816,7 @@ class SansaWandererManager {
   hasLineOfSight(spaceId, x0, z0, x1, z1, extraMargin = 0.04) {
     const dist = Math.hypot(x1 - x0, z1 - z0);
     if (dist < 0.05) return true;
-    const steps = Math.max(4, Math.ceil(dist / 0.22));
+    const steps = Math.max(4, Math.ceil(dist / 0.24));
     for (let i = 1; i <= steps; i++) {
       const t = i / steps;
       const sx = x0 + (x1 - x0) * t;
@@ -4728,19 +4831,22 @@ class SansaWandererManager {
    * boulders, the stone lantern, and foundation walls (with smooth tangential sliding).
    */
   clampWalkableXZ(spaceId, x, z, prevX = null, prevZ = null) {
-    const minX = spaceId === 'buseoksa' ? -9.5 : -4.75;
-    const maxX = spaceId === 'buseoksa' ? 9.5 : 4.75;
-    const minZ = spaceId === 'buseoksa' ? -10.2 : -9.5;
-    const maxZ = spaceId === 'buseoksa' ? 8.2 : 5.8;
+    const minX = -17.5;
+    const maxX = 17.5;
+    const minZ = -22.9;
+    const maxZ = 10.4;
 
     let cx = Math.max(minX, Math.min(maxX, x));
     let cz = Math.max(minZ, Math.min(maxZ, z));
 
-    const obs = SPACE_OBSTACLES[spaceId] || SPACE_OBSTACLES.buseoksa;
+    // If inside Anyangru veranda depth (z < -15.2), clamp x to Anyangru veranda width [-7.6, 7.6]
+    if (cz < -15.2) {
+      cx = Math.max(-7.6, Math.min(7.6, cx));
+    }
 
-    // 2 iterations ensure clean resolution even at corners where two obstacles meet
+    const obs = SPACE_OBSTACLES.buseoksa;
+
     for (let iter = 0; iter < 2; iter++) {
-      // 1. Push out of rectangular box obstacles (step cheek walls & stone foundation walls)
       for (const b of obs.boxes) {
         if (cx > b.minX && cx < b.maxX && cz > b.minZ && cz < b.maxZ) {
           const dLeft = cx - b.minX;
@@ -4756,7 +4862,6 @@ class SansaWandererManager {
         }
       }
 
-      // 2. Push radially out of circular obstacles (pillars, pine/maple trees, stone lantern, boulders)
       for (const c of obs.circles) {
         const dx = cx - c.x;
         const dz = cz - c.z;
@@ -4786,20 +4891,18 @@ class SansaWandererManager {
   }
 
   /**
-   * 2D Grid A* Pathfinding + Line-of-Sight String Pulling
-   * Finds a natural obstacle-free walking route around pillars (기둥), trees (나무),
-   * the stone lantern (석등), boulders (바위), and central stone steps.
+   * 2D Grid A* Pathfinding + Line-of-Sight String Pulling across the expanded courtyard & Anyangru
    */
   findObstacleFreePath(spaceId, startX, startZ, goalX, goalZ) {
     if (this.hasLineOfSight(spaceId, startX, startZ, goalX, goalZ, 0.05)) {
       return [{ x: goalX, z: goalZ }];
     }
 
-    const step = 0.38;
-    const minX = spaceId === 'buseoksa' ? -9.5 : -4.75;
-    const maxX = spaceId === 'buseoksa' ? 9.5 : 4.75;
-    const minZ = spaceId === 'buseoksa' ? -10.2 : -9.5;
-    const maxZ = spaceId === 'buseoksa' ? 8.2 : 5.8;
+    const step = 0.48;
+    const minX = -17.5;
+    const maxX = 17.5;
+    const minZ = -22.9;
+    const maxZ = 10.4;
 
     const cols = Math.round((maxX - minX) / step) + 1;
     const rows = Math.round((maxZ - minZ) / step) + 1;
@@ -4847,7 +4950,7 @@ class SansaWandererManager {
     let bestDistToGoal = Math.hypot(goalNode.gx - startNode.gx, goalNode.gz - startNode.gz);
     let iterations = 0;
 
-    while (open.length > 0 && iterations < 3500) {
+    while (open.length > 0 && iterations < 4500) {
       iterations++;
       let bestIdx = 0;
       for (let i = 1; i < open.length; i++) {
@@ -4881,7 +4984,6 @@ class SansaWandererManager {
           continue;
         }
 
-        // Prevent diagonal corner-cutting across obstacles
         if (dx !== 0 && dz !== 0) {
           const sideA = toWorld(current.gx + dx, current.gz);
           const sideB = toWorld(current.gx, current.gz + dz);
@@ -4903,7 +5005,6 @@ class SansaWandererManager {
       }
     }
 
-    // Reconstruct grid path
     const rawPts = [{ x: startX, z: startZ }];
     const chain = [];
     let curr = bestKey;
@@ -4919,7 +5020,6 @@ class SansaWandererManager {
     }
     rawPts.push({ x: goalX, z: goalZ });
 
-    // String-pulling (line-of-sight path smoothing) so movement curves naturally
     const smoothed = [];
     let anchorIdx = 0;
     while (anchorIdx < rawPts.length - 1) {
@@ -4947,25 +5047,39 @@ class SansaWandererManager {
   }
 
   /**
-   * Builds a multi-waypoint obstacle-free path from startPos to endPos so the wanderer naturally
-   * walks around pillars, trees, boulders, and the stone lantern, and uses the central stone steps.
+   * Builds a multi-waypoint obstacle-free path from startPos to endPos, automatically routing
+   * through Muryangsujeon's central stone steps (z = 3.4..5.7) and Anyangru's central stone steps (z = -13.5..-15.7)
    */
   buildWalkPath(spaceId, startPos, endPos) {
     const clampedEnd = this.clampWalkableXZ(spaceId, endPos.x, endPos.z, startPos.x, startPos.z);
 
-    // Split into stage anchors if crossing the Buseoksa central stone steps so height interpolation stays exact
     const stageTargets = [];
-    if (spaceId === 'buseoksa') {
-      const startOnVeranda = startPos.z > 4.72;
-      const endOnVeranda = clampedEnd.z > 4.72;
-      if (startOnVeranda && !endOnVeranda) {
-        stageTargets.push({ x: 0.0, z: 5.32 });
-        stageTargets.push({ x: 0.0, z: 3.22 });
-      } else if (!startOnVeranda && endOnVeranda) {
-        stageTargets.push({ x: 0.0, z: 3.22 });
-        stageTargets.push({ x: 0.0, z: 5.32 });
-      }
+    const startOnMuryang = startPos.z > 5.05;
+    const endOnMuryang = clampedEnd.z > 5.05;
+    const startOnAnyang = startPos.z < -15.15;
+    const endOnAnyang = clampedEnd.z < -15.15;
+
+    // Leaving Muryangsujeon veranda down to courtyard
+    if (startOnMuryang && !endOnMuryang) {
+      stageTargets.push({ x: 0.0, z: 5.75 });
+      stageTargets.push({ x: 0.0, z: 3.4 });
     }
+    // Leaving Anyangru veranda down to courtyard
+    if (startOnAnyang && !endOnAnyang) {
+      stageTargets.push({ x: 0.0, z: -15.75 });
+      stageTargets.push({ x: 0.0, z: -13.45 });
+    }
+    // Entering Muryangsujeon veranda from courtyard
+    if (!startOnMuryang && endOnMuryang) {
+      stageTargets.push({ x: 0.0, z: 3.4 });
+      stageTargets.push({ x: 0.0, z: 5.75 });
+    }
+    // Entering Anyangru veranda from courtyard
+    if (!startOnAnyang && endOnAnyang) {
+      stageTargets.push({ x: 0.0, z: -13.45 });
+      stageTargets.push({ x: 0.0, z: -15.75 });
+    }
+
     stageTargets.push({ x: clampedEnd.x, z: clampedEnd.z });
 
     const points = [];
@@ -4986,7 +5100,7 @@ class SansaWandererManager {
   }
 
   /**
-   * Spawns the player's 삿갓 쓴 산사 나그네 and 2 fellow wanderer NPCs for the given space
+   * Spawns the player's 삿갓 쓴 산사 나그네 and fellow wanderer NPCs for Buseoksa
    */
   buildWanderersForSpace(spaceId) {
     if (this.selfActor?.group) {
@@ -4999,7 +5113,7 @@ class SansaWandererManager {
     this.waypoints = [];
     this.destinationMarker.visible = false;
 
-    const spots = WANDERER_SPOTS[spaceId] || WANDERER_SPOTS.buseoksa;
+    const spots = WANDERER_SPOTS.buseoksa;
     const initialSpot = spots[0];
     this.currentSpotId = initialSpot.id;
     this.posture = 'walk';
@@ -5024,8 +5138,9 @@ class SansaWandererManager {
       equipWandererActor(selfActor, this.currentPalette, true);
     });
 
-    // 2. Create Fellow Wanderer NPCs (함께 거니는 산사 나그네들)
-    const presets = FELLOW_WANDERERS_PRESETS[spaceId] || FELLOW_WANDERERS_PRESETS.buseoksa;
+    // 2. Create Fellow Wanderer NPCs (1 on mobile for thermal optimization, 2 on desktop)
+    const maxNpcs = this.world?.isMobile ? 1 : 2;
+    const presets = FELLOW_WANDERERS_PRESETS.buseoksa.slice(0, maxNpcs);
     presets.forEach((preset) => {
       const spot = spots[preset.spotIdx % spots.length] || spots[0];
       const homeX = spot.pos[0] + preset.offset[0];
@@ -5064,19 +5179,21 @@ class SansaWandererManager {
    * Starts an automatic walking journey to `targetVec`, displaying the Destination Point Marker
    * at the destination and smoothly walking the character there with 3rd-person camera follow.
    */
-  startJourneyToPoint(targetVec, spotId = null, toastMessage = null) {
+  startJourneyToPoint(targetVec, spotId = null, toastMessage = null, meditateOnArrival = false) {
     if (!this.selfActor) return;
 
     const spaceId = this.getActiveSpace();
     this.waypoints = this.buildWalkPath(spaceId, this.selfActor.group.position, targetVec);
     this.journeyFinalSpotId = spotId;
+    this.pendingMeditationOnArrival = meditateOnArrival;
     this.followCamEnabled = true;
 
     if (this.posture !== 'walk') {
       this.posture = 'walk';
       this.selfActor.setMode('walk');
-      this.syncHUD();
+      toggleBreathingGuide(false);
     }
+    this.syncHUD();
 
     const finalDest = this.waypoints[this.waypoints.length - 1];
     if (finalDest) {
@@ -5103,21 +5220,22 @@ class SansaWandererManager {
    * Command the wanderer to walk to a named scenic spot
    */
   walkToSpot(spotId) {
-    const spaceId = this.getActiveSpace();
-    const spots = WANDERER_SPOTS[spaceId] || WANDERER_SPOTS.buseoksa;
+    const spots = WANDERER_SPOTS.buseoksa;
     const spot = spots.find((s) => s.id === spotId);
     if (!spot) return;
 
     const dest = new THREE.Vector3(spot.pos[0], spot.pos[1], spot.pos[2]);
+    const shouldMeditate = spot.id === 'anyangnu_cushion';
     this.startJourneyToPoint(
       dest,
       spot.id,
-      `${spot.icon} '${spot.label}' 목적지에 포인트가 표시되며 나그네가 걸어갑니다.`
+      `${spot.icon} '${spot.label}' 목적지에 포인트가 표시되며 나그네가 걸어갑니다.`,
+      shouldMeditate
     );
   }
 
   /**
-   * Raycasts a screen click onto the temple ground/bridge/veranda to set a walk destination
+   * Raycasts a screen click onto the temple ground/veranda to set a walk destination
    */
   handleCanvasGroundClick(clientX, clientY) {
     const canvas = this.world?.renderer?.domElement;
@@ -5139,14 +5257,13 @@ class SansaWandererManager {
 
     // 2. Raycast against scene environment meshes
     const spaceId = this.getActiveSpace();
-    const activeEnvGroup =
-      spaceId === 'buseoksa' ? this.world.buseoksaGroup : this.world.seonamsaGroup;
+    const activeEnvGroup = this.world.buseoksaGroup;
 
     let hitPoint = null;
     if (activeEnvGroup) {
       const envHits = this.raycaster.intersectObject(activeEnvGroup, true);
       for (const hit of envHits) {
-        if (hit.distance > 38) continue;
+        if (hit.distance > 46) continue;
         if (hit.point.y <= 5.2 && hit.point.y >= -2.2) {
           if (hit.face) {
             const worldNormal = hit.face.normal
@@ -5166,7 +5283,7 @@ class SansaWandererManager {
       const ray = this.raycaster.ray;
       if (Math.abs(ray.direction.y) > 0.001) {
         const t = (refY - ray.origin.y) / ray.direction.y;
-        if (t > 0 && t < 45) {
+        if (t > 0 && t < 50) {
           hitPoint = ray.origin.clone().addScaledVector(ray.direction, t);
         }
       }
@@ -5178,7 +5295,7 @@ class SansaWandererManager {
     const groundY = this.getGroundHeightAt(spaceId, clamped.x, clamped.z);
     const finalTarget = new THREE.Vector3(clamped.x, groundY, clamped.z);
 
-    this.startJourneyToPoint(finalTarget, null, null);
+    this.startJourneyToPoint(finalTarget, null, null, false);
   }
 
   /**
@@ -5207,29 +5324,62 @@ class SansaWandererManager {
       }, 360 + idx * 280);
     });
 
-    showToast(`🙏 '${this.profile.name}' 나그네가 두 손을 모아 합장 인사를 건넵니다.`);
+    showToast(`🙏 '${this.profile.name}'님이 두 손을 모아 합장 인사를 건넵니다.`);
   }
 
   /**
-   * Toggle between standing walk ('walk') and serene kneeling meditation ('kneel')
+   * Enter serene kneeling meditation on Anyangru's silk cushion facing Sobaeksan
+   */
+  enterAnyangruMeditation() {
+    if (!this.selfActor) return;
+    this.pendingMeditationOnArrival = false;
+    this.waypoints = [];
+    this.destinationMarker.visible = false;
+    this.posture = 'kneel';
+    this.selfActor.group.position.set(0.0, 0.14, -19.5);
+    this.selfActor.group.rotation.y = 0.0; // Face -Z directly through Anyangru toward Sobaeksan
+    this.yaw = 0.0;
+    this.pitch = 0.04;
+    this.selfActor.setMode('kneel');
+    this.spawnBubbleAbove(this.selfActor.group, '🍵 소백산맥을 바라보며 명상합니다', 2.8);
+    this.spawnGroundRipple(this.selfActor.group.position, this.currentPalette.markerHex || 0xffd27d);
+    toggleBreathingGuide(true);
+    this.syncHUD();
+    showToast('🍵 안양루 명상 방석에 앉아 소백산맥 차경을 바라보며 호흡 명상에 듭니다.');
+  }
+
+  /**
+   * Toggle between standing walk ('walk') and walking up to Anyangru's cushion to meditate ('kneel')
    */
   togglePosture() {
     if (!this.selfActor) return;
 
-    if (this.posture === 'walk') {
-      this.posture = 'kneel';
+    if (this.posture === 'kneel' || this.pendingMeditationOnArrival) {
+      this.pendingMeditationOnArrival = false;
       this.waypoints = [];
       this.destinationMarker.visible = false;
-      this.selfActor.setMode('kneel');
-      this.spawnBubbleAbove(this.selfActor.group, '🍵 고요히 숨을 고릅니다', 2.4);
-      showToast('🍵 자리에 앉아 차경을 바라보며 좌선(명상)에 듭니다.');
-    } else {
       this.posture = 'walk';
       this.selfActor.setMode('walk');
-      showToast('🎋 자리에서 일어나 다시 산사 산책을 시작합니다.');
+      toggleBreathingGuide(false);
+      this.syncHUD();
+      showToast('🎋 명상을 마치고 자리에서 일어나 산사 산책을 이어갑니다.');
+      return;
     }
 
-    this.syncHUD();
+    // Check distance to Anyangru's meditation cushion at (0.0, 0.14, -19.5)
+    const selfPos = this.selfActor.group.position;
+    const distToCushion = Math.hypot(selfPos.x - 0.0, selfPos.z - -19.5);
+    if (distToCushion <= 0.45) {
+      this.enterAnyangruMeditation();
+    } else {
+      const cushionTarget = new THREE.Vector3(0.0, 0.14, -19.5);
+      this.startJourneyToPoint(
+        cushionTarget,
+        'anyangnu_cushion',
+        '🍵 안양루 누각 위로 올라가 방석 위에서 명상을 시작합니다.',
+        true
+      );
+    }
   }
 
   /**
@@ -5249,7 +5399,7 @@ class SansaWandererManager {
   }
 
   /**
-   * Reroll poetic wanderer title (호) and attire palette
+   * Reroll cute wanderer nickname and attire palette
    */
   rerollIdentity() {
     const otherNames = WANDERER_POETIC_NAMES.filter((n) => n !== this.profile.name);
@@ -5259,11 +5409,11 @@ class SansaWandererManager {
 
     if (this.selfActor) {
       applyWandererPalette(this.selfActor, this.currentPalette);
-      this.spawnBubbleAbove(this.selfActor.group, `🎋 ${this.profile.name}`, 2.4);
+      this.spawnBubbleAbove(this.selfActor.group, `🐾 ${this.profile.name}`, 2.4);
     }
 
     this.syncHUD();
-    showToast(`🎲 새로운 호(號) '${this.profile.name}'(${this.currentPalette.fullName})를 부여받았습니다.`);
+    showToast(`🎲 귀여운 새 닉네임 '${this.profile.name}'(${this.currentPalette.fullName})로 변경되었습니다!`);
   }
 
   spawnBubbleAbove(targetGroup, text, duration = 2.4) {
@@ -5295,10 +5445,10 @@ class SansaWandererManager {
     this.greetingRipples.push({ mesh, mat, age: 0, duration: 1.25 });
   }
 
-  renderSpotButtons(spaceId) {
+  renderSpotButtons() {
     const container = document.getElementById('spirit-spots-row');
     if (!container) return;
-    const spots = WANDERER_SPOTS[spaceId] || WANDERER_SPOTS.buseoksa;
+    const spots = WANDERER_SPOTS.buseoksa;
 
     container.innerHTML = spots
       .map(
@@ -5341,7 +5491,7 @@ class SansaWandererManager {
 
     if (nameEl) nameEl.textContent = this.profile.name;
     if (dotEl) {
-      dotEl.textContent = '🎋';
+      dotEl.textContent = '🐾';
       dotEl.style.background = `radial-gradient(circle at 35% 35%, ${this.currentPalette.orbHex}, rgba(20, 26, 22, 0.9))`;
       dotEl.style.boxShadow = `0 0 12px ${this.currentPalette.orbHex}66`;
     }
@@ -5352,10 +5502,11 @@ class SansaWandererManager {
       badgeEl.textContent = this.currentPalette.label;
     }
     if (stackBtn) {
-      stackBtn.classList.toggle('active', this.posture === 'kneel');
+      const isMeditatingOrHeading = this.posture === 'kneel' || this.pendingMeditationOnArrival;
+      stackBtn.classList.toggle('active', isMeditatingOrHeading);
       const span = stackBtn.querySelector('span');
       if (span) {
-        span.textContent = this.posture === 'kneel' ? '🎋 일어서기' : '🍵 좌선·명상';
+        span.textContent = isMeditatingOrHeading ? '🎋 일어서기' : '🍵 명상하기';
       }
     }
   }
@@ -5372,15 +5523,6 @@ class SansaWandererManager {
     pebbleBtn?.addEventListener('click', () => this.cyclePalette());
     colorDot?.addEventListener('click', () => this.cyclePalette());
     rerollBtn?.addEventListener('click', () => this.rerollIdentity());
-
-    // Hook space switching tabs so wanderers rebuild for Buseoksa vs Seonamsa
-    document.querySelectorAll('[data-space-target]').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        setTimeout(() => {
-          this.buildWanderersForSpace(this.getActiveSpace());
-        }, 50);
-      });
-    });
 
     // Pointer & Multi-Touch controls on canvas:
     // - 1-finger tap / mouse click on ground: set walk destination + spawn tap ripple
@@ -5536,14 +5678,16 @@ class SansaWandererManager {
 
   cancelPointJourney() {
     this.waypoints = [];
+    this.pendingMeditationOnArrival = false;
     this.destinationMarker.visible = false;
     this.followCamEnabled = true;
     document.body.classList.remove('wanderer-walking');
     if (this.posture !== 'walk' && this.selfActor) {
       this.posture = 'walk';
       this.selfActor.setMode('walk');
-      this.syncHUD();
+      toggleBreathingGuide(false);
     }
+    this.syncHUD();
   }
 
   /**
@@ -5603,6 +5747,10 @@ class SansaWandererManager {
         if (this.waypoints.length === 0) {
           this.destinationMarker.visible = false;
           this.spawnGroundRipple(selfPos, this.currentPalette.markerHex || 0xffd27d);
+          if (this.pendingMeditationOnArrival) {
+            this.enterAnyangruMeditation();
+            return;
+          }
         }
       } else {
         const dist = Math.sqrt(distSq);
@@ -5757,7 +5905,6 @@ class SansaWandererManager {
     }
 
     // 6. sansatemple.com-style 3rd-Person Behind-the-Back Camera Frame!
-    // On mobile portrait screens, elevates the character into the clear center of the screen above the bottom HUD.
     if (this.followCamEnabled) {
       const sinYaw = Math.sin(this.yaw);
       const cosYaw = Math.cos(this.yaw);
@@ -5775,9 +5922,9 @@ class SansaWandererManager {
       let desiredCamY = selfPos.y + camHeightOffset + extraZoomHeight + this.pitch * 3.0;
       let desiredCamZ = selfPos.z + cosYaw * effectiveDist;
 
-      // In Buseoksa, keep camera in front of Muryangsujeon's rear lattice wall (z = 9.55)
-      if (spaceId === 'buseoksa' && desiredCamZ > 9.10) {
-        desiredCamZ = 9.10;
+      // In Buseoksa, keep camera in front of Muryangsujeon's expanded rear lattice wall (z = 11.4)
+      if (spaceId === 'buseoksa' && desiredCamZ > 10.95) {
+        desiredCamZ = 10.95;
       }
 
       const lookTargetX = selfPos.x - sinYaw * 3.0;

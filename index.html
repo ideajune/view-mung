@@ -7,8 +7,8 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>차경(借景) 3D — 한국 명승 산사 '풍경 멍'</title>
-  <link rel="stylesheet" href="styles.css?v=20261107-mobile3" />
+  <title>차경(借景) 3D — 부석사 무량수전과 안양루 '풍경 멍'</title>
+  <link rel="stylesheet" href="styles.css?v=20261107-v4" />
   <!-- Three.js r180 + PBR Surface & Photorealistic Landscape Core -->
   <script src="sansa-core.js?v=20261107-wanderer2"></script>
 </head>
@@ -21,92 +21,100 @@
     <!-- 2. 3D Object Hover Tooltip -->
     <div class="lantern-3d-tooltip" id="lantern-3d-tooltip"></div>
 
-    <!-- 3. Subtle 3D Camera Interaction Guide -->
+    <!-- 3. Ground Click Guide Text (PC & Mobile Always Visible) -->
     <div class="camera-hint-pill hud-chrome" id="camera-hint-pill">
-      🎋 바닥 클릭 시 목적지 포인트 표시 후 산사 나그네 자동 보행 · WASD·방향키 이동 · 드래그 시점 회전 · B 합장 인사
+      👆 가까운 빈 바닥을 눌러주세요
     </div>
 
-    <!-- 4. Breathing Meditation Guide (숨 고르기) -->
+    <!-- 4. Breathing Meditation Guide (숨 고르기 / 명상하기 연동) -->
     <div class="breathing-guide" id="breathing-guide">
       <div class="breath-orb"></div>
-      <div class="breath-text" id="breath-text">깊게 들이마시며 산사의 바람을 느낍니다...</div>
+      <div class="breath-text" id="breath-text">안양루 방석에 앉아 소백산의 맑은 바람을 깊이 들이마십니다...</div>
     </div>
 
     <!-- 5. Top Floating HUD Bar -->
     <header class="top-bar hud-chrome">
-      <div class="brand-cluster">
-        <div class="brand-eyebrow">
-          <span class="dot"></span>
-          <span id="space-eyebrow">차경(借景) 3D 제1경 · 경북 영주 봉황산</span>
-        </div>
-        <h1 class="space-title" id="space-title">부석사 무량수전 앞마당</h1>
-        <p class="space-caption" id="space-caption">
-          배흘림기둥과 서까래 처마 밑, 안양루 너머로 겹겹이 펼쳐지는 소백산맥의 능선과 운해
-        </p>
-      </div>
-
-      <div class="top-controls">
-        <!-- Time of Day Selector -->
-        <div class="glass-pill" role="group" aria-label="시간대 선택">
-          <button class="pill-btn active" data-time-btn="dawn" type="button">🌅 새벽 운해</button>
-          <button class="pill-btn" data-time-btn="sunset" type="button">🌇 석양 노을</button>
-          <button class="pill-btn" data-time-btn="night" type="button">🌌 별 헤는 밤</button>
+      <div class="top-bar-main">
+        <div class="brand-cluster">
+          <div class="brand-eyebrow">
+            <span class="dot"></span>
+            <span id="space-eyebrow">차경(借景) 3D · 영주 부석사</span>
+            <span class="auto-time-badge" id="auto-time-badge">☁️ 실시간 운해</span>
+          </div>
+          <div class="brand-title-row">
+            <h1 class="space-title" id="space-title">부석사 무량수전과 안양루</h1>
+          </div>
+          <p class="space-caption" id="space-caption">
+            광활한 박석 마당과 안양루 처마 너머로 시원하게 펼쳐지는 소백산맥의 능선과 운해
+          </p>
         </div>
 
-        <!-- Season Foliage Selector -->
-        <div class="glass-pill" role="group" aria-label="계절 바람 선택">
-          <button class="pill-btn active" data-foliage-btn="autumn" type="button">🍁 가을 단풍</button>
-          <button class="pill-btn" data-foliage-btn="spring" type="button">🌸 봄 꽃잎</button>
-        </div>
-
-        <!-- 3D Camera Angle Preset Selector -->
-        <div class="glass-pill" role="group" aria-label="3D 카메라 시점">
-          <button class="pill-btn active" data-cam-btn="spirit" type="button">🎋 나그네 3인칭</button>
-          <button class="pill-btn" data-cam-btn="default" type="button">🧘 기본 차경</button>
-          <button class="pill-btn" data-cam-btn="closeup" type="button">🎐 처마·다리 가까이</button>
-          <button class="pill-btn" data-cam-btn="wide" type="button">⛰️ 광각 파노라마</button>
-        </div>
-
-        <!-- Soundscape Toggle & Mixer Trigger -->
-        <button class="icon-btn" id="audio-toggle-btn" type="button" aria-expanded="false">
+        <!-- Soundscape Toggle & Mixer Trigger (Always visible on Mobile & Desktop) -->
+        <button class="icon-btn sound-top-btn" id="audio-toggle-btn" type="button" aria-expanded="false">
           <span class="sound-wave-indicator" aria-hidden="true">
             <span></span><span></span><span></span>
           </span>
-          <span id="audio-btn-label">산사 소리 켜기</span>
+          <span id="audio-btn-label">🔊 소리 설정</span>
         </button>
+      </div>
+
+      <!-- Compact Nickname & Camera/Season Bar -->
+      <div class="top-sub-row">
+        <!-- Cute Auto-Nickname Badge -->
+        <div class="spirit-nickname-pill" id="spirit-companion-card" aria-label="나의 산사 나그네">
+          <span class="spirit-avatar-orb" id="spirit-color-dot" title="도포·삿갓 빛깔 바꿈">🎋</span>
+          <span class="spirit-name" id="spirit-name-display">도토리 줍는 다람쥐</span>
+          <span class="pebble-stack-badge" id="pebble-stack-badge">먹빛</span>
+          <button class="spirit-reroll-btn" id="spirit-reroll-btn" type="button" title="귀여운 닉네임과 도포 빛깔 새로고침">
+            🎲
+          </button>
+        </div>
+
+        <div class="top-controls">
+          <!-- 3D Camera Angle Preset Selector -->
+          <div class="glass-pill" role="group" aria-label="3D 카메라 시점">
+            <button class="pill-btn active" data-cam-btn="spirit" type="button">🎋 나그네 시점</button>
+            <button class="pill-btn" data-cam-btn="default" type="button">🏯 안양루 차경</button>
+            <button class="pill-btn" data-cam-btn="wide" type="button">⛰️ 광각 조망</button>
+          </div>
+
+          <button class="icon-btn zen-top-btn" id="zen-mode-btn" type="button" title="UI 숨기기 (단축키: Space)">
+            <span>👁️ 풍경멍</span>
+          </button>
+        </div>
       </div>
     </header>
 
     <!-- 6. Soundscape Mixer Popover -->
     <aside class="sound-mixer-panel hud-chrome" id="sound-mixer-panel" aria-label="자연의 소리 믹서">
       <div class="mixer-header">
-        <span class="mixer-title">산사 입체 음향 조율</span>
+        <span class="mixer-title">산사 입체 음향 설정</span>
         <button class="card-close-btn" id="close-mixer-btn" type="button" aria-label="소리 설정 닫기">✕</button>
       </div>
-      <p class="mixer-subtitle">공간에 따라 청동 풍경종과 계곡 물소리가 자연스럽게 어우러집니다.</p>
+      <p class="mixer-subtitle">청동 풍경종과 소백산 바람·여울 물소리의 조화를 조절합니다.</p>
 
       <div class="mixer-row">
         <div class="mixer-label-line">
           <span>처마 끝 풍경종 (風磬)</span>
-          <span class="mixer-val" id="val-bell">75%</span>
+          <span class="mixer-val" id="val-bell">80%</span>
         </div>
-        <input class="mixer-slider" id="slider-bell" type="range" min="0" max="100" value="75" />
+        <input class="mixer-slider" id="slider-bell" type="range" min="0" max="100" value="80" />
       </div>
 
       <div class="mixer-row">
         <div class="mixer-label-line">
-          <span>선암사 계곡 물소리</span>
-          <span class="mixer-val" id="val-water">65%</span>
+          <span>산골짜기 여울 물소리</span>
+          <span class="mixer-val" id="val-water">20%</span>
         </div>
-        <input class="mixer-slider" id="slider-water" type="range" min="0" max="100" value="65" />
+        <input class="mixer-slider" id="slider-water" type="range" min="0" max="100" value="20" />
       </div>
 
       <div class="mixer-row">
         <div class="mixer-label-line">
           <span>능선 산바람과 풀벌레</span>
-          <span class="mixer-val" id="val-wind">55%</span>
+          <span class="mixer-val" id="val-wind">65%</span>
         </div>
-        <input class="mixer-slider" id="slider-wind" type="range" min="0" max="100" value="55" />
+        <input class="mixer-slider" id="slider-wind" type="range" min="0" max="100" value="65" />
       </div>
 
       <button class="mixer-strike-btn" id="manual-bell-btn" type="button">
@@ -118,7 +126,7 @@
     <article class="wish-reader-card" id="wish-reader-card" aria-live="polite">
       <button class="card-close-btn" id="close-reader-btn" type="button" aria-label="연등 카드 닫기">✕</button>
       <div class="wish-card-header">
-        <span class="wish-location-badge" id="reader-location">부석사 처마 밑</span>
+        <span class="wish-location-badge" id="reader-location">부석사 안양루 처마 밑</span>
         <span class="wish-category-badge" id="reader-tag">마음 평안</span>
       </div>
       <blockquote class="wish-card-body" id="reader-text">
@@ -138,13 +146,13 @@
       </div>
     </article>
 
-    <!-- 8. Write Wish Lantern Modal (소원 연등 적어 달기) -->
+    <!-- 8. Write Wish Lantern Modal (안양루 소원 연등 적어 달기) -->
     <div class="modal-backdrop" id="write-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="write-modal-title">
       <div class="write-lantern-modal">
         <button class="card-close-btn" id="close-write-modal-btn" type="button" aria-label="닫기">✕</button>
-        <h2 class="write-modal-title" id="write-modal-title">3D 소원 연등 달기</h2>
+        <h2 class="write-modal-title" id="write-modal-title">안양루 소원 연등 달기</h2>
         <p class="write-modal-desc" id="write-modal-desc">
-          처마 밑 서까래와 돌담길에 작은 3D 등불 하나를 밝혀 마음을 남겨보세요.
+          소백산맥이 내려다보이는 안양루 처마 밑에 3D 연등을 매달아 바람에 소원을 실어 보냅니다.
         </p>
 
         <form id="write-lantern-form">
@@ -186,13 +194,13 @@
 
           <div class="form-group hanji-input-row">
             <div>
-              <label class="form-label" for="wish-author">이름 / 호 (선택)</label>
+              <label class="form-label" for="wish-author">닉네임 / 이름 (선택)</label>
               <input
                 id="wish-author"
                 class="hanji-input"
                 type="text"
                 maxlength="14"
-                placeholder="산사 나그네"
+                placeholder="도토리 줍는 다람쥐"
               />
             </div>
             <div>
@@ -208,89 +216,26 @@
           </div>
 
           <button type="submit" class="submit-lantern-btn">
-            🏮 이 3D 공간에 연등 걸기
+            🏮 안양루 처마에 연등 걸기
           </button>
         </form>
       </div>
     </div>
 
-    <!-- 8-B. Sansa Wanderer Companion HUD (삿갓 쓴 산사 나그네 제어판) -->
-    <aside class="spirit-companion-card hud-chrome" id="spirit-companion-card" aria-label="나의 산사 나그네">
-      <div class="spirit-card-top">
-        <div class="spirit-identity">
-          <span class="spirit-avatar-orb" id="spirit-color-dot" title="나그네 도포·삿갓 빛깔 바꿈">🎋</span>
-          <div class="spirit-title-wrap">
-            <span class="spirit-eyebrow">삿갓 쓴 산사 나그네 · <span id="spirit-visitors-count">3인 산책 중</span></span>
-            <strong class="spirit-name" id="spirit-name-display">솔바람 걷는 나그네</strong>
-          </div>
-        </div>
-        <button class="spirit-reroll-btn" id="spirit-reroll-btn" type="button" title="새로운 호(號)와 도포 빛깔 받기">
-          🎲 호(號) 바꿈
-        </button>
-      </div>
-
-      <div class="spirit-spots-row" id="spirit-spots-row" aria-label="차경 명당 목적지 선택 (클릭 시 걸어서 이동)">
-        <!-- Dynamically populated spot buttons per space -->
-      </div>
-
-      <div class="spirit-actions-row">
-        <button class="spirit-act-btn" id="spirit-bow-btn" type="button" title="주변 나그네들과 합장 인사 나누기 (단축키: B)">
-          <span>🙏 합장 인사</span>
-        </button>
-        <button class="spirit-act-btn" id="spirit-stack-btn" type="button" title="자리에서 좌선(명상)하거나 일어서기 (단축키: C)">
-          <span>🍵 좌선·산책</span>
-        </button>
-        <button class="spirit-act-btn" id="spirit-pebble-btn" type="button" title="나그네 도포와 삿갓 빛깔 바꾸기 (단축키: P)">
-          <span>🎋 도포 빛깔</span>
-          <span class="pebble-stack-badge" id="pebble-stack-badge">먹빛</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- 9. Bottom Floating Navigation Dock -->
-    <nav class="bottom-dock hud-chrome" id="bottom-dock" aria-label="공간 및 기능 탐색">
-      <div class="space-switcher" role="tablist">
-        <button
-          class="space-tab active"
-          id="tab-buseoksa"
-          data-space-target="buseoksa"
-          role="tab"
-          aria-selected="true"
-          type="button"
-        >
-          <span>🏯 부석사 무량수전</span>
-          <span class="space-tab-badge" id="count-buseoksa">6</span>
-        </button>
-        <button
-          class="space-tab"
-          id="tab-seonamsa"
-          data-space-target="seonamsa"
-          role="tab"
-          aria-selected="false"
-          type="button"
-        >
-          <span>🌉 선암사 승선교</span>
-          <span class="space-tab-badge" id="count-seonamsa">6</span>
-        </button>
-      </div>
-
-      <div class="dock-divider"></div>
-
+    <!-- 9. Simplified 3-Button Bottom Floating Dock (합장하기 · 명상하기 · 소원연등달기) -->
+    <nav class="bottom-dock hud-chrome" id="bottom-dock" aria-label="핵심 동작">
       <div class="dock-actions">
-        <button class="cta-lantern-btn" id="open-write-modal-btn" type="button">
-          <span>🏮 소원 연등 달기</span>
+        <button class="dock-main-btn" id="spirit-bow-btn" type="button" title="두 손을 모아 합장 인사하기 (단축키: B)">
+          <span>🙏 합장하기</span>
         </button>
 
-        <button class="dock-action-btn" id="ring-bell-dock-btn" type="button" title="처마 끝 풍경종 울리기">
-          <span>🔔 풍경종 울리기</span>
+        <button class="dock-main-btn" id="spirit-stack-btn" type="button" title="안양루 방석에 올라가 좌선 명상하기 (단축키: C)">
+          <span>🍵 명상하기</span>
         </button>
 
-        <button class="dock-action-btn" id="breath-toggle-btn" type="button" title="호흡 명상 가이드">
-          <span>🌬️ 숨 고르기</span>
-        </button>
-
-        <button class="dock-action-btn" id="zen-mode-btn" type="button" title="UI 숨기기 (단축키: Space)">
-          <span>👁️ 풍경멍 모드</span>
+        <button class="cta-lantern-btn" id="open-write-modal-btn" type="button" title="안양루 처마에 소원 연등 달기">
+          <span>🏮 소원연등달기</span>
+          <span class="space-tab-badge" id="count-buseoksa">6</span>
         </button>
       </div>
     </nav>
@@ -304,6 +249,6 @@
     <div class="toast-banner" id="toast-banner" role="status" aria-live="polite"></div>
   </main>
 
-  <script src="app.js?v=20261107-sobaek12"></script>
+  <script src="app.js?v=20261107-v7"></script>
 </body>
 </html>
