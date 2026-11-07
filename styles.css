@@ -1395,3 +1395,293 @@ body.zen-mode .zen-restore-pill:hover {
     margin: 8px 0 10px;
   }
 }
+
+
+/* ==========================================================================
+   MOSSY CAIRN SPIRIT COMPANION CARD (이끼 낀 꼬마 돌탑 정령 HUD)
+   ========================================================================== */
+.spirit-companion-card {
+  position: fixed;
+  bottom: calc(84px + var(--safe-bottom));
+  left: calc(22px + var(--safe-left));
+  z-index: 29;
+  width: min(355px, calc(100vw - 24px));
+  background: var(--surface-charcoal);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-hairline);
+  border-radius: 20px;
+  padding: 13px 15px;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.spirit-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.spirit-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.spirit-avatar-orb {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  background: radial-gradient(circle at 35% 35%, #fef3c7, #d97706);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
+  border: 1.5px solid rgba(255, 251, 235, 0.75);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.spirit-avatar-orb:hover {
+  transform: scale(1.08);
+}
+
+.spirit-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.spirit-eyebrow {
+  font-size: 0.68rem;
+  color: #86efac;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.spirit-name {
+  font-family: var(--font-display);
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spirit-reroll-btn {
+  appearance: none;
+  border: 1px solid rgba(244, 241, 234, 0.2);
+  background: rgba(244, 241, 234, 0.07);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.73rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.spirit-reroll-btn:hover {
+  color: var(--text-primary);
+  background: rgba(245, 158, 11, 0.22);
+  border-color: var(--border-lantern);
+}
+
+.spirit-spots-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+
+.spirit-spots-row::-webkit-scrollbar {
+  display: none;
+}
+
+.spirit-spot-chip {
+  appearance: none;
+  border: 1px solid rgba(244, 241, 234, 0.14);
+  background: rgba(244, 241, 234, 0.05);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.spirit-spot-chip:hover {
+  color: var(--text-primary);
+  background: rgba(244, 241, 234, 0.12);
+}
+
+.spirit-spot-chip.active {
+  background: rgba(134, 239, 172, 0.18);
+  border-color: rgba(134, 239, 172, 0.55);
+  color: #dcfce7;
+  font-weight: 600;
+}
+
+.spirit-actions-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.spirit-act-btn {
+  appearance: none;
+  border: 1px solid rgba(244, 241, 234, 0.14);
+  background: rgba(244, 241, 234, 0.06);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 7px 8px;
+  border-radius: 11px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.spirit-act-btn:hover {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: var(--border-lantern);
+  transform: translateY(-1px);
+}
+
+.spirit-act-btn.active {
+  background: rgba(134, 239, 172, 0.22);
+  border-color: #86efac;
+  color: #ecfdf5;
+}
+
+.pebble-stack-badge {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.28);
+  color: #fde68a;
+}
+
+@media (max-width: 960px) {
+  .spirit-companion-card {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(96px + var(--safe-bottom));
+    width: min(520px, calc(100vw - 16px));
+    padding: 8px 11px;
+    gap: 5px;
+    background: rgba(12, 16, 20, 0.76);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  body.wanderer-walking .spirit-companion-card {
+    opacity: 0.72;
+  }
+
+  body.zen-mode .spirit-companion-card.hud-chrome {
+    transform: translate(-50%, 14px);
+  }
+}
+
+@media (max-width: 600px) {
+  .bottom-dock {
+    bottom: calc(6px + var(--safe-bottom));
+    padding: 6px 8px;
+    gap: 4px;
+    width: calc(100vw - 16px);
+    background: rgba(12, 16, 20, 0.78);
+  }
+
+  .spirit-companion-card {
+    bottom: calc(88px + var(--safe-bottom));
+    padding: 7px 10px;
+    border-radius: 15px;
+    gap: 5px;
+    width: calc(100vw - 16px);
+  }
+
+  .spirit-card-top {
+    gap: 6px;
+  }
+
+  .spirit-avatar-orb {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+
+  .spirit-eyebrow {
+    font-size: 0.61rem;
+  }
+
+  .spirit-name {
+    font-size: 0.80rem;
+  }
+
+  .spirit-reroll-btn {
+    font-size: 0.68rem;
+    padding: 4px 8px;
+  }
+
+  .spirit-spot-chip {
+    font-size: 0.69rem;
+    padding: 4px 9px;
+  }
+
+  .spirit-actions-row {
+    gap: 4px;
+  }
+
+  .spirit-act-btn {
+    font-size: 0.69rem;
+    padding: 5px 4px;
+    border-radius: 9px;
+  }
+}
+
+/* Touch Tap Ripple on Mobile / Desktop when selecting a 3D ground destination */
+.ground-tap-ripple {
+  position: fixed;
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
+  margin-top: -18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 214, 130, 0.92);
+  background: radial-gradient(circle, rgba(255, 224, 150, 0.38) 0%, rgba(255, 214, 130, 0) 70%);
+  pointer-events: none;
+  z-index: 25;
+  animation: groundTapPulse 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes groundTapPulse {
+  0% {
+    transform: scale(0.35);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}

@@ -4084,7 +4084,7 @@ window.SANSA_CORE = {
   CylinderGeometry: ts,
   SphereGeometry: kr,
   BoxGeometry: ls,
-  PlaneGeometry: bn,
+  PlaneGeometry: bn, RingGeometry: ph, TorusGeometry: mh, CircleGeometry: Po, ConeGeometry: Ha,
   RoundedBoxGeometry: tr,
   TubeGeometry: Qs,
   CatmullRomCurve3: Tr,

@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>차경(借景) 3D — 한국 명승 산사 '풍경 멍'</title>
-  <link rel="stylesheet" href="styles.css?v=20261103-v5" />
+  <link rel="stylesheet" href="styles.css?v=20261107-mobile3" />
   <!-- Three.js r180 + PBR Surface & Photorealistic Landscape Core -->
-  <script src="sansa-core.js?v=20261103-v5"></script>
+  <script src="sansa-core.js?v=20261107-wanderer2"></script>
 </head>
 <body>
   <main class="app-stage" id="app-stage">
@@ -23,7 +23,7 @@
 
     <!-- 3. Subtle 3D Camera Interaction Guide -->
     <div class="camera-hint-pill hud-chrome" id="camera-hint-pill">
-      🖱️ 마우스·터치 드래그로 3D 시선 회전 · 휠·핀치로 원근 조절 · 3D 연등과 풍경종을 클릭해보세요
+      🎋 바닥 클릭 시 목적지 포인트 표시 후 산사 나그네 자동 보행 · WASD·방향키 이동 · 드래그 시점 회전 · B 합장 인사
     </div>
 
     <!-- 4. Breathing Meditation Guide (숨 고르기) -->
@@ -61,7 +61,8 @@
 
         <!-- 3D Camera Angle Preset Selector -->
         <div class="glass-pill" role="group" aria-label="3D 카메라 시점">
-          <button class="pill-btn active" data-cam-btn="default" type="button">🧘 기본 차경</button>
+          <button class="pill-btn active" data-cam-btn="spirit" type="button">🎋 나그네 3인칭</button>
+          <button class="pill-btn" data-cam-btn="default" type="button">🧘 기본 차경</button>
           <button class="pill-btn" data-cam-btn="closeup" type="button">🎐 처마·다리 가까이</button>
           <button class="pill-btn" data-cam-btn="wide" type="button">⛰️ 광각 파노라마</button>
         </div>
@@ -213,6 +214,39 @@
       </div>
     </div>
 
+    <!-- 8-B. Sansa Wanderer Companion HUD (삿갓 쓴 산사 나그네 제어판) -->
+    <aside class="spirit-companion-card hud-chrome" id="spirit-companion-card" aria-label="나의 산사 나그네">
+      <div class="spirit-card-top">
+        <div class="spirit-identity">
+          <span class="spirit-avatar-orb" id="spirit-color-dot" title="나그네 도포·삿갓 빛깔 바꿈">🎋</span>
+          <div class="spirit-title-wrap">
+            <span class="spirit-eyebrow">삿갓 쓴 산사 나그네 · <span id="spirit-visitors-count">3인 산책 중</span></span>
+            <strong class="spirit-name" id="spirit-name-display">솔바람 걷는 나그네</strong>
+          </div>
+        </div>
+        <button class="spirit-reroll-btn" id="spirit-reroll-btn" type="button" title="새로운 호(號)와 도포 빛깔 받기">
+          🎲 호(號) 바꿈
+        </button>
+      </div>
+
+      <div class="spirit-spots-row" id="spirit-spots-row" aria-label="차경 명당 목적지 선택 (클릭 시 걸어서 이동)">
+        <!-- Dynamically populated spot buttons per space -->
+      </div>
+
+      <div class="spirit-actions-row">
+        <button class="spirit-act-btn" id="spirit-bow-btn" type="button" title="주변 나그네들과 합장 인사 나누기 (단축키: B)">
+          <span>🙏 합장 인사</span>
+        </button>
+        <button class="spirit-act-btn" id="spirit-stack-btn" type="button" title="자리에서 좌선(명상)하거나 일어서기 (단축키: C)">
+          <span>🍵 좌선·산책</span>
+        </button>
+        <button class="spirit-act-btn" id="spirit-pebble-btn" type="button" title="나그네 도포와 삿갓 빛깔 바꾸기 (단축키: P)">
+          <span>🎋 도포 빛깔</span>
+          <span class="pebble-stack-badge" id="pebble-stack-badge">먹빛</span>
+        </button>
+      </div>
+    </aside>
+
     <!-- 9. Bottom Floating Navigation Dock -->
     <nav class="bottom-dock hud-chrome" id="bottom-dock" aria-label="공간 및 기능 탐색">
       <div class="space-switcher" role="tablist">
@@ -270,6 +304,6 @@
     <div class="toast-banner" id="toast-banner" role="status" aria-live="polite"></div>
   </main>
 
-  <script src="app.js?v=20261103-v5"></script>
+  <script src="app.js?v=20261107-sobaek12"></script>
 </body>
 </html>

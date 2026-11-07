@@ -190,6 +190,30 @@ class SanSaAudioEngine {
     this.windGain = null;
     this.masterGain = null;
     this.autoBellTimer = null;
+
+    // Pure HTML5 Audio playback for uploaded templebell.wav repeating every 30 seconds
+    this.bellWavUrl = 'templebell.wav';
+    this.bellRepeatIntervalSec = 30;
+    this.bellRepeatTimer = null;
+
+    this.bellLoopAudio = new Audio(this.bellWavUrl);
+    this.bellLoopAudio.loop = false;
+    this.bellLoopAudio.preload = 'auto';
+    this.bellLoopAudio.volume = this.bellLevel;
+
+    // Loop back to 0s as soon as playback reaches 30 seconds
+    this.bellLoopAudio.addEventListener('timeupdate', () => {
+      if (this.isPlaying && this.bellLoopAudio.currentTime >= this.bellRepeatIntervalSec) {
+        this.bellLoopAudio.currentTime = 0;
+        this.bellLoopAudio.play().catch(() => {});
+        if (world3D) world3D.exciteWindBell();
+      }
+    });
+
+    this.bellOnceAudio = new Audio(this.bellWavUrl);
+    this.bellOnceAudio.loop = false;
+    this.bellOnceAudio.preload = 'auto';
+    this.bellOnceAudio.volume = this.bellLevel;
   }
 
   initContext() {
@@ -290,6 +314,30 @@ class SanSaAudioEngine {
     pinkNoise.start();
   }
 
+  startBellRepeatCycle() {
+    this.stopBellRepeatCycle();
+    this.bellLoopAudio.currentTime = 0;
+    this.bellLoopAudio.volume = Math.max(0, Math.min(1, this.bellLevel));
+    this.bellLoopAudio.play().catch((err) => console.warn('templebell.wav play blocked:', err));
+
+    // Repeat templebell.wav every 30 seconds (30,000ms)
+    this.bellRepeatTimer = setInterval(() => {
+      if (!this.isPlaying) return;
+      this.bellLoopAudio.currentTime = 0;
+      this.bellLoopAudio.volume = Math.max(0, Math.min(1, this.bellLevel));
+      this.bellLoopAudio.play().catch(() => {});
+      if (world3D) world3D.exciteWindBell();
+    }, this.bellRepeatIntervalSec * 1000);
+  }
+
+  stopBellRepeatCycle() {
+    if (this.bellRepeatTimer) {
+      clearInterval(this.bellRepeatTimer);
+      this.bellRepeatTimer = null;
+    }
+    this.bellLoopAudio.pause();
+  }
+
   toggle() {
     this.initContext();
     if (this.ctx.state === 'suspended') {
@@ -299,11 +347,15 @@ class SanSaAudioEngine {
     this.updateContinuousVolumes();
 
     if (this.isPlaying) {
-      this.strikeWindBell(0.8);
+      this.bellOnceAudio.pause();
+      this.startBellRepeatCycle();
       this.scheduleNextAutoBell();
-    } else if (this.autoBellTimer) {
-      clearTimeout(this.autoBellTimer);
-      this.autoBellTimer = null;
+    } else {
+      this.stopBellRepeatCycle();
+      if (this.autoBellTimer) {
+        clearTimeout(this.autoBellTimer);
+        this.autoBellTimer = null;
+      }
     }
     return this.isPlaying;
   }
@@ -316,6 +368,9 @@ class SanSaAudioEngine {
   }
 
   updateContinuousVolumes() {
+    this.bellLoopAudio.volume = Math.max(0, Math.min(1, this.bellLevel));
+    this.bellOnceAudio.volume = Math.max(0.25, Math.min(1, this.bellLevel));
+
     if (!this.ctx || !this.waterGain || !this.windGain) return;
     const now = this.ctx.currentTime;
     if (!this.isPlaying) {
@@ -331,50 +386,35 @@ class SanSaAudioEngine {
     if (this.autoBellTimer) clearTimeout(this.autoBellTimer);
     if (!this.isPlaying) return;
 
-    const intervalMs = 5000 + Math.random() * 6000;
+    const intervalMs = 5000 + Math.random() * 5500;
     this.autoBellTimer = setTimeout(() => {
       if (this.isPlaying && this.bellLevel > 0.02) {
-        this.strikeWindBell(this.bellLevel * (0.65 + Math.random() * 0.35));
         if (world3D) world3D.exciteWindBell();
       }
       this.scheduleNextAutoBell();
     }, intervalMs);
   }
 
-  strikeWindBell(intensity = 0.85, pitchVariant = null) {
-    this.ensureActiveForInteraction();
-    const now = this.ctx.currentTime;
+  /**
+   * Plays only the original uploaded templebell.wav file with zero synthetic sound or pitch alteration.
+   */
+  strikeWindBell(intensity = 0.85) {
+    const vol = Math.max(0.25, Math.min(1, intensity * Math.max(0.45, this.bellLevel)));
 
-    const bellNotes = [528, 594, 660, 792, 880];
-    const baseFreq = pitchVariant || bellNotes[Math.floor(Math.random() * bellNotes.length)];
+    // If ambient loop is already playing templebell.wav, do not stack another audio stream on top
+    if (this.isPlaying && !this.bellLoopAudio.paused) {
+      this.bellLoopAudio.volume = Math.max(this.bellLoopAudio.volume, vol);
+      return;
+    }
 
-    const partials = [
-      { ratio: 1.0, amp: 0.44, decay: 5.1 },
-      { ratio: 2.004, amp: 0.25, decay: 4.1 },
-      { ratio: 2.756, amp: 0.19, decay: 2.9 },
-      { ratio: 4.18, amp: 0.1, decay: 2.0 },
-      { ratio: 5.404, amp: 0.05, decay: 1.3 }
-    ];
-
-    partials.forEach((p) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(baseFreq * p.ratio, now);
-      osc.frequency.exponentialRampToValueAtTime(baseFreq * p.ratio * 0.9984, now + p.decay);
-
-      const peakGain = Math.max(0.001, p.amp * intensity * 0.34);
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(peakGain, now + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + p.decay);
-
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-
-      osc.start(now);
-      osc.stop(now + p.decay + 0.05);
-    });
+    try {
+      this.bellOnceAudio.pause();
+      this.bellOnceAudio.currentTime = 0.50;
+      this.bellOnceAudio.volume = vol;
+      this.bellOnceAudio.play().catch((err) => console.warn('templebell.wav play blocked:', err));
+    } catch (err) {
+      console.warn('Error playing templebell.wav:', err);
+    }
   }
 }
 
@@ -543,6 +583,200 @@ class TextureFactory {
     tex.colorSpace = C_ENGINE.SRGBColorSpace;
     return tex;
   }
+
+  static createForestCanopyTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d');
+
+    // Deep Korean mountain forest base (소백산·봉황산 짙은 녹음 베이스)
+    const baseGrad = ctx.createLinearGradient(0, 0, 0, 1024);
+    baseGrad.addColorStop(0, '#2f4f28');
+    baseGrad.addColorStop(0.5, '#254220');
+    baseGrad.addColorStop(1, '#1a3017');
+    ctx.fillStyle = baseGrad;
+    ctx.fillRect(0, 0, 1024, 1024);
+
+    // Layered sunlit tree crowns & pine/broad-leaf foliage clusters
+    const crownColors = [
+      'rgba(24, 44, 20, 0.72)',
+      'rgba(38, 66, 31, 0.68)',
+      'rgba(52, 86, 42, 0.62)',
+      'rgba(68, 106, 52, 0.48)',
+      'rgba(88, 126, 64, 0.34)'
+    ];
+    let seed = 1337;
+    const rand = () => {
+      seed = (seed * 16807) % 2147483647;
+      return (seed - 1) / 2147483646;
+    };
+
+    for (let i = 0; i < 4200; i++) {
+      const cx = rand() * 1024;
+      const cy = rand() * 1024;
+      const rx = 8 + rand() * 26;
+      const ry = 6 + rand() * 18;
+      const cIdx = Math.min(crownColors.length - 1, Math.floor(rand() * crownColors.length));
+      ctx.fillStyle = crownColors[cIdx];
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, (rand() - 0.5) * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const tex = new C_ENGINE.CanvasTexture(canvas);
+    tex.colorSpace = C_ENGINE.SRGBColorSpace;
+    tex.wrapS = C_ENGINE.RepeatWrapping;
+    tex.wrapT = C_ENGINE.RepeatWrapping;
+    tex.repeat.set(6, 3);
+    return tex;
+  }
+
+  static createSobaeksanVistaTexture(onPhotoLoaded) {
+    const W = 2560;
+    const H = 1024;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Apply soft alpha feathering at the left, right, top, and bottom edges of the forward vista
+    // so it blends invisibly into the 3D pine forest & 360° woodland without any awkward blue side-stripes.
+    const applyEdgeAlphaFeather = () => {
+      const imgData = ctx.getImageData(0, 0, W, H);
+      const data = imgData.data;
+      for (let y = 0; y < H; y++) {
+        const v = y / H; // 0 at top of sky, 1 at bottom of valley
+        let alphaY = 1.0;
+        if (v < 0.04) {
+          alphaY = v / 0.04;
+          alphaY = alphaY * alphaY * (3 - 2 * alphaY);
+        } else if (v > 0.90) {
+          alphaY = (1.0 - v) / 0.10;
+          alphaY = alphaY * alphaY * (3 - 2 * alphaY);
+        }
+
+        for (let x = 0; x < W; x++) {
+          const u = x / W; // 0 at left edge, 1 at right edge
+          let alphaX = 1.0;
+          if (u < 0.09) {
+            alphaX = u / 0.09;
+            alphaX = alphaX * alphaX * (3 - 2 * alphaX);
+          } else if (u > 0.91) {
+            alphaX = (1.0 - u) / 0.09;
+            alphaX = alphaX * alphaX * (3 - 2 * alphaX);
+          }
+
+          if (alphaX < 1.0 || alphaY < 1.0) {
+            const idx = (y * W + x) * 4;
+            data[idx + 3] = Math.round(data[idx + 3] * alphaX * alphaY);
+          }
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    };
+
+    const drawGreenForestLowerBase = () => {
+      // Lush dark-green mountain forest canopy in the lower portion (behind 3D Anyangru & stone terrace)
+      const forestGrad = ctx.createLinearGradient(0, H * 0.48, 0, H);
+      forestGrad.addColorStop(0, '#32542b');
+      forestGrad.addColorStop(0.35, '#284522');
+      forestGrad.addColorStop(0.75, '#1f371a');
+      forestGrad.addColorStop(1, '#172913');
+      ctx.fillStyle = forestGrad;
+      ctx.fillRect(0, Math.floor(H * 0.48), W, Math.ceil(H * 0.52));
+
+      let fSeed = 9001;
+      const fRand = () => {
+        fSeed = (fSeed * 16807) % 2147483647;
+        return (fSeed - 1) / 2147483646;
+      };
+      const canopyShades = [
+        'rgba(30, 52, 25, 0.65)',
+        'rgba(44, 72, 36, 0.58)',
+        'rgba(60, 94, 47, 0.50)',
+        'rgba(78, 114, 58, 0.38)',
+        'rgba(22, 39, 18, 0.62)'
+      ];
+      for (let i = 0; i < 4200; i++) {
+        const cx = fRand() * W;
+        const cy = H * 0.50 + fRand() * (H * 0.50);
+        const rx = 10 + fRand() * 26;
+        const ry = 7 + fRand() * 16;
+        ctx.fillStyle = canopyShades[Math.floor(fRand() * canopyShades.length)];
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+
+    const tex = new C_ENGINE.CanvasTexture(canvas);
+    tex.colorSpace = C_ENGINE.SRGBColorSpace;
+
+    // Load the real photograph ("부석사 소백산맥 원거리 배경.jpg") across the full forward vista width
+    const refImg = new Image();
+    refImg.crossOrigin = 'anonymous';
+    refImg.onload = () => {
+      try {
+        ctx.clearRect(0, 0, W, H);
+        drawGreenForestLowerBase();
+
+        // Draw upper 62% of "부석사 소백산맥 원거리 배경.jpg" (real blue sky, cumulus clouds, Sobaeksan ridges & green hills)
+        // across 100% of the forward vista width (W)
+        const off = document.createElement('canvas');
+        const destH = Math.round(H * 0.72);
+        off.width = W;
+        off.height = destH;
+        const octx = off.getContext('2d');
+
+        const srcCropH = Math.round(refImg.height * 0.60);
+        octx.drawImage(refImg, 0, 0, refImg.width, srcCropH, 0, 0, W, destH);
+
+        // Feather the bottom of the cropped photo right across the green mid-ground hills
+        // so the 2D photo Anyangru roof (below 55% of photo) is cleanly replaced by green forest + 3D Anyangru
+        const imgData = octx.getImageData(0, 0, W, destH);
+        const data = imgData.data;
+
+        for (let y = 0; y < destH; y++) {
+          const v = y / destH;
+          for (let x = 0; x < W; x++) {
+            const u = x / W;
+
+            let fadeStart = 0.84;
+            let fadeEnd = 0.95;
+            if (u < 0.46) {
+              fadeStart = 0.76;
+              fadeEnd = 0.88;
+            } else if (u > 0.66) {
+              fadeStart = 0.86;
+              fadeEnd = 0.97;
+            }
+
+            if (v > fadeStart) {
+              let alphaY = Math.max(0, Math.min(1, 1.0 - (v - fadeStart) / (fadeEnd - fadeStart)));
+              alphaY = alphaY * alphaY * (3 - 2 * alphaY);
+              const idx = (y * W + x) * 4;
+              data[idx + 3] = Math.round(data[idx + 3] * alphaY);
+            }
+          }
+        }
+
+        octx.putImageData(imgData, 0, 0);
+        ctx.drawImage(off, 0, 0);
+
+        // Feather outer left/right/top/bottom edges so there is never a sharp blue border on the sides
+        applyEdgeAlphaFeather();
+
+        tex.needsUpdate = true;
+        if (typeof onPhotoLoaded === 'function') onPhotoLoaded(tex);
+      } catch (err) {
+        console.warn('Sobaeksan vista photo composite fallback:', err);
+      }
+    };
+    refImg.src = encodeURI('부석사 소백산맥 원거리 배경.jpg');
+
+    return tex;
+  }
 }
 
 /* ==========================================================================
@@ -698,6 +932,8 @@ class Chakyeong3DWorld {
     this.cloudTex = TextureFactory.createCloudTexture();
     this.contactShadowTex = TextureFactory.createContactShadowTexture();
     this.dancheongCapTex = TextureFactory.createDancheongCapTexture();
+    this.forestCanopyTex = TextureFactory.createForestCanopyTexture();
+    this.sobaeksanVistaTex = TextureFactory.createSobaeksanVistaTexture();
 
     this.lanternTextures = {};
     Object.keys(LANTERN_COLORS).forEach((k) => {
@@ -814,6 +1050,14 @@ class Chakyeong3DWorld {
     ];
     this.canopyMaterials.forEach((m) => this.attachWindSwayShader(m, 0.08));
 
+    // Lush Korean Mountain Forest Green Canopy Materials (봉황산·소백산 녹음 수관)
+    this.greenCanopyMaterials = [
+      new C_ENGINE.MeshStandardMaterial({ color: 0x2d4d26, roughness: 0.90, vertexColors: true }),
+      new C_ENGINE.MeshStandardMaterial({ color: 0x3b6032, roughness: 0.88, vertexColors: true }),
+      new C_ENGINE.MeshStandardMaterial({ color: 0x4b743f, roughness: 0.88, vertexColors: true })
+    ];
+    this.greenCanopyMaterials.forEach((m) => this.attachWindSwayShader(m, 0.06));
+
     this.trackedGeometries = [];
   }
 
@@ -873,7 +1117,7 @@ class Chakyeong3DWorld {
   loadPhotorealisticAssets() {
     const texLoader = new C_ENGINE.TextureLoader();
 
-    // 1. Load 360° Woodland Mountain Panorama & apply to scene background + horizon shaders
+    // 1. Load 360° Natural Woodland Mountain Panorama & apply to scene background + horizon shaders
     texLoader.load('assets/environment/woodland.jpg', (tex) => {
       tex.colorSpace = C_ENGINE.SRGBColorSpace;
       tex.mapping = C_ENGINE.EquirectangularReflectionMapping;
@@ -926,7 +1170,7 @@ class Chakyeong3DWorld {
           surfaceMgr.apply(this.matMoss, 'moss', { tint: '#688056', normal: 0.32 });
           surfaceMgr.apply(this.matGround, 'ground', { tint: '#b5b8a3', normal: 0.45 });
           if (this.buseoksaGroundMat) {
-            surfaceMgr.apply(this.buseoksaGroundMat, 'ground', { tint: '#b5b8a3', normal: 0.45 });
+            surfaceMgr.apply(this.buseoksaGroundMat, 'ground', { tint: '#c5c2af', normal: 0.42 });
           }
           if (this.seonamsaGroundMat) {
             surfaceMgr.apply(this.seonamsaGroundMat, 'ground', { tint: '#b5b8a3', normal: 0.45 });
@@ -967,43 +1211,134 @@ class Chakyeong3DWorld {
 
   populateScannedPines(gltf) {
     const candidates = gltf.scene.children.filter((c) => c.name.startsWith('pine_sapling_small'));
-    const templates = candidates.length > 0 ? candidates : [gltf.scene];
+    const rawTemplates = candidates.length > 0 ? candidates : [gltf.scene];
 
-    // Enhance pine materials with gentle wind sway
-    templates.forEach((tpl) => {
-      tpl.traverse((child) => {
+    let baseTwigMat = null;
+    let baseBarkMat = null;
+
+    // 1. Normalize each scanned tree template so its trunk base is centered at (0, 0, 0)
+    //    (Fixes the Blender export X-offsets of +1.0m / +2.025m so rotating a tree never shifts its world position)
+    const normalizedTemplates = rawTemplates.map((tpl) => {
+      const clone = tpl.clone(true);
+      clone.position.set(0, 0, 0);
+      clone.rotation.set(0, 0, 0);
+      clone.scale.set(1, 1, 1);
+
+      const holder = new C_ENGINE.Group();
+      holder.add(clone);
+      holder.updateMatrixWorld(true);
+
+      const box = new C_ENGINE.Box3().setFromObject(holder);
+      const center = box.getCenter(new C_ENGINE.Vector3());
+      const rawHeight = Math.max(0.5, box.max.y - box.min.y);
+
+      clone.position.set(-center.x, -box.min.y, -center.z);
+      holder.updateMatrixWorld(true);
+
+      clone.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
           const mats = Array.isArray(child.material) ? child.material : [child.material];
           mats.forEach((m) => {
-            if (m && m.name && m.name.includes('twig')) {
-              this.attachWindSwayShader(m, 0.012);
+            if (!m) return;
+            if (m.name && m.name.includes('twig')) {
+              m.alphaTest = 0.42;
+              m.side = C_ENGINE.DoubleSide;
+              m.roughness = 0.88;
+              m.envMapIntensity = 0.32;
+              this.attachWindSwayShader(m, 0.008);
+              if (!baseTwigMat) baseTwigMat = m;
+            } else if (m.name && m.name.includes('bark')) {
+              m.roughness = 0.92;
+              m.envMapIntensity = 0.25;
+              if (!baseBarkMat) baseBarkMat = m;
             }
           });
         }
       });
+
+      return { node: holder, rawHeight };
     });
 
+    // 2. Create natural botanical foliage tint variants of the real scanned twig material
+    //    (Preserves 100% of the scanned WebP leaf/needle diffuse, normal, roughness & alpha mask)
+    const pineTintPalette = [0xffffff, 0xe8f4e0, 0xd6ebd0, 0xc8e2c2];
+    const pineTwigMats = pineTintPalette.map((hex) => {
+      if (!baseTwigMat) return null;
+      const m = baseTwigMat.clone();
+      m.color.setHex(hex);
+      this.attachWindSwayShader(m, 0.008);
+      return m;
+    });
+
+    // Subtle natural seasonal twig materials for Seonamsa / distant seasonal accents
+    this.scannedSeasonalTwigMats = [0xd88c52, 0xc96b43, 0xe2ab5a].map((hex) => {
+      if (!baseTwigMat) return null;
+      const m = baseTwigMat.clone();
+      m.color.setHex(hex);
+      this.attachWindSwayShader(m, 0.009);
+      return m;
+    });
+    this.setFoliageMode(this.foliageMode);
+
+    const applyTwigMaterial = (rootObj, twigMat) => {
+      if (!twigMat) return;
+      rootObj.traverse((child) => {
+        if (child.isMesh && child.material) {
+          if (Array.isArray(child.material)) {
+            child.material = child.material.map((m) =>
+              m && m.name && m.name.includes('twig') ? twigMat : m
+            );
+          } else if (child.material.name && child.material.name.includes('twig')) {
+            child.material = twigMat;
+          }
+        }
+      });
+    };
+
+    // 3. Place single or full-crowned multi-bough scanned 3D trees at each anchor
     const placePineAt = (spec, idx, targetGroup) => {
-      const tpl = templates[idx % templates.length].clone(true);
-      const wrapper = new C_ENGINE.Group();
-      wrapper.add(tpl);
-      wrapper.updateMatrixWorld(true);
+      const treeGroup = new C_ENGINE.Group();
+      const mainTpl = normalizedTemplates[idx % normalizedTemplates.length];
+      const mainScale = spec.height / mainTpl.rawHeight;
 
-      const box = new C_ENGINE.Box3().setFromObject(wrapper);
-      const center = box.getCenter(new C_ENGINE.Vector3());
-      const rawHeight = Math.max(0.5, box.max.y - box.min.y);
-      const scale = spec.height / rawHeight;
+      const chooseTwigMat = (subIdx) => {
+        if (spec.role === 'seasonal' && this.scannedSeasonalTwigMats.length > 0) {
+          return this.scannedSeasonalTwigMats[(idx + subIdx) % this.scannedSeasonalTwigMats.length];
+        }
+        return pineTwigMats[(idx + subIdx) % pineTwigMats.length];
+      };
 
-      wrapper.scale.setScalar(scale);
-      wrapper.rotation.y = spec.yaw || idx * 1.7;
-      wrapper.position.set(
-        spec.x - center.x * scale,
-        spec.y - box.min.y * scale,
-        spec.z - center.z * scale
-      );
-      targetGroup.add(wrapper);
+      // Primary scanned tree trunk & crown
+      const primary = mainTpl.node.clone(true);
+      const widthBoost = spec.widthScale || 1.12;
+      primary.scale.set(mainScale * widthBoost, mainScale, mainScale * widthBoost);
+      applyTwigMaterial(primary, chooseTwigMat(0));
+      treeGroup.add(primary);
+
+      // For hero courtyard & forest trees, compose a lush full-crowned multi-bough silhouette
+      // using 2 additional scanned tree templates (same technique as sansa-core ME woodland)
+      if (spec.cluster !== false) {
+        const subSpecs = [
+          { dx: -0.22, dz: -0.12, hMul: 0.86, wMul: 1.15, yaw: 1.15, tiltX: 0.04, tiltZ: -0.05 },
+          { dx: 0.24, dz: -0.15, hMul: 0.91, wMul: 1.12, yaw: 2.55, tiltX: -0.03, tiltZ: 0.04 }
+        ];
+        subSpecs.forEach((sub, sIdx) => {
+          const subTpl = normalizedTemplates[(idx + sIdx + 1) % normalizedTemplates.length];
+          const subScale = (spec.height * sub.hMul) / subTpl.rawHeight;
+          const subNode = subTpl.node.clone(true);
+          subNode.scale.set(subScale * sub.wMul, subScale, subScale * sub.wMul);
+          subNode.rotation.set(sub.tiltX, sub.yaw, sub.tiltZ);
+          subNode.position.set(sub.dx * (spec.height * 0.12), 0, sub.dz * (spec.height * 0.12));
+          applyTwigMaterial(subNode, chooseTwigMat(sIdx + 1));
+          treeGroup.add(subNode);
+        });
+      }
+
+      treeGroup.rotation.y = spec.yaw ?? idx * 1.7;
+      treeGroup.position.set(spec.x, spec.y, spec.z);
+      targetGroup.add(treeGroup);
     };
 
     this.buseoksaPineAnchors.forEach((spec, idx) => placePineAt(spec, idx, this.buseoksaGroup));
@@ -1070,9 +1405,9 @@ class Chakyeong3DWorld {
   buildBuseoksaWorld() {
     const g = this.buseoksaGroup;
 
-    // 1. Continuous Courtyard & Mountain Apron Ground
+    // 1. Continuous 360° Courtyard & Mountain Apron Ground (무량수전 좌우·전후방 전체를 감싸는 자연 지형)
     this.buseoksaGroundMat = this.matGround.clone();
-    const groundGeo = new C_ENGINE.PlaneGeometry(280, 260, 64, 64);
+    const groundGeo = new C_ENGINE.PlaneGeometry(280, 260, 72, 72);
     groundGeo.rotateX(-Math.PI / 2);
     const gPos = groundGeo.getAttribute('position');
     for (let i = 0; i < gPos.count; i++) {
@@ -1084,7 +1419,10 @@ class Chakyeong3DWorld {
         const d = -12 - z;
         y = -0.82 - Math.min(4.2, d * 0.18) + Math.sin(x * 0.08) * Math.min(1.5, d * 0.04);
       } else {
-        y = -0.82 + Math.sin(x * 0.25 + z * 0.2) * 0.03;
+        // Gentle rising mountain slopes flanking the left and right of Muryangsujeon (|x| > 15)
+        const sideDist = Math.max(0, Math.abs(x) - 15.0);
+        const sideLift = Math.min(6.5, Math.pow(sideDist * 0.08, 1.35) * 4.2);
+        y = -0.82 + sideLift + Math.sin(x * 0.25 + z * 0.2) * 0.03;
       }
       gPos.setY(i, y);
     }
@@ -1379,36 +1717,58 @@ class Chakyeong3DWorld {
     // 8. Unified Silla Buseoksa Stone Lantern (부석사 무량수전 앞 석등)
     this.buildBuseoksaStoneLantern(g, 2.75, -0.82, -1.65);
 
-    // 9. Anyangru 2-Story Pavilion (안양루 누각) framing Sobaeksan ridges
+    // 9. Anyangru 2-Story Pavilion (안양루 누각: 석축 단 아래에서 소백산맥 능선을 차경하는 구도)
     this.buildPavilion3D(g, {
-      x: -4.2,
-      y: -1.15,
-      z: -13.8,
-      scale: 0.92,
+      x: -4.4,
+      y: -2.45,
+      z: -13.9,
+      scale: 0.88,
       yaw: 0.16,
       hanja: '安 養 樓',
       hangul: '부석사 안양루'
     });
 
-    // 10. Register Scanned 3D Pine Trees (assets/models/pine.glb) around Courtyard & Anyangru
+    // 10. Register Scanned 3D Pine Trees (assets/models/pine.glb) around Courtyard, Muryangsujeon Flanks & Bonghwangsan Slope
     this.buseoksaPineAnchors = [
       { x: -11.2, y: -0.85, z: -6.2, height: 8.8, yaw: 0.4 },
       { x: -14.8, y: -0.95, z: -11.5, height: 10.5, yaw: 1.8 },
       { x: 10.4, y: -0.85, z: -5.8, height: 8.4, yaw: -0.6 },
-      { x: 14.2, y: -0.95, z: -11.8, height: 10.8, yaw: 2.3 },
-      { x: 4.8, y: -1.25, z: -14.2, height: 9.2, yaw: 0.9 },
-      { x: -10.5, y: -1.35, z: -16.5, height: 9.8, yaw: -1.4 }
+      { x: 14.2, y: -0.75, z: -11.8, height: 11.2, yaw: 2.3 },
+      { x: 4.8, y: -1.45, z: -14.2, height: 8.8, yaw: 0.9 },
+      { x: -10.5, y: -1.55, z: -16.5, height: 9.8, yaw: -1.4 },
+      // Natural pine forest flanking Left & Right of Muryangsujeon (무량수전 좌우 배경 소나무림)
+      { x: -15.6, y: -0.75, z: 3.2, height: 9.8, yaw: 0.8 },
+      { x: -18.2, y: -0.35, z: 7.8, height: 11.4, yaw: 2.1 },
+      { x: -14.8, y: -0.80, z: -1.5, height: 9.2, yaw: -0.5 },
+      { x: 15.6, y: -0.75, z: 3.4, height: 10.2, yaw: -1.1 },
+      { x: 18.5, y: -0.30, z: 8.2, height: 11.6, yaw: 1.4 },
+      // Right-side rising Bonghwangsan pine forest (우측 봉황산 숲 비탈 소나무 군락)
+      { x: 15.8, y: -0.65, z: -3.2, height: 10.8, yaw: 0.7 },
+      { x: 18.4, y: -0.25, z: -8.6, height: 11.8, yaw: -1.2 },
+      { x: 17.2, y: -0.45, z: -15.4, height: 11.5, yaw: 1.5 },
+      { x: 21.5, y: 0.35, z: -12.8, height: 12.6, yaw: 2.8 },
+      { x: 20.2, y: 0.15, z: -19.5, height: 12.2, yaw: -0.4 },
+      { x: -16.5, y: -1.25, z: -17.8, height: 10.4, yaw: 1.1 }
     ];
 
     // Seasonal Maple / Cherry Trees flanking the courtyard
     this.buildSeasonalTree(g, -9.4, -0.82, -8.5, 1.15);
     this.buildSeasonalTree(g, 8.8, -0.82, -8.2, 1.1);
-    this.buildSeasonalTree(g, 1.8, -1.2, -14.8, 1.05);
+    this.buildSeasonalTree(g, 1.8, -1.55, -14.8, 1.0);
 
-    // 11. Multi-Layered 3D Sobaeksan Mountain Ridges (소백산맥 6겹 중첩 능선)
+    // Lush Green Korean Broad-Leaf Forest Trees on Right Bonghwangsan Slope & Mid-Ground Foothills
+    this.buildGreenForestTree(g, 13.6, -0.55, -8.8, 1.25);
+    this.buildGreenForestTree(g, 16.4, 0.25, -13.2, 1.38);
+    this.buildGreenForestTree(g, 19.5, 1.15, -6.5, 1.42);
+    this.buildGreenForestTree(g, 22.8, 2.25, -16.2, 1.55);
+    this.buildGreenForestTree(g, 11.8, -1.35, -17.5, 1.22);
+    this.buildGreenForestTree(g, -13.2, -1.65, -15.2, 1.18);
+    this.buildGreenForestTree(g, -7.8, -2.25, -19.5, 1.25);
+
+    // 11. Realistic Sobaeksan Vista Panorama & Multi-Layered 3D Mountain Ridges
     this.buildSobaeksanMountainRidges(g);
 
-    // 12. Real-Time 3D Sea of Clouds (운해 레이어 38장)
+    // 12. Subtle Valley Mist & High Cumulus Clouds
     this.buildSeaOfClouds(g);
   }
 
@@ -1649,89 +2009,132 @@ class Chakyeong3DWorld {
   }
 
   buildSeasonalTree(parent, x, y, z, scale = 1.0) {
-    const tg = new C_ENGINE.Group();
-    tg.position.set(x, y, z);
-    tg.scale.setScalar(scale);
-
-    // Curved trunk & branches
-    const trunkCurve = new C_ENGINE.CatmullRomCurve3([
-      new C_ENGINE.Vector3(0, 0, 0),
-      new C_ENGINE.Vector3(0.18, 1.35, 0.08),
-      new C_ENGINE.Vector3(-0.12, 2.75, -0.1),
-      new C_ENGINE.Vector3(0.08, 3.85, 0.05)
-    ]);
-    this.createMesh(
-      new C_ENGINE.TubeGeometry(trunkCurve, 12, 0.22, 8, false),
-      this.matDarkTimber,
-      tg,
-      { tone: 0.85 }
-    );
-
-    const canopyOffsets = [
-      [0, 4.1, 0, 1.45, 0.95, 1.35],
-      [-1.1, 3.55, 0.4, 1.15, 0.78, 1.1],
-      [1.05, 3.65, -0.35, 1.2, 0.82, 1.15],
-      [0.25, 4.65, -0.5, 1.1, 0.75, 1.05],
-      [-0.45, 3.2, -0.8, 0.95, 0.68, 0.95]
-    ];
-
-    canopyOffsets.forEach(([cx, cy, cz, sx, sy, sz], idx) => {
-      const geo = new C_ENGINE.SphereGeometry(1, 16, 12);
-      const pos = geo.getAttribute('position');
-      for (let i = 0; i < pos.count; i++) {
-        const vx = pos.getX(i);
-        const vy = pos.getY(i);
-        const vz = pos.getZ(i);
-        const bump = 1 + Math.sin(vx * 5 + vy * 4 + idx) * 0.14;
-        pos.setXYZ(i, vx * bump, vy * bump, vz * bump);
-      }
-      geo.computeVertexNormals();
-      const mat = this.canopyMaterials[idx % this.canopyMaterials.length];
-      const mesh = this.createMesh(geo, mat, tg, {
-        pos: [cx, cy, cz],
-        scale: [sx, sy, sz],
-        tone: 0.94 + (idx % 3) * 0.04
-      });
-      this.seasonalCanopies.push(mesh);
+    // Register as a photorealistic 3D scanned tree (assets/models/pine.glb) instead of procedural sphere balls
+    const isBuseoksa = parent === this.buseoksaGroup;
+    const anchorList = isBuseoksa ? this.buseoksaPineAnchors : this.seonamsaPineAnchors;
+    anchorList.push({
+      x,
+      y,
+      z,
+      height: 6.2 * scale,
+      widthScale: 1.24,
+      yaw: (x * 1.37 + z * 0.93) % (Math.PI * 2),
+      cluster: true,
+      role: isBuseoksa ? 'pine' : 'seasonal'
     });
+  }
 
-    parent.add(tg);
+  buildGreenForestTree(parent, x, y, z, scale = 1.0) {
+    // Register as a photorealistic 3D scanned full-crown mountain tree (assets/models/pine.glb)
+    const isBuseoksa = parent === this.buseoksaGroup;
+    const anchorList = isBuseoksa ? this.buseoksaPineAnchors : this.seonamsaPineAnchors;
+    anchorList.push({
+      x,
+      y,
+      z,
+      height: 6.8 * scale,
+      widthScale: 1.28,
+      yaw: (x * 0.89 - z * 1.41) % (Math.PI * 2),
+      cluster: true,
+      role: 'pine'
+    });
   }
 
   buildSobaeksanMountainRidges(parent) {
     this.mountainLayers = [];
+
+    // 1. Forward Sobaeksan Real-Photo Vista Backdrop (전방 소백산맥·파란하늘·뭉게구름 실사 배경)
+    //    Spans a 100° forward arc strictly in the -Z vista (z = -86m .. -135m) with alpha-feathered edges,
+    //    so looking forward over Anyangru shows the real photo ("부석사 소백산맥 원거리 배경.jpg"),
+    //    while the left/right of Muryangsujeon (+Z / ±X) remain 100% natural green woodland & 3D pines!
+    const vistaSegX = 96;
+    const vistaSegY = 32;
+    const vistaGeo = new C_ENGINE.PlaneGeometry(1, 1, vistaSegX, vistaSegY);
+    const vPos = vistaGeo.getAttribute('position');
+    const arcSpan = Math.PI * 0.56; // 100° forward vista arc (-50° to +50°)
+    const radius = 135;
+    const centerZ = 0.0;
+
+    for (let i = 0; i < vPos.count; i++) {
+      const u = vPos.getX(i) + 0.5; // 0 (left -X) to 1 (right +X)
+      const v = vPos.getY(i) + 0.5; // 0 (bottom) to 1 (top)
+      const angle = (u - 0.5) * arcSpan;
+      const wx = Math.sin(angle) * radius;
+      const wz = centerZ - Math.cos(angle) * radius;
+      const wy = -16.0 + v * 70.0; // -16m valley floor up to +54m blue sky & cumulus clouds
+      vPos.setXYZ(i, wx, wy, wz);
+    }
+    vistaGeo.computeVertexNormals();
+
+    this.sobaeksanVistaMat = new C_ENGINE.MeshBasicMaterial({
+      map: this.sobaeksanVistaTex,
+      color: 0xffffff,
+      side: C_ENGINE.DoubleSide,
+      transparent: true,
+      fog: false,
+      depthWrite: false
+    });
+    this.sobaeksanVistaMesh = new C_ENGINE.Mesh(vistaGeo, this.sobaeksanVistaMat);
+    this.sobaeksanVistaMesh.renderOrder = -10;
+    parent.add(this.sobaeksanVistaMesh);
+
+    // 2. Low 3D Mid-Ground Green Forested Foothills (중경 3D 녹음 산자락)
+    //    Kept low in the center so they never block the real Sobaeksan mountain ridges & blue sky in the photo!
     const ridgeConfigs = [
-      { z: -36, width: 140, baseH: 5.5, amp: 3.4, freq: 0.055, phase: 0.3, color: 0x3b5249 },
-      { z: -62, width: 185, baseH: 9.8, amp: 5.2, freq: 0.042, phase: 1.4, color: 0x465f58 },
-      { z: -92, width: 230, baseH: 14.5, amp: 7.4, freq: 0.032, phase: 2.7, color: 0x556f6b },
-      { z: -126, width: 280, baseH: 19.5, amp: 9.2, freq: 0.025, phase: 4.1, color: 0x678080 },
-      { z: -162, width: 330, baseH: 25.0, amp: 11.5, freq: 0.02, phase: 5.3, color: 0x7b9396 },
-      { z: -198, width: 380, baseH: 31.0, amp: 13.5, freq: 0.016, phase: 0.9, color: 0x8ea4a9 }
+      {
+        z: -30,
+        width: 145,
+        baseH: 0.8,
+        amp: 1.2,
+        freq: 0.052,
+        phase: 0.5,
+        color: 0x3b5834,
+        useForestTex: true,
+        rightSlopeLift: 9.5
+      },
+      {
+        z: -54,
+        width: 195,
+        baseH: 1.8,
+        amp: 1.6,
+        freq: 0.04,
+        phase: 1.7,
+        color: 0x456340,
+        useForestTex: true,
+        rightSlopeLift: 12.0
+      }
     ];
 
     ridgeConfigs.forEach((cfg, layerIdx) => {
       const segX = 96;
-      const segY = 18;
-      const geo = new C_ENGINE.PlaneGeometry(cfg.width, 45, segX, segY);
+      const segY = 20;
+      const geo = new C_ENGINE.PlaneGeometry(cfg.width, 32, segX, segY);
       const pos = geo.getAttribute('position');
       const colors = new Float32Array(pos.count * 3);
 
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i);
         const rawY = pos.getY(i);
-        const v = (rawY + 22.5) / 45; // 0 at bottom, 1 at ridge crest
+        const v = (rawY + 16) / 32; // 0 at bottom, 1 at ridge crest
+
+        // Gentle hill behind Anyangru + natural rising Bonghwangsan forest slope on the right
+        const leftHillBump = Math.exp(-Math.pow((x + 12) / 24, 2)) * 1.4;
+        const rightSlope =
+          x > 14 ? Math.pow((x - 14) / (cfg.width * 0.45), 1.3) * cfg.rightSlopeLift : 0;
 
         const ridgeCurve =
           cfg.baseH +
+          leftHillBump +
+          rightSlope +
           Math.sin(x * cfg.freq + cfg.phase) * cfg.amp +
-          Math.cos(x * cfg.freq * 2.1 - cfg.phase * 0.7) * (cfg.amp * 0.42) +
-          Math.sin(x * cfg.freq * 4.3 + layerIdx) * (cfg.amp * 0.16);
+          Math.cos(x * cfg.freq * 2.1 - cfg.phase * 0.7) * (cfg.amp * 0.4) +
+          Math.sin(x * cfg.freq * 4.3 + layerIdx) * (cfg.amp * 0.15);
 
-        const y = -8.5 + v * (ridgeCurve + 8.5);
-        const zOffset = (1 - v) * 8.5 + Math.sin(x * 0.08 + v * 3.0) * 2.2;
+        const y = -11.5 + v * (ridgeCurve + 11.5);
+        const zOffset = (1 - v) * 6.5 + Math.sin(x * 0.07 + v * 2.8) * 1.6;
         pos.setXYZ(i, x, y, zOffset);
 
-        const hShade = 0.72 + v * 0.34;
+        const hShade = 0.76 + v * 0.28;
         colors[i * 3] = hShade;
         colors[i * 3 + 1] = hShade;
         colors[i * 3 + 2] = hShade;
@@ -1740,6 +2143,7 @@ class Chakyeong3DWorld {
       geo.computeVertexNormals();
 
       const mat = new C_ENGINE.MeshStandardMaterial({
+        map: cfg.useForestTex ? this.forestCanopyTex : null,
         color: cfg.color,
         roughness: 0.95,
         metalness: 0.0,
@@ -1755,30 +2159,37 @@ class Chakyeong3DWorld {
 
   buildSeaOfClouds(parent) {
     this.cloudPlanes = [];
-    const cloudGeo = new C_ENGINE.PlaneGeometry(34, 14);
-    for (let i = 0; i < 38; i++) {
+    const cloudGeo = new C_ENGINE.PlaneGeometry(38, 13);
+    // Subtle low valley mist tucked below the horizon + high drifting sky cumulus accents
+    for (let i = 0; i < 24; i++) {
+      const isHighCumulus = i < 10;
       const mat = new C_ENGINE.MeshBasicMaterial({
         map: this.cloudTex,
-        color: 0xf4f7fa,
+        color: 0xf8fbff,
         transparent: true,
-        opacity: 0.42,
-        depthWrite: false
+        opacity: isHighCumulus ? 0.28 : 0.14,
+        depthWrite: false,
+        fog: false
       });
       const mesh = new C_ENGINE.Mesh(cloudGeo, mat);
-      const x = (Math.random() - 0.5) * 145;
-      const y = -1.2 + Math.random() * 6.8;
-      const z = -24 - Math.random() * 125;
+      const x = (Math.random() - 0.5) * 155;
+      const y = isHighCumulus ? 24.0 + Math.random() * 14.0 : -5.8 + Math.random() * 2.4;
+      const z = isHighCumulus ? -115 - Math.random() * 32 : -26 - Math.random() * 55;
       mesh.position.set(x, y, z);
-      mesh.scale.set(0.8 + Math.random() * 1.1, 0.65 + Math.random() * 0.6, 1);
+      mesh.scale.set(
+        (isHighCumulus ? 1.35 : 0.85) + Math.random() * 0.9,
+        (isHighCumulus ? 0.85 : 0.45) + Math.random() * 0.4,
+        1
+      );
       parent.add(mesh);
       this.cloudPlanes.push({
         mesh,
         mat,
         baseX: x,
         baseY: y,
-        speed: 0.45 + Math.random() * 0.75,
+        speed: (isHighCumulus ? 0.22 : 0.38) + Math.random() * 0.45,
         phase: Math.random() * Math.PI * 2,
-        baseAlpha: 0.28 + Math.random() * 0.28
+        baseAlpha: isHighCumulus ? 0.22 + Math.random() * 0.14 : 0.10 + Math.random() * 0.08
       });
     }
   }
@@ -2393,6 +2804,7 @@ class Chakyeong3DWorld {
       }
     }
 
+    this.setTimeMode(this.timeMode);
     this.setCameraPreset(this.camPreset, immediate);
   }
 
@@ -2400,7 +2812,7 @@ class Chakyeong3DWorld {
     this.timeMode = timeKey;
 
     if (timeKey === 'dawn') {
-      // 새벽 운해 (Crisp morning mist & sea of clouds)
+      // 새벽·아침 산사 (Crisp morning mist & natural woodland mountain horizon)
       this.hemiLight.color.set(0xeaf4f0);
       this.hemiLight.groundColor.set(0x6b6859);
       this.hemiLight.intensity = 0.94;
@@ -2412,16 +2824,22 @@ class Chakyeong3DWorld {
       this.eaveFillLight.intensity = 1.15;
       if (this.stoneLanternLight) this.stoneLanternLight.intensity = 1.6;
       this.scene.fog.color.set(0xd7e4df);
-      this.scene.fog.near = 36;
-      this.scene.fog.far = 205;
+      this.scene.fog.near = 42;
+      this.scene.fog.far = 215;
+      if (this.woodlandPanorama) {
+        this.scene.background = this.woodlandPanorama;
+      }
       this.scene.backgroundIntensity = 0.88;
       this.renderer.toneMappingExposure = 1.04;
       this.starMat.opacity = 0;
       this.moonGroup.visible = false;
       if (this.waterEnhancer) this.waterEnhancer.setNight(0.12);
+      if (this.sobaeksanVistaMat) this.sobaeksanVistaMat.color.set(0xffffff);
 
-      const dawnColors = [0x3b5249, 0x465f58, 0x556f6b, 0x678080, 0x7b9396, 0x8ea4a9];
-      this.mountainLayers?.forEach((l, idx) => l.mat.color.set(dawnColors[idx]));
+      const dawnColors = [0x3b5834, 0x456340, 0x526f4f, 0x627e62, 0x748f77, 0x88a18c];
+      this.mountainLayers?.forEach((l, idx) =>
+        l.mat.color.set(dawnColors[idx] ?? dawnColors[dawnColors.length - 1])
+      );
       this.cloudPlanes.forEach((c) => {
         c.mat.color.set(0xf4f8fa);
         c.mat.opacity = c.baseAlpha;
@@ -2441,14 +2859,20 @@ class Chakyeong3DWorld {
       this.scene.fog.color.set(0xd8a388);
       this.scene.fog.near = 38;
       this.scene.fog.far = 210;
+      if (this.woodlandPanorama) {
+        this.scene.background = this.woodlandPanorama;
+      }
       this.scene.backgroundIntensity = 0.58;
       this.renderer.toneMappingExposure = 1.02;
       this.starMat.opacity = 0.22;
       this.moonGroup.visible = false;
       if (this.waterEnhancer) this.waterEnhancer.setNight(0.48);
+      if (this.sobaeksanVistaMat) this.sobaeksanVistaMat.color.set(0xffbb94);
 
       const sunsetColors = [0x3d3538, 0x4f3e45, 0x634952, 0x7a5760, 0x94696e, 0xad7d7c];
-      this.mountainLayers?.forEach((l, idx) => l.mat.color.set(sunsetColors[idx]));
+      this.mountainLayers?.forEach((l, idx) =>
+        l.mat.color.set(sunsetColors[idx] ?? sunsetColors[sunsetColors.length - 1])
+      );
       this.cloudPlanes.forEach((c) => {
         c.mat.color.set(0xffd8be);
         c.mat.opacity = c.baseAlpha * 0.78;
@@ -2468,14 +2892,20 @@ class Chakyeong3DWorld {
       this.scene.fog.color.set(0x111824);
       this.scene.fog.near = 34;
       this.scene.fog.far = 195;
+      if (this.woodlandPanorama) {
+        this.scene.background = this.woodlandPanorama;
+      }
       this.scene.backgroundIntensity = 0.08;
       this.renderer.toneMappingExposure = 0.96;
       this.starMat.opacity = 0.92;
       this.moonGroup.visible = true;
       if (this.waterEnhancer) this.waterEnhancer.setNight(0.95);
+      if (this.sobaeksanVistaMat) this.sobaeksanVistaMat.color.set(0x243650);
 
       const nightColors = [0x141d26, 0x18232e, 0x1c2938, 0x223042, 0x28384c, 0x2e4057];
-      this.mountainLayers?.forEach((l, idx) => l.mat.color.set(nightColors[idx]));
+      this.mountainLayers?.forEach((l, idx) =>
+        l.mat.color.set(nightColors[idx] ?? nightColors[nightColors.length - 1])
+      );
       this.cloudPlanes.forEach((c) => {
         c.mat.color.set(0x475970);
         c.mat.opacity = c.baseAlpha * 0.42;
@@ -2492,13 +2922,18 @@ class Chakyeong3DWorld {
     // Falling petals/leaves color
     this.leafInstancedMat.color.set(isAutumn ? 0xe86434 : 0xfbcfe8);
 
-    // 3D Tree canopies color palette (Autumn Maple vs Spring Cherry Blossom)
+    // Subtle organic tint for scanned seasonal trees (preserving real WebP twig textures)
     const palette = isAutumn
-      ? [0xc83e2b, 0xe06d2b, 0xd99b26]
-      : [0xf9a8d4, 0xfbcfe8, 0xfdf2f8];
+      ? [0xd88c52, 0xc96b43, 0xe2ab5a]
+      : [0xf7d6e6, 0xf2e4ec, 0xe8f0e4];
     this.canopyMaterials.forEach((mat, idx) => {
       mat.color.set(palette[idx % palette.length]);
     });
+    if (this.scannedSeasonalTwigMats) {
+      this.scannedSeasonalTwigMats.forEach((mat, idx) => {
+        if (mat) mat.color.setHex(palette[idx % palette.length]);
+      });
+    }
   }
 
   setCameraPreset(preset, immediate = false) {
@@ -2966,7 +3401,6 @@ function openWishReader(wishId) {
   hapjangBtn.classList.toggle('pressed', likedWishIds.has(wish.id));
 
   document.getElementById('wish-reader-card').classList.add('open');
-  audioEngine.strikeWindBell(0.5, 660);
 }
 
 function closeWishReader() {
@@ -3004,7 +3438,6 @@ function handleHapjangClick() {
   void btn.offsetWidth;
   btn.classList.add('pressed');
 
-  audioEngine.strikeWindBell(0.9, 528);
   if (world3D) {
     world3D.spawnHapjangParticles3D(wish.id);
   }
@@ -3064,7 +3497,6 @@ function handleWriteFormSubmit(e) {
   if (world3D) {
     world3D.spawnHapjangParticles3D(newWish.id);
   }
-  audioEngine.strikeWindBell(0.95, 792);
   showToast('🏮 새로운 3D 소원 연등이 밝혀졌습니다!');
 }
 
@@ -3073,7 +3505,7 @@ function triggerBellRingInteraction() {
   if (world3D) {
     world3D.exciteWindBell();
   }
-  showToast('🔔 처마 끝 3D 청동 풍경종이 맑은 여운을 남기며 울립니다.');
+  showToast('🔔 처마 끝 풍경종이 은은하게 울립니다.');
 }
 
 function switchSpace(targetSpace) {
@@ -3341,4 +3773,2063 @@ document.addEventListener('DOMContentLoaded', () => {
       toggleZenMode();
     }
   });
+});
+
+
+/* ==========================================================================
+   SANSA WANDERER (삿갓 쓴 산사 나그네) & SANSATEMPLE-STYLE 3RD-PERSON WALK SYSTEM
+   ========================================================================== */
+const THREE = C_ENGINE;
+const WANDERER_STORAGE_KEY = 'chakyeong_3d_wanderer_profile_v3';
+
+const WANDERER_POETIC_NAMES = [
+  '솔바람 걷는 나그네',
+  '운해 찾는 삿갓객',
+  '달빛 밟는 산사객',
+  '고즈넉한 댓잎객',
+  '여울물 듣는 행자',
+  '노을빛 청산 나그네',
+  '단풍길 걷는 시인',
+  '산사 찾은 묵객',
+  '청풍명월 유람객',
+  '안개 깃든 대숲객'
+];
+
+const WANDERER_PALETTES = [
+  {
+    id: 'ink',
+    label: '먹빛',
+    fullName: '먹빛 산사 도포',
+    outerRobe: 0x363d45,
+    innerRobe: 0xd8d2c5,
+    collar: 0xf2ede2,
+    shoes: 0xc9c1b2,
+    bambooTint: 0xd4b475,
+    orbHex: '#6c7a89',
+    markerHex: 0xffd27d
+  },
+  {
+    id: 'crane',
+    label: '학창의',
+    fullName: '솔빛 학창의 도포',
+    outerRobe: 0xdce3dc,
+    innerRobe: 0x4f6457,
+    collar: 0xf7f4eb,
+    shoes: 0xb8c2b9,
+    bambooTint: 0xd9bc82,
+    orbHex: '#88b397',
+    markerHex: 0x98f5c4
+  },
+  {
+    id: 'maple',
+    label: '단풍',
+    fullName: '치자·단풍 행자복',
+    outerRobe: 0xd88835,
+    innerRobe: 0x768568,
+    collar: 0xf3ead8,
+    shoes: 0xd6c8b2,
+    bambooTint: 0xcfa968,
+    orbHex: '#e69a45',
+    markerHex: 0xffc46b
+  },
+  {
+    id: 'mist',
+    label: '운해',
+    fullName: '운해빛 옥색 도포',
+    outerRobe: 0x6f8b96,
+    innerRobe: 0xd7dfd9,
+    collar: 0xf4f6f2,
+    shoes: 0xbac5c8,
+    bambooTint: 0xcab07a,
+    orbHex: '#7fa8b8',
+    markerHex: 0x9be2ff
+  }
+];
+
+const WANDERER_SPOTS = {
+  buseoksa: [
+    {
+      id: 'courtyard_steps',
+      label: '무량수전 박석길',
+      icon: '🎋',
+      pos: [0.0, -0.78, 2.6],
+      facingYaw: 0.0,
+      posture: 'walk'
+    },
+    {
+      id: 'stone_lantern',
+      label: '석등 앞 참배석',
+      icon: '🕯️',
+      pos: [1.15, -0.78, -1.55],
+      facingYaw: -0.25,
+      posture: 'walk'
+    },
+    {
+      id: 'veranda_center',
+      label: '무량수전 툇마루',
+      icon: '🍵',
+      pos: [0.0, 0.20, 5.45],
+      facingYaw: 0.0,
+      posture: 'walk'
+    },
+    {
+      id: 'anyangnu_edge',
+      label: '안양루 운해 전망',
+      icon: '☁️',
+      pos: [-2.6, -0.78, -8.8],
+      facingYaw: 0.12,
+      posture: 'walk'
+    },
+    {
+      id: 'maple_garden',
+      label: '동쪽 단풍 마당',
+      icon: '🍁',
+      pos: [5.4, -0.78, -5.2],
+      facingYaw: -0.35,
+      posture: 'walk'
+    }
+  ],
+  seonamsa: [
+    {
+      id: 'stream_pebble',
+      label: '승선교 앞 여울길',
+      icon: '💧',
+      pos: [0.0, -0.48, 3.6],
+      facingYaw: 0.0,
+      posture: 'walk'
+    },
+    {
+      id: 'west_moss_rock',
+      label: '서쪽 이끼 바위길',
+      icon: '🪨',
+      pos: [-2.1, -0.42, 1.2],
+      facingYaw: 0.28,
+      posture: 'walk'
+    },
+    {
+      id: 'east_maple_bank',
+      label: '동쪽 단풍 물가',
+      icon: '🍁',
+      pos: [2.1, -0.42, 1.0],
+      facingYaw: -0.28,
+      posture: 'walk'
+    },
+    {
+      id: 'bridge_crest',
+      label: '승선교 홍예 위',
+      icon: '🌉',
+      pos: [0.0, 4.71, -3.5],
+      facingYaw: 0.0,
+      posture: 'walk'
+    },
+    {
+      id: 'pavilion_bank',
+      label: '강선루 앞 계곡석',
+      icon: '🍵',
+      pos: [0.3, -0.48, -8.2],
+      facingYaw: -0.15,
+      posture: 'walk'
+    }
+  ]
+};
+
+/**
+ * 3D Obstacle Collision & Pathfinding Definitions per Temple Space
+ * Matches exact coordinates of Entasis Columns (배흘림기둥), Pine/Maple Trees (소나무·단풍나무),
+ * Stone Lantern (석등), Courtyard/Stream Boulders (바위), Step Cheek Walls (계단 소매돌), & Foundation Walls.
+ */
+const SPACE_OBSTACLES = {
+  buseoksa: {
+    circles: [
+      // 6 Muryangsujeon Entasis Columns (배흘림기둥 + 초석, z = 6.0)
+      { x: -10.8, z: 6.0, r: 0.86, label: 'pillar' },
+      { x: -6.2, z: 6.0, r: 0.86, label: 'pillar' },
+      { x: -2.6, z: 6.0, r: 0.86, label: 'pillar' },
+      { x: 2.6, z: 6.0, r: 0.86, label: 'pillar' },
+      { x: 6.2, z: 6.0, r: 0.86, label: 'pillar' },
+      { x: 10.8, z: 6.0, r: 0.86, label: 'pillar' },
+
+      // Silla Stone Lantern in front of Muryangsujeon (부석사 석등)
+      { x: 2.75, z: -1.65, r: 1.15, label: 'stone_lantern' },
+
+      // Seasonal Maple / Cherry Trees (단풍·벚나무)
+      { x: -9.4, z: -8.5, r: 0.96, label: 'tree' },
+      { x: 8.8, z: -8.2, r: 0.96, label: 'tree' },
+      { x: 1.8, z: -14.8, r: 0.96, label: 'tree' },
+
+      // Scanned 3D Korean Pine Trees (소나무)
+      { x: -11.2, z: -6.2, r: 1.05, label: 'pine' },
+      { x: -14.8, z: -11.5, r: 1.15, label: 'pine' },
+      { x: 10.4, z: -5.8, r: 1.05, label: 'pine' },
+      { x: 14.2, z: -11.8, r: 1.15, label: 'pine' },
+      { x: 4.8, z: -14.2, r: 1.05, label: 'pine' },
+      { x: -10.5, z: -16.5, r: 1.05, label: 'pine' },
+
+      // Mossy Courtyard Boulders (마당 바위)
+      { x: -8.5, z: -3.5, r: 1.52, label: 'boulder' },
+      { x: -7.4, z: -2.8, r: 0.98, label: 'boulder' },
+      { x: 8.2, z: -4.8, r: 1.62, label: 'boulder' },
+      { x: 9.4, z: -3.9, r: 1.05, label: 'boulder' },
+      { x: -10.2, z: -9.4, r: 1.72, label: 'boulder' },
+      { x: 10.6, z: -9.8, r: 1.62, label: 'boulder' }
+    ],
+    boxes: [
+      // Left & Right Stone Step Cheeks (중앙 계단 좌우 소매돌)
+      { minX: -2.68, maxX: -1.85, minZ: 3.28, maxZ: 5.28 },
+      { minX: 1.85, maxX: 2.68, minZ: 3.28, maxZ: 5.28 },
+      // Muryangsujeon Stone Foundation Drop-off Wall outside central steps (기단 석축 턱)
+      { minX: -14.5, maxX: -1.85, minZ: 4.72, maxZ: 5.28 },
+      { minX: 1.85, maxX: 14.5, minZ: 4.72, maxZ: 5.28 }
+    ]
+  },
+  seonamsa: {
+    circles: [
+      // Seasonal Maple / Cherry Trees (계곡 단풍·벚나무)
+      { x: -7.2, z: -1.2, r: 0.98, label: 'tree' },
+      { x: 7.4, z: -0.8, r: 0.98, label: 'tree' },
+      { x: -6.8, z: -9.8, r: 1.02, label: 'tree' },
+      { x: 7.6, z: -11.2, r: 1.02, label: 'tree' },
+      { x: -4.5, z: -17.2, r: 0.98, label: 'tree' },
+
+      // Scanned 3D Pine Trees (조계산 소나무)
+      { x: -9.5, z: -6.5, r: 1.05, label: 'pine' },
+      { x: 9.8, z: -5.8, r: 1.05, label: 'pine' },
+      { x: -11.5, z: -15.5, r: 1.10, label: 'pine' },
+      { x: 11.2, z: -16.8, r: 1.10, label: 'pine' },
+      { x: -6.2, z: -22.0, r: 1.05, label: 'pine' },
+
+      // Valley Stream Boulders & Mossy Rocks (계곡 바위)
+      { x: -3.8, z: 2.4, r: 1.52, label: 'boulder' },
+      { x: -2.4, z: 3.6, r: 1.05, label: 'boulder' },
+      { x: 3.9, z: 1.8, r: 1.58, label: 'boulder' },
+      { x: 2.6, z: 3.9, r: 1.12, label: 'boulder' },
+      { x: -4.2, z: -9.5, r: 1.68, label: 'boulder' },
+      { x: 4.4, z: -10.8, r: 1.58, label: 'boulder' },
+      { x: -1.8, z: -13.2, r: 1.08, label: 'boulder' },
+      { x: 1.9, z: -7.8, r: 1.00, label: 'boulder' }
+    ],
+    boxes: [
+      // Left & Right Stone Embankment Walls (계곡 좌우 석축 돌담)
+      { minX: -6.8, maxX: -4.85, minZ: -1.8, maxZ: 6.8 },
+      { minX: 4.85, maxX: 6.8, minZ: -1.8, maxZ: 6.8 }
+    ]
+  }
+};
+
+const FELLOW_WANDERERS_PRESETS = {
+  buseoksa: [
+    {
+      name: '운해 찾는 삿갓객',
+      paletteIdx: 1,
+      spotIdx: 1,
+      offset: [-2.6, 0, -1.2],
+      patrolRadius: 2.2,
+      seed: 1.4
+    },
+    {
+      name: '솔바람 걷는 시인',
+      paletteIdx: 2,
+      spotIdx: 3,
+      offset: [3.2, 0, 1.8],
+      patrolRadius: 2.0,
+      seed: 3.8
+    }
+  ],
+  seonamsa: [
+    {
+      name: '여울물 듣는 삿갓객',
+      paletteIdx: 3,
+      spotIdx: 1,
+      offset: [0.4, 0, -0.6],
+      patrolRadius: 1.5,
+      seed: 2.1
+    },
+    {
+      name: '달빛 밟는 나그네',
+      paletteIdx: 1,
+      spotIdx: 2,
+      offset: [-0.4, 0, -0.5],
+      patrolRadius: 1.5,
+      seed: 5.2
+    }
+  ]
+};
+
+let sharedBambooWeaveTexture = null;
+
+function getBambooWeaveTexture() {
+  if (sharedBambooWeaveTexture) return sharedBambooWeaveTexture;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Warm natural dried bamboo base
+  ctx.fillStyle = '#d4b272';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Herringbone / concentric bamboo strip weave pattern
+  const step = 8;
+  for (let y = 0; y < 256; y += step) {
+    for (let x = 0; x < 256; x += step) {
+      const odd = ((x / step) + (y / step)) % 2 === 0;
+      ctx.fillStyle = odd ? 'rgba(115, 76, 26, 0.26)' : 'rgba(255, 240, 200, 0.24)';
+      ctx.fillRect(x, y, step - 1, step - 1);
+
+      ctx.strokeStyle = 'rgba(70, 44, 14, 0.30)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, step - 1, step - 1);
+    }
+  }
+
+  // Subtle concentric ring shadows (bamboo hoop ties)
+  for (let y = 24; y < 256; y += 36) {
+    ctx.fillStyle = 'rgba(65, 40, 10, 0.28)';
+    ctx.fillRect(0, y, 256, 3);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 3);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  sharedBambooWeaveTexture = tex;
+  return tex;
+}
+
+/**
+ * Builds a traditional Korean Woven Bamboo Satgat (삿갓 / 죽립) 3D mesh group.
+ * Sized precisely to fit the monk.glb head bone (head radius ~0.24m, crown top y=0.44m).
+ */
+function createSatgatHatMesh(palette) {
+  const hatGroup = new THREE.Group();
+  hatGroup.name = 'WandererSatgatHat';
+
+  const weaveTex = getBambooWeaveTexture();
+  const bambooColor = new THREE.Color(palette?.bambooTint || 0xd4b475);
+
+  const outerBambooMat = new THREE.MeshStandardMaterial({
+    color: bambooColor,
+    map: weaveTex,
+    roughness: 0.76,
+    metalness: 0.04,
+    side: THREE.FrontSide
+  });
+
+  const innerBambooMat = new THREE.MeshStandardMaterial({
+    color: bambooColor.clone().multiplyScalar(0.68),
+    map: weaveTex,
+    roughness: 0.86,
+    metalness: 0.02,
+    side: THREE.BackSide
+  });
+
+  const darkBambooRibMat = new THREE.MeshStandardMaterial({
+    color: 0x54381a,
+    roughness: 0.72,
+    metalness: 0.05
+  });
+
+  // Wide, authentic Korean conical Satgat silhouette (radius 0.45m, height 0.26m)
+  const profilePoints = [
+    new THREE.Vector2(0.001, 0.265),
+    new THREE.Vector2(0.075, 0.225),
+    new THREE.Vector2(0.180, 0.160),
+    new THREE.Vector2(0.305, 0.082),
+    new THREE.Vector2(0.415, 0.015),
+    new THREE.Vector2(0.455, -0.012)
+  ];
+
+  const coneGeo = new THREE.LatheGeometry(profilePoints, 36);
+  const outerCone = new THREE.Mesh(coneGeo, outerBambooMat);
+  outerCone.castShadow = true;
+  outerCone.receiveShadow = true;
+  hatGroup.add(outerCone);
+
+  const innerCone = new THREE.Mesh(coneGeo, innerBambooMat);
+  hatGroup.add(innerCone);
+
+  // Outer bamboo rim hoop (테두리 죽테)
+  const rimHoop = new THREE.Mesh(
+    new THREE.TorusGeometry(0.453, 0.011, 10, 40),
+    darkBambooRibMat
+  );
+  rimHoop.rotation.x = Math.PI / 2;
+  rimHoop.position.y = -0.012;
+  rimHoop.castShadow = true;
+  hatGroup.add(rimHoop);
+
+  // Mid bamboo hoop
+  const midHoop = new THREE.Mesh(
+    new THREE.TorusGeometry(0.275, 0.0065, 8, 32),
+    darkBambooRibMat
+  );
+  midHoop.rotation.x = Math.PI / 2;
+  midHoop.position.y = 0.095;
+  hatGroup.add(midHoop);
+
+  // 12 radial bamboo ribs (대살)
+  const ribCount = 12;
+  for (let i = 0; i < ribCount; i++) {
+    const angle = (i / ribCount) * Math.PI * 2;
+    const rib = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.0032, 0.005, 0.50, 6),
+      darkBambooRibMat
+    );
+    rib.position.set(
+      Math.sin(angle) * 0.225,
+      0.118,
+      Math.cos(angle) * 0.225
+    );
+    const dir = new THREE.Vector3(Math.sin(angle) * 0.45, -0.27, Math.cos(angle) * 0.45).normalize();
+    rib.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    hatGroup.add(rib);
+  }
+
+  // Top woven knot finial (삿갓 꼭지)
+  const finial = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.015, 0.035, 0.038, 12),
+    darkBambooRibMat
+  );
+  finial.position.y = 0.268;
+  finial.castShadow = true;
+  hatGroup.add(finial);
+
+  // Traditional dark fabric chin ties (삿갓 턱끈)
+  const strapMat = new THREE.MeshStandardMaterial({
+    color: 0x24201c,
+    roughness: 0.85
+  });
+  [-1, 1].forEach((side) => {
+    const strap = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.0055, 0.0055, 0.26, 6),
+      strapMat
+    );
+    strap.position.set(side * 0.165, -0.10, -0.03);
+    strap.rotation.z = side * 0.42;
+    strap.rotation.x = 0.12;
+    hatGroup.add(strap);
+  });
+
+  hatGroup.userData.outerBambooMat = outerBambooMat;
+  hatGroup.userData.innerBambooMat = innerBambooMat;
+
+  return hatGroup;
+}
+
+/**
+ * Builds a traditional Traveler's Back Scroll Bundle & Celadon Gourd (괴나리봇짐 & 청자 표주박)
+ * Attached to the chest bone on the back (+Z in monk rig space) so it is clearly visible from behind.
+ */
+function createTravelerBackBundleMesh(palette) {
+  const bundleGroup = new THREE.Group();
+  bundleGroup.name = 'WandererBackBundle';
+
+  const clothMat = new THREE.MeshStandardMaterial({
+    color: palette?.innerRobe || 0xd8d2c5,
+    roughness: 0.84,
+    metalness: 0.02
+  });
+
+  const strapMat = new THREE.MeshStandardMaterial({
+    color: 0x3b2c1e,
+    roughness: 0.78,
+    metalness: 0.04
+  });
+
+  const gourdMat = new THREE.MeshStandardMaterial({
+    color: 0x8fb8a2, // Celadon jade gourd (청자빛 표주박)
+    roughness: 0.35,
+    metalness: 0.08
+  });
+
+  const tasselMat = new THREE.MeshStandardMaterial({
+    color: 0xc85a32,
+    roughness: 0.65
+  });
+
+  // Rolled bedding/scroll pack (괴나리봇짐 보따리) on the upper back (+Z = 0.195)
+  const packRoll = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.068, 0.068, 0.30, 16),
+    clothMat
+  );
+  packRoll.rotation.z = Math.PI / 2;
+  packRoll.rotation.y = 0.10;
+  packRoll.position.set(0, 0.05, 0.195);
+  packRoll.castShadow = true;
+  packRoll.receiveShadow = true;
+  bundleGroup.add(packRoll);
+
+  // Rounded cloth end caps & leather binding straps
+  [-1, 1].forEach((side) => {
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.066, 12, 12),
+      clothMat
+    );
+    cap.scale.set(0.65, 0.95, 0.95);
+    cap.position.set(side * 0.15, 0.05, 0.195 - side * 0.015);
+    bundleGroup.add(cap);
+
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.069, 0.008, 8, 20),
+      strapMat
+    );
+    ring.rotation.y = Math.PI / 2;
+    ring.position.set(side * 0.085, 0.05, 0.195);
+    bundleGroup.add(ring);
+  });
+
+  // Diagonal shoulder sling knots across the back
+  [-1, 1].forEach((side) => {
+    const sling = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.010, 0.010, 0.26, 6),
+      strapMat
+    );
+    sling.position.set(side * 0.085, 0.03, 0.135);
+    sling.rotation.z = side * 0.42;
+    sling.rotation.x = -0.35;
+    bundleGroup.add(sling);
+  });
+
+  // Celadon Gourd bottle (청자 표주박) hanging at the right side of the pack
+  const gourdLower = new THREE.Mesh(
+    new THREE.SphereGeometry(0.044, 12, 12),
+    gourdMat
+  );
+  gourdLower.position.set(0.11, -0.045, 0.215);
+  gourdLower.castShadow = true;
+  bundleGroup.add(gourdLower);
+
+  const gourdUpper = new THREE.Mesh(
+    new THREE.SphereGeometry(0.029, 12, 12),
+    gourdMat
+  );
+  gourdUpper.position.set(0.11, 0.008, 0.215);
+  bundleGroup.add(gourdUpper);
+
+  const gourdCork = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.009, 0.011, 0.022, 8),
+    tasselMat
+  );
+  gourdCork.position.set(0.11, 0.038, 0.215);
+  bundleGroup.add(gourdCork);
+
+  bundleGroup.userData.clothMat = clothMat;
+  return bundleGroup;
+}
+
+/**
+ * Equips a C_ENGINE.createMonk() actor with the 3D Satgat hat, traveler back-bundle,
+ * warm foot aura, and traditional Korean wanderer robe palette.
+ */
+function equipWandererActor(actor, palette, isSelf = false) {
+  if (!actor || !actor.group) return;
+
+  // Ensure standing/walking posture immediately
+  actor.setMode('walk');
+  actor.update(0, 0.016, 0);
+  actor.group.updateWorldMatrix(true, true);
+
+  const headBone = actor.group.getObjectByName('head');
+  const chestBone = actor.group.getObjectByName('chest');
+
+  if (headBone) {
+    const oldHat = headBone.getObjectByName('WandererSatgatHat');
+    if (oldHat) headBone.remove(oldHat);
+
+    const satgat = createSatgatHatMesh(palette);
+    // In monk.glb, headBone local head bounds are y in [-0.10, +0.45], z in [-0.27, +0.25].
+    // Placing Satgat at y=0.30, z=0.02 with a slight backward tilt (-0.12 rad) seats it cleanly on the crown!
+    satgat.position.set(0, 0.30, 0.02);
+    satgat.rotation.x = -0.12;
+    headBone.add(satgat);
+    actor.satgatHat = satgat;
+  }
+
+  if (chestBone) {
+    const oldBundle = chestBone.getObjectByName('WandererBackBundle');
+    if (oldBundle) chestBone.remove(oldBundle);
+
+    const backBundle = createTravelerBackBundleMesh(palette);
+    chestBone.add(backBundle);
+    actor.backBundle = backBundle;
+  }
+
+  // Ground aura ring under the wanderer's feet
+  let footDisc = actor.group.getObjectByName('WandererFootAura');
+  if (!footDisc) {
+    footDisc = new THREE.Mesh(
+      new THREE.RingGeometry(0.20, 0.32, 36),
+      new THREE.MeshBasicMaterial({
+        color: isSelf ? 0xffd27d : 0xa8d8b9,
+        transparent: true,
+        opacity: isSelf ? 0.45 : 0.22,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      })
+    );
+    footDisc.name = 'WandererFootAura';
+    footDisc.rotation.x = -Math.PI / 2;
+    footDisc.position.y = 0.025;
+    actor.group.add(footDisc);
+  }
+
+  applyWandererPalette(actor, palette);
+}
+
+/**
+ * Applies traditional Korean robe & bamboo hat colors to the rigged character
+ */
+function applyWandererPalette(actor, palette) {
+  if (!actor || !actor.group || !palette) return;
+
+  actor.group.traverse((obj) => {
+    if (!obj.isMesh || !obj.material) return;
+    if (obj.name === 'WandererFootAura') return;
+
+    if (!obj.userData.hasClonedMat) {
+      if (Array.isArray(obj.material)) {
+        obj.material = obj.material.map((m) => m.clone());
+      } else {
+        obj.material = obj.material.clone();
+      }
+      obj.userData.hasClonedMat = true;
+    }
+
+    const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+    mats.forEach((mat) => {
+      const mName = (mat.name || '').toLowerCase();
+      const oName = (obj.name || '').toLowerCase();
+
+      if (mName.includes('saffron') || oName.includes('saffron')) {
+        mat.color.setHex(palette.outerRobe);
+        mat.roughness = 0.82;
+      } else if (mName.includes('sage') || oName.includes('trousers') || oName.includes('robe')) {
+        mat.color.setHex(palette.innerRobe);
+        mat.roughness = 0.85;
+      } else if (mName.includes('rice') || oName.includes('collar')) {
+        mat.color.setHex(palette.collar);
+      } else if (mName.includes('shoe') || oName.includes('shoe')) {
+        mat.color.setHex(palette.shoes);
+      }
+    });
+  });
+
+  if (actor.satgatHat?.userData?.outerBambooMat) {
+    const c = new THREE.Color(palette.bambooTint);
+    actor.satgatHat.userData.outerBambooMat.color.copy(c);
+    actor.satgatHat.userData.innerBambooMat.color.copy(c).multiplyScalar(0.68);
+  }
+  if (actor.backBundle?.userData?.clothMat) {
+    actor.backBundle.userData.clothMat.color.setHex(palette.innerRobe);
+  }
+}
+
+/**
+ * Creates a speech/greeting floating 3D sprite above a wanderer's head
+ */
+function createWandererBubbleSprite(text) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'rgba(18, 22, 20, 0.86)';
+  ctx.strokeStyle = 'rgba(255, 214, 138, 0.78)';
+  ctx.lineWidth = 3;
+
+  const rx = 24, ry = 18, rw = 464, rh = 84, rad = 42;
+  ctx.beginPath();
+  ctx.moveTo(rx + rad, ry);
+  ctx.lineTo(rx + rw - rad, ry);
+  ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad);
+  ctx.lineTo(rx + rw, ry + rh - rad);
+  ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh);
+  ctx.lineTo(rx + rad, ry + rh);
+  ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad);
+  ctx.lineTo(rx, ry + rad);
+  ctx.quadraticCurveTo(rx, ry, rx + rad, ry);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.font = '600 28px "Pretendard", "Noto Serif KR", sans-serif';
+  ctx.fillStyle = '#fff5df';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, canvas.width / 2, ry + rh / 2 + 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false
+  });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(1.85, 0.46, 1);
+  sprite.renderOrder = 25;
+  return sprite;
+}
+
+class SansaWandererManager {
+  constructor(world) {
+    this.world = world;
+    this.scene = world.scene;
+    this.camera = world.camera;
+
+    this.rootGroup = new THREE.Group();
+    this.rootGroup.name = 'SansaWanderersRoot';
+    this.scene.add(this.rootGroup);
+
+    this.profile = this.loadProfile();
+    this.currentSpotId = 'courtyard_steps';
+    this.posture = 'walk'; // 'walk' | 'kneel'
+
+    // Player & NPC actors
+    this.selfActor = null;
+    this.npcWanderers = [];
+    this.activeBubbles = [];
+    this.greetingRipples = [];
+
+    // sansatemple.com-style 3rd-Person Behind-the-Back Camera State
+    this.yaw = 0.0;
+    this.pitch = 0.02;
+    this.distance = 3.65;
+    this.followCamEnabled = true;
+    this.camInitialized = false;
+    this.camPos = new THREE.Vector3();
+    this.camLook = new THREE.Vector3();
+
+    this.isPointerDragging = false;
+    this.pointerDownPos = { x: 0, y: 0 };
+    this.pointerMovedDist = 0;
+
+    // Movement & Click-to-Walk Journey State (identical to sansatemple.com + multi-waypoint support)
+    this.moveSpeed = 2.05;
+    this.velocity = new THREE.Vector3();
+    this.keys = { w: false, a: false, s: false, d: false };
+    this.waypoints = [];
+    this.journeyFinalSpotId = null;
+
+    // Ground raycaster & destination point marker
+    this.raycaster = new THREE.Raycaster();
+    this.ndcPointer = new THREE.Vector2();
+    this.destinationMarker = this.createDestinationMarker();
+    this.rootGroup.add(this.destinationMarker);
+
+    this.lastElapsed = 0;
+
+    this.buildWanderersForSpace(this.getActiveSpace());
+    this.bindUIAndControls();
+    this.hookIntoWorldRenderLoop();
+  }
+
+  getActiveSpace() {
+    return this.world?.spaceMode || (typeof currentSpace !== 'undefined' ? currentSpace : 'buseoksa');
+  }
+
+  loadProfile() {
+    try {
+      const saved = localStorage.getItem(WANDERER_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed.name === 'string' && typeof parsed.paletteIdx === 'number') {
+          return {
+            name: parsed.name,
+            paletteIdx: Math.abs(parsed.paletteIdx) % WANDERER_PALETTES.length
+          };
+        }
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+    return {
+      name: WANDERER_POETIC_NAMES[0],
+      paletteIdx: 0
+    };
+  }
+
+  saveProfile() {
+    try {
+      localStorage.setItem(WANDERER_STORAGE_KEY, JSON.stringify(this.profile));
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  get currentPalette() {
+    return WANDERER_PALETTES[this.profile.paletteIdx % WANDERER_PALETTES.length];
+  }
+
+  /**
+   * Creates the glowing Destination Point Marker (목적지 포인트 표시)
+   * Combines sansatemple.com's golden ground ring with an expanding pulse wave & vertical light pin
+   */
+  createDestinationMarker() {
+    const group = new THREE.Group();
+    group.name = 'WandererDestinationMarker';
+    group.visible = false;
+
+    // 1. Primary golden ring (sansatemple.com style)
+    const ringGeo = new THREE.RingGeometry(0.24, 0.33, 48);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xffd27d,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false
+    });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.rotation.x = -Math.PI / 2;
+    ringMesh.renderOrder = 18;
+    group.add(ringMesh);
+
+    // 2. Center glowing point dot
+    const dotGeo = new THREE.CircleGeometry(0.095, 32);
+    const dotMat = new THREE.MeshBasicMaterial({
+      color: 0xfff3d1,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.98,
+      depthWrite: false
+    });
+    const dotMesh = new THREE.Mesh(dotGeo, dotMat);
+    dotMesh.rotation.x = -Math.PI / 2;
+    dotMesh.position.y = 0.005;
+    dotMesh.renderOrder = 19;
+    group.add(dotMesh);
+
+    // 3. Expanding ripple wave ring
+    const waveGeo = new THREE.RingGeometry(0.26, 0.31, 48);
+    const waveMat = new THREE.MeshBasicMaterial({
+      color: 0xffd27d,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.72,
+      depthWrite: false
+    });
+    const waveMesh = new THREE.Mesh(waveGeo, waveMat);
+    waveMesh.rotation.x = -Math.PI / 2;
+    waveMesh.position.y = 0.003;
+    waveMesh.renderOrder = 17;
+    group.add(waveMesh);
+
+    // 4. Vertical subtle light beacon (목적지 빛기둥 포인트)
+    const beamGeo = new THREE.CylinderGeometry(0.018, 0.075, 0.85, 16, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0xffe29e,
+      transparent: true,
+      opacity: 0.42,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+    beamMesh.position.y = 0.425;
+    beamMesh.renderOrder = 16;
+    group.add(beamMesh);
+
+    group.userData = {
+      ringMesh,
+      ringMat,
+      dotMesh,
+      dotMat,
+      waveMesh,
+      waveMat,
+      beamMesh,
+      beamMat
+    };
+
+    return group;
+  }
+
+  /**
+   * Computes the exact walkable ground height (Y) at (x, z) matching buildBuseoksaWorld & buildSeonamsaWorld
+   */
+  getGroundHeightAt(spaceId, x, z) {
+    if (spaceId === 'buseoksa') {
+      // Muryangsujeon wooden veranda (우물마루, z >= 5.25)
+      if (z >= 5.25) {
+        return 0.20;
+      }
+      // Central stone steps connecting veranda (z=5.25, y=0.20) down to courtyard (z=3.35, y=-0.78)
+      if (z > 3.35 && z < 5.25) {
+        const t = (z - 3.35) / (5.25 - 3.35);
+        return -0.78 + t * (0.20 - -0.78);
+      }
+      // Main courtyard & flagstone path (박석길, z <= 3.35)
+      return -0.78;
+    } else {
+      // Seonamsa Seungseongyo rainbow arch bridge (z in [-5.1, -1.9], x in [-5.7, 5.7])
+      if (z >= -5.1 && z <= -1.9 && Math.abs(x) <= 5.8) {
+        const normX = Math.min(1, Math.abs(x) / 5.7);
+        return 4.71 - normX * normX * 0.52;
+      }
+      // Valley stream viewing stones & banks
+      return -0.46 + Math.min(0.18, Math.abs(x) * 0.025);
+    }
+  }
+
+  /**
+   * Checks whether (x, z) is inside any pillar, tree, stone lantern, boulder, or wall obstacle
+   */
+  isPointBlocked(spaceId, x, z, extraMargin = 0) {
+    const minX = spaceId === 'buseoksa' ? -9.8 : -5.5;
+    const maxX = spaceId === 'buseoksa' ? 9.8 : 5.5;
+    const minZ = spaceId === 'buseoksa' ? -10.4 : -9.8;
+    const maxZ = spaceId === 'buseoksa' ? 8.3 : 5.8;
+
+    if (x < minX || x > maxX || z < minZ || z > maxZ) return true;
+
+    const obs = SPACE_OBSTACLES[spaceId] || SPACE_OBSTACLES.buseoksa;
+    for (const c of obs.circles) {
+      const r = c.r + extraMargin;
+      const dx = x - c.x;
+      const dz = z - c.z;
+      if (dx * dx + dz * dz < r * r) return true;
+    }
+
+    for (const b of obs.boxes) {
+      if (
+        x >= b.minX - extraMargin &&
+        x <= b.maxX + extraMargin &&
+        z >= b.minZ - extraMargin &&
+        z <= b.maxZ + extraMargin
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Checks if the straight segment from (x0, z0) to (x1, z1) is completely clear of pillars, trees, and walls
+   */
+  hasLineOfSight(spaceId, x0, z0, x1, z1, extraMargin = 0.04) {
+    const dist = Math.hypot(x1 - x0, z1 - z0);
+    if (dist < 0.05) return true;
+    const steps = Math.max(4, Math.ceil(dist / 0.22));
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const sx = x0 + (x1 - x0) * t;
+      const sz = z0 + (z1 - z0) * t;
+      if (this.isPointBlocked(spaceId, sx, sz, extraMargin)) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Clamps (x, z) to safe walkable bounds AND resolves collisions against all pillars, trees,
+   * boulders, the stone lantern, and foundation walls (with smooth tangential sliding).
+   */
+  clampWalkableXZ(spaceId, x, z, prevX = null, prevZ = null) {
+    const minX = spaceId === 'buseoksa' ? -9.5 : -4.75;
+    const maxX = spaceId === 'buseoksa' ? 9.5 : 4.75;
+    const minZ = spaceId === 'buseoksa' ? -10.2 : -9.5;
+    const maxZ = spaceId === 'buseoksa' ? 8.2 : 5.8;
+
+    let cx = Math.max(minX, Math.min(maxX, x));
+    let cz = Math.max(minZ, Math.min(maxZ, z));
+
+    const obs = SPACE_OBSTACLES[spaceId] || SPACE_OBSTACLES.buseoksa;
+
+    // 2 iterations ensure clean resolution even at corners where two obstacles meet
+    for (let iter = 0; iter < 2; iter++) {
+      // 1. Push out of rectangular box obstacles (step cheek walls & stone foundation walls)
+      for (const b of obs.boxes) {
+        if (cx > b.minX && cx < b.maxX && cz > b.minZ && cz < b.maxZ) {
+          const dLeft = cx - b.minX;
+          const dRight = b.maxX - cx;
+          const dBottom = cz - b.minZ;
+          const dTop = b.maxZ - cz;
+          const minPen = Math.min(dLeft, dRight, dBottom, dTop);
+
+          if (minPen === dLeft) cx = b.minX - 0.01;
+          else if (minPen === dRight) cx = b.maxX + 0.01;
+          else if (minPen === dBottom) cz = b.minZ - 0.01;
+          else cz = b.maxZ + 0.01;
+        }
+      }
+
+      // 2. Push radially out of circular obstacles (pillars, pine/maple trees, stone lantern, boulders)
+      for (const c of obs.circles) {
+        const dx = cx - c.x;
+        const dz = cz - c.z;
+        const distSq = dx * dx + dz * dz;
+        if (distSq < c.r * c.r) {
+          const dist = Math.sqrt(distSq);
+          if (dist > 0.0001) {
+            cx = c.x + (dx / dist) * (c.r + 0.01);
+            cz = c.z + (dz / dist) * (c.r + 0.01);
+          } else if (prevX !== null && prevZ !== null) {
+            const pdx = prevX - c.x;
+            const pdz = prevZ - c.z;
+            const pLen = Math.hypot(pdx, pdz) || 1;
+            cx = c.x + (pdx / pLen) * (c.r + 0.02);
+            cz = c.z + (pdz / pLen) * (c.r + 0.02);
+          } else {
+            cz = c.z - (c.r + 0.02);
+          }
+        }
+      }
+
+      cx = Math.max(minX, Math.min(maxX, cx));
+      cz = Math.max(minZ, Math.min(maxZ, cz));
+    }
+
+    return { x: cx, z: cz };
+  }
+
+  /**
+   * 2D Grid A* Pathfinding + Line-of-Sight String Pulling
+   * Finds a natural obstacle-free walking route around pillars (기둥), trees (나무),
+   * the stone lantern (석등), boulders (바위), and central stone steps.
+   */
+  findObstacleFreePath(spaceId, startX, startZ, goalX, goalZ) {
+    if (this.hasLineOfSight(spaceId, startX, startZ, goalX, goalZ, 0.05)) {
+      return [{ x: goalX, z: goalZ }];
+    }
+
+    const step = 0.38;
+    const minX = spaceId === 'buseoksa' ? -9.5 : -4.75;
+    const maxX = spaceId === 'buseoksa' ? 9.5 : 4.75;
+    const minZ = spaceId === 'buseoksa' ? -10.2 : -9.5;
+    const maxZ = spaceId === 'buseoksa' ? 8.2 : 5.8;
+
+    const cols = Math.round((maxX - minX) / step) + 1;
+    const rows = Math.round((maxZ - minZ) / step) + 1;
+
+    const toGrid = (wx, wz) => ({
+      gx: Math.max(0, Math.min(cols - 1, Math.round((wx - minX) / step))),
+      gz: Math.max(0, Math.min(rows - 1, Math.round((wz - minZ) / step)))
+    });
+    const toWorld = (gx, gz) => ({
+      x: minX + gx * step,
+      z: minZ + gz * step
+    });
+
+    const startNode = toGrid(startX, startZ);
+    const goalNode = toGrid(goalX, goalZ);
+    const keyOf = (gx, gz) => gz * cols + gx;
+
+    const gScore = new Map();
+    const cameFrom = new Map();
+    const closed = new Set();
+    const open = [];
+
+    const startKey = keyOf(startNode.gx, startNode.gz);
+    const goalKey = keyOf(goalNode.gx, goalNode.gz);
+    gScore.set(startKey, 0);
+    open.push({
+      gx: startNode.gx,
+      gz: startNode.gz,
+      key: startKey,
+      f: Math.hypot(goalNode.gx - startNode.gx, goalNode.gz - startNode.gz)
+    });
+
+    const dirs = [
+      [1, 0, 1.0],
+      [-1, 0, 1.0],
+      [0, 1, 1.0],
+      [0, -1, 1.0],
+      [1, 1, 1.414],
+      [-1, 1, 1.414],
+      [1, -1, 1.414],
+      [-1, -1, 1.414]
+    ];
+
+    let bestKey = startKey;
+    let bestDistToGoal = Math.hypot(goalNode.gx - startNode.gx, goalNode.gz - startNode.gz);
+    let iterations = 0;
+
+    while (open.length > 0 && iterations < 3500) {
+      iterations++;
+      let bestIdx = 0;
+      for (let i = 1; i < open.length; i++) {
+        if (open[i].f < open[bestIdx].f) bestIdx = i;
+      }
+      const current = open.splice(bestIdx, 1)[0];
+      if (current.key === goalKey) {
+        bestKey = goalKey;
+        break;
+      }
+      if (closed.has(current.key)) continue;
+      closed.add(current.key);
+
+      const dGoal = Math.hypot(goalNode.gx - current.gx, goalNode.gz - current.gz);
+      if (dGoal < bestDistToGoal) {
+        bestDistToGoal = dGoal;
+        bestKey = current.key;
+      }
+
+      const curG = gScore.get(current.key) ?? Infinity;
+
+      for (const [dx, dz, cost] of dirs) {
+        const nx = current.gx + dx;
+        const nz = current.gz + dz;
+        if (nx < 0 || nx >= cols || nz < 0 || nz >= rows) continue;
+        const nKey = keyOf(nx, nz);
+        if (closed.has(nKey)) continue;
+
+        const wPos = toWorld(nx, nz);
+        if (nKey !== goalKey && this.isPointBlocked(spaceId, wPos.x, wPos.z, 0.05)) {
+          continue;
+        }
+
+        // Prevent diagonal corner-cutting across obstacles
+        if (dx !== 0 && dz !== 0) {
+          const sideA = toWorld(current.gx + dx, current.gz);
+          const sideB = toWorld(current.gx, current.gz + dz);
+          if (
+            this.isPointBlocked(spaceId, sideA.x, sideA.z, 0.02) ||
+            this.isPointBlocked(spaceId, sideB.x, sideB.z, 0.02)
+          ) {
+            continue;
+          }
+        }
+
+        const tentativeG = curG + cost;
+        if (tentativeG < (gScore.get(nKey) ?? Infinity)) {
+          cameFrom.set(nKey, current.key);
+          gScore.set(nKey, tentativeG);
+          const h = Math.hypot(goalNode.gx - nx, goalNode.gz - nz);
+          open.push({ gx: nx, gz: nz, key: nKey, f: tentativeG + h });
+        }
+      }
+    }
+
+    // Reconstruct grid path
+    const rawPts = [{ x: startX, z: startZ }];
+    const chain = [];
+    let curr = bestKey;
+    while (curr !== undefined && curr !== startKey) {
+      chain.push(curr);
+      curr = cameFrom.get(curr);
+    }
+    chain.reverse();
+    for (const k of chain) {
+      const gz = Math.floor(k / cols);
+      const gx = k % cols;
+      rawPts.push(toWorld(gx, gz));
+    }
+    rawPts.push({ x: goalX, z: goalZ });
+
+    // String-pulling (line-of-sight path smoothing) so movement curves naturally
+    const smoothed = [];
+    let anchorIdx = 0;
+    while (anchorIdx < rawPts.length - 1) {
+      let furthestIdx = anchorIdx + 1;
+      for (let testIdx = rawPts.length - 1; testIdx > anchorIdx + 1; testIdx--) {
+        if (
+          this.hasLineOfSight(
+            spaceId,
+            rawPts[anchorIdx].x,
+            rawPts[anchorIdx].z,
+            rawPts[testIdx].x,
+            rawPts[testIdx].z,
+            0.04
+          )
+        ) {
+          furthestIdx = testIdx;
+          break;
+        }
+      }
+      smoothed.push(rawPts[furthestIdx]);
+      anchorIdx = furthestIdx;
+    }
+
+    return smoothed;
+  }
+
+  /**
+   * Builds a multi-waypoint obstacle-free path from startPos to endPos so the wanderer naturally
+   * walks around pillars, trees, boulders, and the stone lantern, and uses the central stone steps.
+   */
+  buildWalkPath(spaceId, startPos, endPos) {
+    const clampedEnd = this.clampWalkableXZ(spaceId, endPos.x, endPos.z, startPos.x, startPos.z);
+
+    // Split into stage anchors if crossing the Buseoksa central stone steps so height interpolation stays exact
+    const stageTargets = [];
+    if (spaceId === 'buseoksa') {
+      const startOnVeranda = startPos.z > 4.72;
+      const endOnVeranda = clampedEnd.z > 4.72;
+      if (startOnVeranda && !endOnVeranda) {
+        stageTargets.push({ x: 0.0, z: 5.32 });
+        stageTargets.push({ x: 0.0, z: 3.22 });
+      } else if (!startOnVeranda && endOnVeranda) {
+        stageTargets.push({ x: 0.0, z: 3.22 });
+        stageTargets.push({ x: 0.0, z: 5.32 });
+      }
+    }
+    stageTargets.push({ x: clampedEnd.x, z: clampedEnd.z });
+
+    const points = [];
+    let curX = startPos.x;
+    let curZ = startPos.z;
+
+    for (const stage of stageTargets) {
+      const subPath = this.findObstacleFreePath(spaceId, curX, curZ, stage.x, stage.z);
+      for (const pt of subPath) {
+        const y = this.getGroundHeightAt(spaceId, pt.x, pt.z);
+        points.push(new THREE.Vector3(pt.x, y, pt.z));
+      }
+      curX = stage.x;
+      curZ = stage.z;
+    }
+
+    return points;
+  }
+
+  /**
+   * Spawns the player's 삿갓 쓴 산사 나그네 and 2 fellow wanderer NPCs for the given space
+   */
+  buildWanderersForSpace(spaceId) {
+    if (this.selfActor?.group) {
+      this.rootGroup.remove(this.selfActor.group);
+    }
+    this.npcWanderers.forEach((npc) => {
+      if (npc.actor?.group) this.rootGroup.remove(npc.actor.group);
+    });
+    this.npcWanderers = [];
+    this.waypoints = [];
+    this.destinationMarker.visible = false;
+
+    const spots = WANDERER_SPOTS[spaceId] || WANDERER_SPOTS.buseoksa;
+    const initialSpot = spots[0];
+    this.currentSpotId = initialSpot.id;
+    this.posture = 'walk';
+
+    // 1. Create Player Wanderer using SANSA_CORE's rigged monk + 3D Satgat Hat & Back Bundle
+    const selfActor = C_ENGINE.createMonk();
+    selfActor.group.name = 'PlayerSansaWanderer';
+    const startY = this.getGroundHeightAt(spaceId, initialSpot.pos[0], initialSpot.pos[2]);
+    selfActor.group.position.set(initialSpot.pos[0], startY, initialSpot.pos[2]);
+    selfActor.group.rotation.y = initialSpot.facingYaw || 0;
+    this.rootGroup.add(selfActor.group);
+    this.selfActor = selfActor;
+
+    // Align 3rd-person camera directly behind player
+    this.yaw = initialSpot.facingYaw || 0;
+    this.pitch = 0.02;
+    this.distance = 3.65;
+    this.followCamEnabled = true;
+    this.camInitialized = false;
+
+    selfActor.ready.then(() => {
+      equipWandererActor(selfActor, this.currentPalette, true);
+    });
+
+    // 2. Create Fellow Wanderer NPCs (함께 거니는 산사 나그네들)
+    const presets = FELLOW_WANDERERS_PRESETS[spaceId] || FELLOW_WANDERERS_PRESETS.buseoksa;
+    presets.forEach((preset) => {
+      const spot = spots[preset.spotIdx % spots.length] || spots[0];
+      const homeX = spot.pos[0] + preset.offset[0];
+      const homeZ = spot.pos[2] + preset.offset[2];
+      const clamped = this.clampWalkableXZ(spaceId, homeX, homeZ);
+      const homeY = this.getGroundHeightAt(spaceId, clamped.x, clamped.z);
+
+      const npcActor = C_ENGINE.createMonk();
+      npcActor.group.position.set(clamped.x, homeY, clamped.z);
+      npcActor.group.rotation.y = spot.facingYaw || 0;
+      this.rootGroup.add(npcActor.group);
+
+      const palette = WANDERER_PALETTES[preset.paletteIdx % WANDERER_PALETTES.length];
+      npcActor.ready.then(() => {
+        equipWandererActor(npcActor, palette, false);
+      });
+
+      this.npcWanderers.push({
+        name: preset.name,
+        actor: npcActor,
+        palette,
+        homePos: new THREE.Vector3(clamped.x, homeY, clamped.z),
+        targetPos: new THREE.Vector3(clamped.x, homeY, clamped.z),
+        patrolRadius: preset.patrolRadius || 1.8,
+        seed: preset.seed || 1.0,
+        nextMoveTime: 2.5 + Math.random() * 4.0,
+        speed: 0.95
+      });
+    });
+
+    this.renderSpotButtons(spaceId);
+    this.syncHUD();
+  }
+
+  /**
+   * Starts an automatic walking journey to `targetVec`, displaying the Destination Point Marker
+   * at the destination and smoothly walking the character there with 3rd-person camera follow.
+   */
+  startJourneyToPoint(targetVec, spotId = null, toastMessage = null) {
+    if (!this.selfActor) return;
+
+    const spaceId = this.getActiveSpace();
+    this.waypoints = this.buildWalkPath(spaceId, this.selfActor.group.position, targetVec);
+    this.journeyFinalSpotId = spotId;
+    this.followCamEnabled = true;
+
+    if (this.posture !== 'walk') {
+      this.posture = 'walk';
+      this.selfActor.setMode('walk');
+      this.syncHUD();
+    }
+
+    const finalDest = this.waypoints[this.waypoints.length - 1];
+    if (finalDest) {
+      this.destinationMarker.position.set(finalDest.x, finalDest.y + 0.035, finalDest.z);
+      this.destinationMarker.visible = true;
+
+      const hex = this.currentPalette.markerHex || 0xffd27d;
+      const { ringMat, waveMat } = this.destinationMarker.userData;
+      if (ringMat) ringMat.color.setHex(hex);
+      if (waveMat) waveMat.color.setHex(hex);
+    }
+
+    if (spotId) {
+      this.currentSpotId = spotId;
+      this.highlightActiveSpotChip(spotId);
+    }
+
+    if (toastMessage) {
+      showToast(toastMessage);
+    }
+  }
+
+  /**
+   * Command the wanderer to walk to a named scenic spot
+   */
+  walkToSpot(spotId) {
+    const spaceId = this.getActiveSpace();
+    const spots = WANDERER_SPOTS[spaceId] || WANDERER_SPOTS.buseoksa;
+    const spot = spots.find((s) => s.id === spotId);
+    if (!spot) return;
+
+    const dest = new THREE.Vector3(spot.pos[0], spot.pos[1], spot.pos[2]);
+    this.startJourneyToPoint(
+      dest,
+      spot.id,
+      `${spot.icon} '${spot.label}' 목적지에 포인트가 표시되며 나그네가 걸어갑니다.`
+    );
+  }
+
+  /**
+   * Raycasts a screen click onto the temple ground/bridge/veranda to set a walk destination
+   */
+  handleCanvasGroundClick(clientX, clientY) {
+    const canvas = this.world?.renderer?.domElement;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    this.ndcPointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.ndcPointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+    this.raycaster.setFromCamera(this.ndcPointer, this.camera);
+
+    // 1. Check if the click hit an interactive 3D wish lantern or the wind-bell first
+    if (Array.isArray(this.world.interactiveTargets) && this.world.interactiveTargets.length > 0) {
+      const hits = this.raycaster.intersectObjects(this.world.interactiveTargets, false);
+      if (hits.length > 0 && hits[0].distance < 42) {
+        return; // Let lantern / wind-bell click handler run
+      }
+    }
+
+    // 2. Raycast against scene environment meshes
+    const spaceId = this.getActiveSpace();
+    const activeEnvGroup =
+      spaceId === 'buseoksa' ? this.world.buseoksaGroup : this.world.seonamsaGroup;
+
+    let hitPoint = null;
+    if (activeEnvGroup) {
+      const envHits = this.raycaster.intersectObject(activeEnvGroup, true);
+      for (const hit of envHits) {
+        if (hit.distance > 38) continue;
+        if (hit.point.y <= 5.2 && hit.point.y >= -2.2) {
+          if (hit.face) {
+            const worldNormal = hit.face.normal
+              .clone()
+              .transformDirection(hit.object.matrixWorld);
+            if (worldNormal.y < 0.45) continue;
+          }
+          hitPoint = hit.point.clone();
+          break;
+        }
+      }
+    }
+
+    // 3. Fallback mathematical ground intersection if clicking between stone tiles
+    if (!hitPoint && this.selfActor) {
+      const refY = this.selfActor.group.position.y;
+      const ray = this.raycaster.ray;
+      if (Math.abs(ray.direction.y) > 0.001) {
+        const t = (refY - ray.origin.y) / ray.direction.y;
+        if (t > 0 && t < 45) {
+          hitPoint = ray.origin.clone().addScaledVector(ray.direction, t);
+        }
+      }
+    }
+
+    if (!hitPoint) return;
+
+    const clamped = this.clampWalkableXZ(spaceId, hitPoint.x, hitPoint.z);
+    const groundY = this.getGroundHeightAt(spaceId, clamped.x, clamped.z);
+    const finalTarget = new THREE.Vector3(clamped.x, groundY, clamped.z);
+
+    this.startJourneyToPoint(finalTarget, null, null);
+  }
+
+  /**
+   * Perform a warm palm-together greeting (합장 인사) & receive greetings back from nearby wanderers
+   */
+  triggerGreeting() {
+    if (!this.selfActor) return;
+    const now = this.lastElapsed || 0;
+
+    if (this.posture === 'kneel') {
+      this.selfActor.bow(now);
+    } else {
+      this.selfActor.greet(now);
+    }
+
+    this.spawnBubbleAbove(this.selfActor.group, '🙏 평안하신지요', 2.6);
+    this.spawnGroundRipple(this.selfActor.group.position, this.currentPalette.markerHex || 0xffd27d);
+
+    this.npcWanderers.forEach((npc, idx) => {
+      setTimeout(() => {
+        if (!npc.actor) return;
+        npc.actor.greet((this.lastElapsed || 0) + 0.35);
+        const replies = ['🙏 성불하십시오', '🎋 좋은 바람입니다', '🍵 평안한 산책 되소서'];
+        this.spawnBubbleAbove(npc.actor.group, replies[idx % replies.length], 2.5);
+        this.spawnGroundRipple(npc.actor.group.position, 0x98f5c4);
+      }, 360 + idx * 280);
+    });
+
+    showToast(`🙏 '${this.profile.name}' 나그네가 두 손을 모아 합장 인사를 건넵니다.`);
+  }
+
+  /**
+   * Toggle between standing walk ('walk') and serene kneeling meditation ('kneel')
+   */
+  togglePosture() {
+    if (!this.selfActor) return;
+
+    if (this.posture === 'walk') {
+      this.posture = 'kneel';
+      this.waypoints = [];
+      this.destinationMarker.visible = false;
+      this.selfActor.setMode('kneel');
+      this.spawnBubbleAbove(this.selfActor.group, '🍵 고요히 숨을 고릅니다', 2.4);
+      showToast('🍵 자리에 앉아 차경을 바라보며 좌선(명상)에 듭니다.');
+    } else {
+      this.posture = 'walk';
+      this.selfActor.setMode('walk');
+      showToast('🎋 자리에서 일어나 다시 산사 산책을 시작합니다.');
+    }
+
+    this.syncHUD();
+  }
+
+  /**
+   * Cycle through the 4 traditional Korean robe & Satgat bamboo palettes
+   */
+  cyclePalette() {
+    this.profile.paletteIdx = (this.profile.paletteIdx + 1) % WANDERER_PALETTES.length;
+    this.saveProfile();
+
+    if (this.selfActor) {
+      applyWandererPalette(this.selfActor, this.currentPalette);
+      this.spawnGroundRipple(this.selfActor.group.position, this.currentPalette.markerHex);
+    }
+
+    this.syncHUD();
+    showToast(`🎋 '${this.currentPalette.fullName}' 차림으로 갈아입었습니다.`);
+  }
+
+  /**
+   * Reroll poetic wanderer title (호) and attire palette
+   */
+  rerollIdentity() {
+    const otherNames = WANDERER_POETIC_NAMES.filter((n) => n !== this.profile.name);
+    this.profile.name = otherNames[Math.floor(Math.random() * otherNames.length)] || WANDERER_POETIC_NAMES[0];
+    this.profile.paletteIdx = (this.profile.paletteIdx + 1) % WANDERER_PALETTES.length;
+    this.saveProfile();
+
+    if (this.selfActor) {
+      applyWandererPalette(this.selfActor, this.currentPalette);
+      this.spawnBubbleAbove(this.selfActor.group, `🎋 ${this.profile.name}`, 2.4);
+    }
+
+    this.syncHUD();
+    showToast(`🎲 새로운 호(號) '${this.profile.name}'(${this.currentPalette.fullName})를 부여받았습니다.`);
+  }
+
+  spawnBubbleAbove(targetGroup, text, duration = 2.4) {
+    if (!targetGroup) return;
+    const sprite = createWandererBubbleSprite(text);
+    sprite.position.set(0, 1.72, 0);
+    targetGroup.add(sprite);
+    this.activeBubbles.push({
+      sprite,
+      parent: targetGroup,
+      age: 0,
+      duration
+    });
+  }
+
+  spawnGroundRipple(pos, colorHex = 0xffd27d) {
+    const geo = new THREE.RingGeometry(0.18, 0.26, 40);
+    const mat = new THREE.MeshBasicMaterial({
+      color: colorHex,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
+      depthWrite: false
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(pos.x, pos.y + 0.04, pos.z);
+    this.rootGroup.add(mesh);
+    this.greetingRipples.push({ mesh, mat, age: 0, duration: 1.25 });
+  }
+
+  renderSpotButtons(spaceId) {
+    const container = document.getElementById('spirit-spots-row');
+    if (!container) return;
+    const spots = WANDERER_SPOTS[spaceId] || WANDERER_SPOTS.buseoksa;
+
+    container.innerHTML = spots
+      .map(
+        (spot) => `
+        <button
+          type="button"
+          class="spirit-spot-chip ${spot.id === this.currentSpotId ? 'active' : ''}"
+          data-spot-id="${spot.id}"
+          title="${spot.label} 목적지로 걸어가기"
+        >
+          <span>${spot.icon}</span>
+          <span>${spot.label}</span>
+        </button>
+      `
+      )
+      .join('');
+
+    container.querySelectorAll('.spirit-spot-chip').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const spotId = btn.dataset.spotId;
+        if (spotId) this.walkToSpot(spotId);
+      });
+    });
+  }
+
+  highlightActiveSpotChip(spotId) {
+    const container = document.getElementById('spirit-spots-row');
+    if (!container) return;
+    container.querySelectorAll('.spirit-spot-chip').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.spotId === spotId);
+    });
+  }
+
+  syncHUD() {
+    const nameEl = document.getElementById('spirit-name-display');
+    const dotEl = document.getElementById('spirit-color-dot');
+    const visitorsEl = document.getElementById('spirit-visitors-count');
+    const badgeEl = document.getElementById('pebble-stack-badge');
+    const stackBtn = document.getElementById('spirit-stack-btn');
+
+    if (nameEl) nameEl.textContent = this.profile.name;
+    if (dotEl) {
+      dotEl.textContent = '🎋';
+      dotEl.style.background = `radial-gradient(circle at 35% 35%, ${this.currentPalette.orbHex}, rgba(20, 26, 22, 0.9))`;
+      dotEl.style.boxShadow = `0 0 12px ${this.currentPalette.orbHex}66`;
+    }
+    if (visitorsEl) {
+      visitorsEl.textContent = `${1 + this.npcWanderers.length}인 산책 중`;
+    }
+    if (badgeEl) {
+      badgeEl.textContent = this.currentPalette.label;
+    }
+    if (stackBtn) {
+      stackBtn.classList.toggle('active', this.posture === 'kneel');
+      const span = stackBtn.querySelector('span');
+      if (span) {
+        span.textContent = this.posture === 'kneel' ? '🎋 일어서기' : '🍵 좌선·명상';
+      }
+    }
+  }
+
+  bindUIAndControls() {
+    const bowBtn = document.getElementById('spirit-bow-btn');
+    const stackBtn = document.getElementById('spirit-stack-btn');
+    const pebbleBtn = document.getElementById('spirit-pebble-btn');
+    const rerollBtn = document.getElementById('spirit-reroll-btn');
+    const colorDot = document.getElementById('spirit-color-dot');
+
+    bowBtn?.addEventListener('click', () => this.triggerGreeting());
+    stackBtn?.addEventListener('click', () => this.togglePosture());
+    pebbleBtn?.addEventListener('click', () => this.cyclePalette());
+    colorDot?.addEventListener('click', () => this.cyclePalette());
+    rerollBtn?.addEventListener('click', () => this.rerollIdentity());
+
+    // Hook space switching tabs so wanderers rebuild for Buseoksa vs Seonamsa
+    document.querySelectorAll('[data-space-target]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        setTimeout(() => {
+          this.buildWanderersForSpace(this.getActiveSpace());
+        }, 50);
+      });
+    });
+
+    // Pointer & Multi-Touch controls on canvas:
+    // - 1-finger tap / mouse click on ground: set walk destination + spawn tap ripple
+    // - 1-finger drag / mouse drag: orbit 3rd-person camera around wanderer
+    // - 2-finger pinch / mouse wheel: zoom 3rd-person camera distance
+    this.touchPointers = new Map();
+    this.pinchStartDist = null;
+    this.pinchStartCamDist = this.distance;
+    this.hadMultiTouch = false;
+
+    const canvas = this.world?.renderer?.domElement;
+    if (canvas) {
+      canvas.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        this.touchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (this.touchPointers.size === 2) {
+          const pts = [...this.touchPointers.values()];
+          this.pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          this.pinchStartCamDist = this.distance;
+          this.hadMultiTouch = true;
+          this.isPointerDragging = false;
+          return;
+        }
+
+        if (this.touchPointers.size === 1) {
+          this.hadMultiTouch = false;
+          this.isPointerDragging = true;
+          this.pointerDownPos.x = e.clientX;
+          this.pointerDownPos.y = e.clientY;
+          this.pointerDownTime = performance.now();
+          this.pointerMovedDist = 0;
+        }
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (this.touchPointers.has(e.pointerId)) {
+          this.touchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        }
+
+        // 2-finger pinch zoom on mobile
+        if (this.touchPointers.size === 2 && this.pinchStartDist) {
+          const pts = [...this.touchPointers.values()];
+          const curDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          const delta = (this.pinchStartDist - curDist) * 0.012;
+          this.followCamEnabled = true;
+          this.distance = Math.max(2.1, Math.min(9.0, this.pinchStartCamDist + delta));
+          return;
+        }
+
+        if (!this.isPointerDragging) return;
+        const dx = e.clientX - this.pointerDownPos.x;
+        const dy = e.clientY - this.pointerDownPos.y;
+        this.pointerMovedDist += Math.hypot(dx, dy);
+        this.pointerDownPos.x = e.clientX;
+        this.pointerDownPos.y = e.clientY;
+
+        const dragThreshold = e.pointerType === 'touch' ? 10 : 4;
+        if (this.pointerMovedDist > dragThreshold) {
+          this.followCamEnabled = true;
+          const rotSpeed = e.pointerType === 'touch' ? 0.0068 : 0.0055;
+          this.yaw -= dx * rotSpeed;
+          this.pitch = Math.max(-0.22, Math.min(0.34, this.pitch + dy * 0.0038));
+        }
+      });
+
+      const finishPointer = (e) => {
+        this.touchPointers.delete(e.pointerId);
+        if (this.touchPointers.size < 2) {
+          this.pinchStartDist = null;
+        }
+        if (!this.isPointerDragging) return;
+        this.isPointerDragging = false;
+
+        // Generous tap tolerance on mobile touch (22px) so thumb taps always register cleanly
+        const tapMaxMove = e.pointerType === 'touch' ? 22 : 8;
+        const tapDuration = performance.now() - (this.pointerDownTime || 0);
+        if (
+          !this.hadMultiTouch &&
+          this.pointerMovedDist < tapMaxMove &&
+          tapDuration < 650 &&
+          (e.target === canvas || canvas.contains(e.target))
+        ) {
+          this.spawnScreenTapRipple(e.clientX, e.clientY);
+          this.handleCanvasGroundClick(e.clientX, e.clientY);
+        }
+      };
+
+      window.addEventListener('pointerup', finishPointer);
+      window.addEventListener('pointercancel', (e) => {
+        this.touchPointers.delete(e.pointerId);
+        this.pinchStartDist = null;
+        this.isPointerDragging = false;
+      });
+
+      canvas.addEventListener(
+        'wheel',
+        (e) => {
+          this.followCamEnabled = true;
+          this.distance = Math.max(2.1, Math.min(9.5, this.distance + e.deltaY * 0.0028));
+        },
+        { passive: true }
+      );
+    }
+
+    // Keyboard WASD / Arrow walking & hotkeys (B = bow/greet, C = kneel/stand, P = robe color)
+    window.addEventListener('keydown', (e) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      const code = e.code;
+      if (code === 'KeyW' || code === 'ArrowUp') {
+        this.keys.w = true;
+        this.cancelPointJourney();
+      } else if (code === 'KeyS' || code === 'ArrowDown') {
+        this.keys.s = true;
+        this.cancelPointJourney();
+      } else if (code === 'KeyA' || code === 'ArrowLeft') {
+        this.keys.a = true;
+        this.cancelPointJourney();
+      } else if (code === 'KeyD' || code === 'ArrowRight') {
+        this.keys.d = true;
+        this.cancelPointJourney();
+      } else if (code === 'KeyB' || code === 'KeyG') {
+        e.preventDefault();
+        this.triggerGreeting();
+      } else if (code === 'KeyC') {
+        e.preventDefault();
+        this.togglePosture();
+      } else if (code === 'KeyP') {
+        e.preventDefault();
+        this.cyclePalette();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const code = e.code;
+      if (code === 'KeyW' || code === 'ArrowUp') this.keys.w = false;
+      else if (code === 'KeyS' || code === 'ArrowDown') this.keys.s = false;
+      else if (code === 'KeyA' || code === 'ArrowLeft') this.keys.a = false;
+      else if (code === 'KeyD' || code === 'ArrowRight') this.keys.d = false;
+    });
+  }
+
+  spawnScreenTapRipple(clientX, clientY) {
+    const el = document.createElement('div');
+    el.className = 'ground-tap-ripple';
+    el.style.left = `${clientX}px`;
+    el.style.top = `${clientY}px`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 580);
+  }
+
+  cancelPointJourney() {
+    this.waypoints = [];
+    this.destinationMarker.visible = false;
+    this.followCamEnabled = true;
+    document.body.classList.remove('wanderer-walking');
+    if (this.posture !== 'walk' && this.selfActor) {
+      this.posture = 'walk';
+      this.selfActor.setMode('walk');
+      this.syncHUD();
+    }
+  }
+
+  /**
+   * Hooks into Chakyeong3DWorld.renderer.render so our character movement & 3rd-person behind-the-back
+   * camera update smoothly every frame right before WebGL renders.
+   */
+  hookIntoWorldRenderLoop() {
+    const world = this.world;
+    if (!world || !world.renderer) return;
+
+    const origRender = world.renderer.render.bind(world.renderer);
+    world.renderer.render = (scene, camera) => {
+      const elapsed = performance.now() * 0.001;
+      const dt = Math.min(0.05, Math.max(0.001, elapsed - (this.lastElapsed || elapsed)));
+      this.lastElapsed = elapsed;
+
+      this.updateFrame(elapsed, dt);
+      return origRender(scene, camera);
+    };
+  }
+
+  updateFrame(elapsed, dt) {
+    if (!this.selfActor || !this.selfActor.group) return;
+
+    const spaceId = this.getActiveSpace();
+    const selfPos = this.selfActor.group.position;
+
+    // 1. Compute Player Velocity from either WASD keys OR active Click-to-Walk Destination Waypoints
+    let moveX = 0;
+    let moveZ = 0;
+    const forwardInput = (this.keys.w ? 1 : 0) - (this.keys.s ? 1 : 0);
+    const strafeInput = (this.keys.d ? 1 : 0) - (this.keys.a ? 1 : 0);
+
+    if (forwardInput !== 0 || strafeInput !== 0) {
+      const fwdX = -Math.sin(this.yaw);
+      const fwdZ = -Math.cos(this.yaw);
+      const rightX = Math.cos(this.yaw);
+      const rightZ = -Math.sin(this.yaw);
+
+      moveX = fwdX * forwardInput + rightX * strafeInput;
+      moveZ = fwdZ * forwardInput + rightZ * strafeInput;
+      const len = Math.hypot(moveX, moveZ) || 1;
+      moveX = (moveX / len) * this.moveSpeed;
+      moveZ = (moveZ / len) * this.moveSpeed;
+    } else if (this.waypoints.length > 0 && this.posture === 'walk') {
+      const target = this.waypoints[0];
+      const dx = target.x - selfPos.x;
+      const dz = target.z - selfPos.z;
+      const distSq = dx * dx + dz * dz;
+
+      if (distSq <= 0.03) {
+        selfPos.x = target.x;
+        selfPos.z = target.z;
+        selfPos.y = this.getGroundHeightAt(spaceId, selfPos.x, selfPos.z);
+        this.waypoints.shift();
+
+        if (this.waypoints.length === 0) {
+          this.destinationMarker.visible = false;
+          this.spawnGroundRipple(selfPos, this.currentPalette.markerHex || 0xffd27d);
+        }
+      } else {
+        const dist = Math.sqrt(distSq);
+        const stepSpeed = Math.min(this.moveSpeed, Math.max(0.95, dist * 3.2));
+        moveX = (dx / dist) * stepSpeed;
+        moveZ = (dz / dist) * stepSpeed;
+      }
+    }
+
+    // 2. Integrate position & orient character so their back is to the camera and they face the walk direction
+    const damp = Math.exp(-dt * 10);
+    this.velocity.x = this.velocity.x * damp + moveX * (1 - damp);
+    this.velocity.z = this.velocity.z * damp + moveZ * (1 - damp);
+
+    const speed = Math.hypot(this.velocity.x, this.velocity.z);
+    if (speed > 0.03 && this.posture === 'walk') {
+      const prevX = selfPos.x;
+      const prevZ = selfPos.z;
+      const nextX = prevX + this.velocity.x * dt;
+      const nextZ = prevZ + this.velocity.z * dt;
+      const clamped = this.clampWalkableXZ(spaceId, nextX, nextZ, prevX, prevZ);
+      selfPos.x = clamped.x;
+      selfPos.z = clamped.z;
+
+      const actualDx = clamped.x - prevX;
+      const actualDz = clamped.z - prevZ;
+      const actualMoveLen = Math.hypot(actualDx, actualDz);
+      const rotDirX = actualMoveLen > 0.0005 ? actualDx : this.velocity.x;
+      const rotDirZ = actualMoveLen > 0.0005 ? actualDz : this.velocity.z;
+
+      // In monk.glb rig, -Z is forward, so facing (velX, velZ) requires rotation.y = atan2(-velX, -velZ)
+      const targetRotY = Math.atan2(-rotDirX, -rotDirZ);
+      const angleDiff = Math.atan2(
+        Math.sin(targetRotY - this.selfActor.group.rotation.y),
+        Math.cos(targetRotY - this.selfActor.group.rotation.y)
+      );
+      this.selfActor.group.rotation.y += angleDiff * (1 - Math.exp(-dt * 10));
+
+      // Gently align camera yaw behind the walking character when not manually dragging the mouse
+      if (!this.isPointerDragging) {
+        const camAngleDiff = Math.atan2(
+          Math.sin(this.selfActor.group.rotation.y - this.yaw),
+          Math.cos(this.selfActor.group.rotation.y - this.yaw)
+        );
+        this.yaw += camAngleDiff * (1 - Math.exp(-dt * 2.6));
+      }
+    } else {
+      this.velocity.set(0, 0, 0);
+    }
+
+    // Smooth vertical ground tracking
+    const targetGroundY = this.getGroundHeightAt(spaceId, selfPos.x, selfPos.z);
+    selfPos.y += (targetGroundY - selfPos.y) * (1 - Math.exp(-dt * 16));
+
+    // Update player skeletal animation
+    const normalizedSpeed = Math.min(1, speed / this.moveSpeed);
+    this.selfActor.update(elapsed, dt, normalizedSpeed);
+
+    const isMobileScreen =
+      window.innerWidth <= 768 || (this.camera && this.camera.aspect < 0.88);
+    const isActivelyWalking = speed > 0.06 || this.waypoints.length > 0;
+    document.body.classList.toggle('wanderer-walking', isActivelyWalking);
+
+    // 3. Animate the Destination Point Marker (scaled up 1.38x on mobile screens for clear visibility)
+    if (this.destinationMarker.visible) {
+      const { ringMesh, dotMesh, waveMesh, waveMat, beamMat } = this.destinationMarker.userData;
+      const mobileScale = isMobileScreen ? 1.38 : 1.0;
+      this.destinationMarker.scale.setScalar(mobileScale);
+
+      const pulse = 1 + Math.sin(elapsed * 5.0) * 0.08;
+      ringMesh.scale.setScalar(pulse);
+      dotMesh.scale.setScalar(1 + Math.cos(elapsed * 5.0) * 0.14);
+
+      const wavePhase = (elapsed * 0.95) % 1;
+      waveMesh.scale.setScalar(1 + wavePhase * 1.5);
+      waveMat.opacity = (1 - wavePhase) * 0.72;
+
+      if (beamMat) {
+        beamMat.opacity = 0.34 + Math.sin(elapsed * 4.0) * 0.14;
+      }
+    }
+
+    // 4. Update Fellow Wanderer NPCs
+    this.npcWanderers.forEach((npc) => {
+      if (!npc.actor || !npc.actor.group) return;
+      const nPos = npc.actor.group.position;
+
+      if (elapsed > npc.nextMoveTime) {
+        const angle = Math.random() * Math.PI * 2;
+        const r = Math.random() * npc.patrolRadius;
+        const tx = npc.homePos.x + Math.cos(angle) * r;
+        const tz = npc.homePos.z + Math.sin(angle) * r;
+        const clamped = this.clampWalkableXZ(spaceId, tx, tz);
+        npc.targetPos.set(clamped.x, this.getGroundHeightAt(spaceId, clamped.x, clamped.z), clamped.z);
+        npc.nextMoveTime = elapsed + 6.0 + Math.random() * 6.5;
+      }
+
+      const dx = npc.targetPos.x - nPos.x;
+      const dz = npc.targetPos.z - nPos.z;
+      const dist = Math.hypot(dx, dz);
+
+      let npcNormSpeed = 0;
+      if (dist > 0.12) {
+        const step = Math.min(dist, npc.speed * dt);
+        const nextNpcX = nPos.x + (dx / dist) * step;
+        const nextNpcZ = nPos.z + (dz / dist) * step;
+        const clampedNpc = this.clampWalkableXZ(spaceId, nextNpcX, nextNpcZ, nPos.x, nPos.z);
+        nPos.x = clampedNpc.x;
+        nPos.z = clampedNpc.z;
+        nPos.y = this.getGroundHeightAt(spaceId, nPos.x, nPos.z);
+
+        const targetYaw = Math.atan2(-dx, -dz);
+        const diff = Math.atan2(
+          Math.sin(targetYaw - npc.actor.group.rotation.y),
+          Math.cos(targetYaw - npc.actor.group.rotation.y)
+        );
+        npc.actor.group.rotation.y += diff * (1 - Math.exp(-dt * 8));
+        npcNormSpeed = 0.55;
+      }
+
+      npc.actor.update(elapsed + npc.seed, dt, npcNormSpeed);
+    });
+
+    // 5. Update floating greeting bubbles & ground ripples
+    for (let i = this.activeBubbles.length - 1; i >= 0; i--) {
+      const b = this.activeBubbles[i];
+      b.age += dt;
+      b.sprite.position.y = 1.70 + b.age * 0.12;
+      if (b.age > b.duration - 0.45) {
+        b.sprite.material.opacity = Math.max(0, (b.duration - b.age) / 0.45);
+      }
+      if (b.age >= b.duration) {
+        b.parent.remove(b.sprite);
+        b.sprite.material.map?.dispose();
+        b.sprite.material.dispose();
+        this.activeBubbles.splice(i, 1);
+      }
+    }
+
+    for (let i = this.greetingRipples.length - 1; i >= 0; i--) {
+      const r = this.greetingRipples[i];
+      r.age += dt;
+      const t = r.age / r.duration;
+      r.mesh.scale.setScalar(1 + t * 3.8);
+      r.mat.opacity = Math.max(0, (1 - t) * 0.75);
+      if (r.age >= r.duration) {
+        this.rootGroup.remove(r.mesh);
+        r.mesh.geometry.dispose();
+        r.mat.dispose();
+        this.greetingRipples.splice(i, 1);
+      }
+    }
+
+    // 6. sansatemple.com-style 3rd-Person Behind-the-Back Camera Frame!
+    // On mobile portrait screens, elevates the character into the clear center of the screen above the bottom HUD.
+    if (this.followCamEnabled) {
+      const sinYaw = Math.sin(this.yaw);
+      const cosYaw = Math.cos(this.yaw);
+
+      const effectiveDist = isMobileScreen ? this.distance * 0.86 : this.distance;
+      const camHeightOffset = isMobileScreen
+        ? (this.posture === 'walk' ? 1.62 : 1.32)
+        : (this.posture === 'walk' ? 1.88 : 1.48);
+      const lookHeightOffset = isMobileScreen
+        ? (this.posture === 'walk' ? 0.54 : 0.68)
+        : (this.posture === 'walk' ? 1.13 : 1.24);
+      const extraZoomHeight = Math.max(0, effectiveDist - 3.3) * 0.22;
+
+      let desiredCamX = selfPos.x + sinYaw * effectiveDist;
+      let desiredCamY = selfPos.y + camHeightOffset + extraZoomHeight + this.pitch * 3.0;
+      let desiredCamZ = selfPos.z + cosYaw * effectiveDist;
+
+      // In Buseoksa, keep camera in front of Muryangsujeon's rear lattice wall (z = 9.55)
+      if (spaceId === 'buseoksa' && desiredCamZ > 9.10) {
+        desiredCamZ = 9.10;
+      }
+
+      const lookTargetX = selfPos.x - sinYaw * 3.0;
+      const lookTargetY = selfPos.y + lookHeightOffset - this.pitch * 1.7;
+      const lookTargetZ = selfPos.z - cosYaw * 3.0;
+
+      const camSmooth = this.camInitialized ? 1 - Math.exp(-dt * 12) : 1.0;
+      this.camInitialized = true;
+
+      this.camPos.x += (desiredCamX - this.camPos.x) * camSmooth;
+      this.camPos.y += (desiredCamY - this.camPos.y) * camSmooth;
+      this.camPos.z += (desiredCamZ - this.camPos.z) * camSmooth;
+
+      this.camLook.x += (lookTargetX - this.camLook.x) * camSmooth;
+      this.camLook.y += (lookTargetY - this.camLook.y) * camSmooth;
+      this.camLook.z += (lookTargetZ - this.camLook.z) * camSmooth;
+
+      this.camera.position.copy(this.camPos);
+      this.camera.lookAt(this.camLook);
+
+      if (this.world.camPos && this.world.targetCamPos) {
+        this.world.camPos.copy(this.camPos);
+        this.world.targetCamPos.copy(this.camPos);
+        this.world.camLook.copy(this.camLook);
+        this.world.targetCamLook.copy(this.camLook);
+      }
+    }
+  }
+}
+
+// Initialize SansaWandererManager as soon as world3D is ready
+window.addEventListener('DOMContentLoaded', () => {
+  const initCheck = setInterval(() => {
+    if (typeof world3D !== 'undefined' && world3D && world3D.scene && typeof C_ENGINE !== 'undefined') {
+      clearInterval(initCheck);
+      window.world3D = world3D;
+      window.wandererManager = new SansaWandererManager(world3D);
+
+      // Bind top-right camera preset buttons
+      document.querySelectorAll('[data-cam-btn]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (!window.wandererManager) return;
+          if (btn.dataset.camBtn === 'spirit') {
+            window.wandererManager.followCamEnabled = true;
+            window.wandererManager.camInitialized = false;
+            showToast('🎋 산사 나그네 3인칭 후방 시점으로 전환했습니다.');
+          } else {
+            window.wandererManager.followCamEnabled = false;
+            showToast('🎥 풍경 조망 시점으로 전환했습니다. (바닥을 클릭하거나 이동하면 나그네 3인칭 시점으로 돌아옵니다)');
+          }
+        });
+      });
+    }
+  }, 40);
 });
